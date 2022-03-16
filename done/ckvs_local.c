@@ -44,10 +44,12 @@ int ckvs_local_stats(const char *filename){
 
 
     if(strncmp(CKVS_HEADERSTRING_PREFIX,header_str,strlen(CKVS_HEADERSTRING_PREFIX))!=0){
+        fclose(file);
         return ERR_CORRUPT_STORE;
     }
 
     if (infos[0]!=1){
+        fclose(file);
         return ERR_CORRUPT_STORE;
     }
     uint32_t table_size= infos[1];
@@ -55,7 +57,10 @@ int ckvs_local_stats(const char *filename){
         if (table_size%2!=0) break;
         table_size=table_size/2;
     }
-    if (table_size!=1) return ERR_CORRUPT_STORE;
+    if (table_size!=1) {
+        fclose(file);
+        return ERR_CORRUPT_STORE;
+    }
 
     ckvs_header_t header= {
 
@@ -67,14 +72,17 @@ int ckvs_local_stats(const char *filename){
     strcpy(header.header_string,header_str);
     print_header(&header);/*TODO PRINT_HEADER*/
 
-    if(header.table_size!=CKVS_FIXEDSIZE_TABLE) return ERR_CORRUPT_STORE;
+    if(header.table_size!=CKVS_FIXEDSIZE_TABLE) {
+        fclose(file);
+        return ERR_CORRUPT_STORE;
+    }
 
     ckvs_entry_t entries[CKVS_FIXEDSIZE_TABLE];
 
     size_t nb_ok3 = fread(entries, sizeof(ckvs_entry_t), CKVS_FIXEDSIZE_TABLE, file);
     if (nb_ok3 != CKVS_FIXEDSIZE_TABLE) {
         fclose(file);
-        printf("4");
+        //printf("4");
         return ERR_IO;
     }
 

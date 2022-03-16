@@ -21,11 +21,11 @@
  * @param header (const struct ckvs_header*) the header to print
  */
 void print_header(const struct ckvs_header* header){
-    printf("CKVS Header type       : %s\n",header->header_string);
-    printf("CKVS Header version    : %" PRIu32 "\n", header->version);
-    printf("CKVS Header table_size : %" PRIu32 "\n", header->table_size);
-    printf("CKVS Header threshold  : %" PRIu32 "\n", header->threshold_entries);
-    printf("CKVS Header num_entries: %" PRIu32 "\n", header->num_entries);
+    pps_printf("CKVS Header type       : %s\n",header->header_string);
+    pps_printf("CKVS Header version    : %" PRIu32 "\n", header->version);
+    pps_printf("CKVS Header table_size : %" PRIu32 "\n", header->table_size);
+    pps_printf("CKVS Header threshold  : %" PRIu32 "\n", header->threshold_entries);
+    pps_printf("CKVS Header num_entries: %" PRIu32 "\n", header->num_entries);
     return;
 }
 
@@ -37,9 +37,9 @@ void print_header(const struct ckvs_header* header){
  * @param entry (const struct ckvs_entry*) the entry to print
  */
 void print_entry(const struct ckvs_entry* entry){
-    printf("    Key   : %s\n",entry->key);
-    printf("    Value : off %" PRIu64 " len %" PRIu64 "\n", entry->value_off,entry->value_len);
-    printf("    Auth  : ");
+    pps_printf("    Key   : %s\n",entry->key);
+    pps_printf("    Value : off %" PRIu64 " len %" PRIu64 "\n", entry->value_off,entry->value_len);
+    pps_printf("    Auth  : ");
     print_SHA("    Auth  : ",&entry->auth_key);
     print_SHA("    C2    : %",&entry->c2);
     return;
