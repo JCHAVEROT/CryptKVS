@@ -52,7 +52,7 @@ struct ckvs_header {
  * @brief Represents a CKVS database entry.
  */
 struct ckvs_entry {
-    char key[CKVS_MAXKEYLEN];  /**< not (necessarily) null-terminated */
+    char key[CKVS_MAXKEYLEN+1];  /**< not (necessarily) null-terminated */
     struct ckvs_sha auth_key;  /**< as specified by protocol */
     struct ckvs_sha c2;        /**< as specified by protocol */
     uint64_t value_off;        /**< offset of encrypted secret value in database */
