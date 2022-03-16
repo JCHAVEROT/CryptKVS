@@ -29,6 +29,11 @@
  */
 #define CKVS_MAX_ENTRIES (1<<22)
 
+/**
+ * @brief Absolute maximum table_size for a CKVS database.
+ */
+#define CKVS_UINT32_T_ELEMENTS 4
+
 // Only for the beginning of the project.
 #define CKVS_FIXEDSIZE_TABLE (1<<6)
 
