@@ -70,7 +70,7 @@ void print_SHA(const char *prefix, const struct ckvs_sha *sha) {
  */
 void hex_encode(const uint8_t *in, size_t len, char *buf) {
     for (size_t i = 0; i < len; ++i) {
-        sprintf(&buf[i], "%02x", in[i]);
+        sprintf(buf, "%02x", in[i]);
     }
 }
 
