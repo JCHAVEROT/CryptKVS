@@ -44,8 +44,8 @@ int ckvs_do_one_cmd(int argc, char *argv[])
     const char* db_filename = argv[1];
     const char* cmd = argv[2];
 
-    if (strcmp(argv[3],"stats")==0){
-        ckvs_local_stats(db_filename);
+    if (strcmp(cmd,"stats")==0){
+       return ckvs_local_stats(db_filename);
     }
 
     return NOT_IMPLEMENTED;

@@ -19,9 +19,8 @@ void print_header(const struct ckvs_header* header){
 }
 
 void print_entry(const struct ckvs_entry* entry){
-    printf("    Key   : %s\n",entry->key);
+    printf("    Key   : %-*s\n",CKVS_MAXKEYLEN,entry->key);
     printf("    Value : off %" PRIu64 " len %" PRIu64 "\n", entry->value_off,entry->value_len);
-    printf("    Auth  : ");
     print_SHA("    Auth  : ",&entry->auth_key);
     print_SHA("    C2    : %",&entry->c2);
     return;
