@@ -39,9 +39,9 @@ void print_header(const struct ckvs_header* header){
 void print_entry(const struct ckvs_entry* entry){
     pps_printf("    Key   : %s\n",entry->key);
     pps_printf("    Value : off %" PRIu64 " len %" PRIu64 "\n", entry->value_off,entry->value_len);
-    pps_printf("    Auth  : ");
+    //pps_printf("    Auth  : ");
     print_SHA("    Auth  : ",&entry->auth_key);
-    print_SHA("    C2    : %",&entry->c2);
+    print_SHA("    C2    : ",&entry->c2);
     return;
 }
 
