@@ -20,7 +20,7 @@ static void usage(const char *execname, int err)
     if (err == ERR_INVALID_COMMAND) {
         pps_printf("Available commands:\n");
         pps_printf("- cryptkvs <database> stats\n");
-    } else if (err > 0 && err <= ERR_NB_ERR) {
+    } else if (err >= 0 && err < ERR_NB_ERR) {
         pps_printf("%s exited with error: %s\n\n\n", execname, ERR_MESSAGES[err]);
     } else {
         pps_printf("%s exited with error: %d (out of range)\n\n\n", execname, err);
@@ -48,7 +48,7 @@ int ckvs_do_one_cmd(int argc, char *argv[])
        return ckvs_local_stats(db_filename);
     }
 
-    return NOT_IMPLEMENTED;
+    return ERR_INVALID_COMMAND;
 }
 
 #ifndef FUZZ
