@@ -19,7 +19,7 @@ static void usage(const char *execname, int err)
 {
     if (err == ERR_INVALID_COMMAND) {
         //pps_printf("Available commands:\n");
-        pps_printf("- cryptkvs <database> stats\n");
+        pps_printf("- cryptkvs <database> stats");
     } else if (err >= 0 && err < ERR_NB_ERR) {
         pps_printf("%s exited with error: %s\n\n\n", execname, ERR_MESSAGES[err]);
     } else {
