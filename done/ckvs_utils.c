@@ -55,7 +55,7 @@ void print_entry(const struct ckvs_entry* entry){
 void print_SHA(const char *prefix, const struct ckvs_sha *sha) {
     char buffer[SHA256_PRINTED_STRLEN];
     SHA256_to_string(sha, buffer);
-    pps_printf("%-5s: %s\n", prefix, buffer);
+    pps_printf("%-5s: %.32s\n", prefix, buffer);
 }
 
 /**

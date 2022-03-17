@@ -10,7 +10,6 @@
 #pragma once
 
 #include <openssl/sha.h>
-#define SHA256_DIGEST_LENGTH 32
 
 /**
  * @brief Holds data for a SHA256 hash (ie. 32B = 256b).
