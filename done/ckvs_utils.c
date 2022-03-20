@@ -70,6 +70,7 @@ void print_SHA(const char *prefix, const struct ckvs_sha *sha) {
  * @see hex_decode for the inverse operation
  */
 void hex_encode(const uint8_t *in, size_t len, char *buf) {
+    if (in==NULL || buf==NULL) return;
     for (size_t i = 0; i < len; ++i) {
         sprintf(&buf[2*i], "%02x", in[i]);
     }
@@ -86,6 +87,7 @@ void hex_encode(const uint8_t *in, size_t len, char *buf) {
  * @see SHA256_from_string for the inverse operation
  */
 void SHA256_to_string(const struct ckvs_sha *sha, char *buf) {
+    if (sha==NULL || buf==NULL) return;
     hex_encode(sha->sha, SHA256_DIGEST_LENGTH, buf);
     return;
 }
