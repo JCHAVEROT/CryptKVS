@@ -20,6 +20,7 @@
  * @return int, an error code
  */
 int ckvs_local_stats(const char *filename){
+    if (filename==NULL) return ERR_INVALID_ARGUMENT;
     FILE* file=NULL;
     file= fopen(filename,"rb");
     if (file==NULL){
