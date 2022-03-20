@@ -52,9 +52,11 @@ void print_entry(const struct ckvs_entry* entry){
  * @param sha (const struct ckvs_sha*) the SHA to print
  */
 void print_SHA(const char *prefix, const struct ckvs_sha *sha) {
+   // if ((*prefix)==NULL || (*sha)==NULL) return;
     char buffer[SHA256_PRINTED_STRLEN];
     SHA256_to_string(sha, buffer);
     pps_printf("%-5s: %s\n", prefix, buffer);
+    return;
 }
 
 /**
@@ -71,6 +73,7 @@ void hex_encode(const uint8_t *in, size_t len, char *buf) {
     for (size_t i = 0; i < len; ++i) {
         sprintf(&buf[2*i], "%02x", in[i]);
     }
+    return;
 }
 
 /**
@@ -84,6 +87,7 @@ void hex_encode(const uint8_t *in, size_t len, char *buf) {
  */
 void SHA256_to_string(const struct ckvs_sha *sha, char *buf) {
     hex_encode(sha->sha, SHA256_DIGEST_LENGTH, buf);
+    return;
 }
 
 
