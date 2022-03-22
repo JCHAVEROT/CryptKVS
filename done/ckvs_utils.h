@@ -11,6 +11,7 @@
 
 #include <openssl/sha.h>
 
+
 /**
  * @brief Holds data for a SHA256 hash (ie. 32B = 256b).
  */
@@ -19,6 +20,9 @@ struct __attribute__((packed, aligned(8))) ckvs_sha {
 };
 
 typedef struct ckvs_sha ckvs_sha_t;
+
+
+
 
 #define SHA256_PRINTED_STRLEN (SHA256_DIGEST_LENGTH*2+1)
 

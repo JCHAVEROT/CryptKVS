@@ -45,8 +45,16 @@ int ckvs_do_one_cmd(int argc, char *argv[])
     const char* cmd = argv[2];
 
     if (strcmp(cmd,"stats")==0){
+        if (argc > 3) return ERR_TOO_MANY_ARGUMENTS;
        return ckvs_local_stats(db_filename);
     }
+    if (strcmp(cmd,"get")==0){
+        if (argc < 5) return ERR_NOT_ENOUGH_ARGUMENTS; //MEME CHOSE POUR STATS??
+        if (argc > 5) return ERR_TOO_MANY_ARGUMENTS;
+
+        return ckvs_local_get(db_filename,argv[3],argv[4]);
+    }
+
 
     return ERR_INVALID_COMMAND;
 }

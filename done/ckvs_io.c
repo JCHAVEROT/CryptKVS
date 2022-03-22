@@ -1,9 +1,3 @@
-/**
- * @file ckvs_local.c
- * @brief
- *
- * @author A. Troussard
- */
 #include <stdio.h>
 #include <string.h>
 #include "ckvs_utils.h"
@@ -11,27 +5,30 @@
 #include "error.h"
 #include <stdint.h>
 #include "ckvs_io.h"
-#include "ckvs_io.c"
+#include "ckvs.h"
 
 
-/**
- * @brief Opens the CKVS database at the given filename and executes the 'stats' command,
- * ie. prints information about the database.
- * DO NOT FORGET TO USE pps_printf to print the header/entries!!!
- *
- * @param filename (const char*) the path to the CKVS database to open
- * @return int, an error code
- */
-int ckvs_local_stats(const char *filename){
-    /*if (filename==NULL) return ERR_INVALID_ARGUMENT;
-    FILE* file=NULL;
-    file= fopen(filename,"rb");
-    if (file==NULL){
+int ckvs_open(const char *filename, struct CKVS *ckvs) {
+    //empty ckvs
+    /*if (ckvs==NULL) return ERR_INVALID_ARGUMENT;
+    ckvs->header = {"\0", 0, 0, 0, 0};
+    ckvs->file = NULL;
+    ckvs_entry_t empty_entry = {"\0", {"\0"}, {"\0"}, 0, 0};
+    for (int i = 0; i < CKVS_FIXEDSIZE_TABLE; i++)  ckvs->entries[i] = empty_entry;*/
+    memset(ckvs,0, sizeof(struct CKVS));
+
+
+    //open the file
+    if (filename == NULL) return ERR_INVALID_ARGUMENT;
+    FILE *file = NULL;
+    file = fopen(filename, "r+b");
+    if (file == NULL) {
         return ERR_IO;
     }
+    ckvs->file=file;
 
 
-
+    // read the header
     char header_str[CKVS_HEADERSTRINGLEN];
     size_t nb_ok = fread(header_str, sizeof(char), CKVS_HEADERSTRINGLEN, file);
     if (nb_ok != CKVS_HEADERSTRINGLEN) {
@@ -65,25 +62,21 @@ int ckvs_local_stats(const char *filename){
         fclose(file);
         return ERR_CORRUPT_STORE;
     }
-
-    ckvs_header_t header= {
-
+    ckvs_header_t header={
             .version           =infos[0],
             .table_size        =infos[1],
             .threshold_entries =infos[2],
             .num_entries       =infos[3]
     };
-
-
     strcpy(header.header_string,header_str);
+    ckvs->header= header;
 
-
-    //TODO : print_header(&header);
-
-    if(header.table_size!=CKVS_FIXEDSIZE_TABLE) {
+    if(ckvs->header.table_size!=CKVS_FIXEDSIZE_TABLE) { //For now but to be deleted later
         fclose(file);
         return ERR_CORRUPT_STORE;
     }
+
+
 
     ckvs_entry_t entries[CKVS_FIXEDSIZE_TABLE];
 
@@ -91,32 +84,15 @@ int ckvs_local_stats(const char *filename){
     if (nb_ok3 != CKVS_FIXEDSIZE_TABLE) {
         fclose(file);
         return ERR_IO;
-    }*/
-    struct CKVS ckvs;
-    memset(&ckvs,0, sizeof(struct CKVS));
-
-
-    int r = ckvs_open(filename,&ckvs);
-
-    if (r!=ERR_NONE){
-        return r;
     }
 
-    print_header(&ckvs.header);
-
-    for (int i=0;i<CKVS_FIXEDSIZE_TABLE;i++){
-        if(strlen(ckvs.entries[i].key)!=0){
-            print_entry(&ckvs.entries[i]);
-        }
-    }
+    memcpy(entries, ckvs->entries, sizeof(entries));
 
     return ERR_NONE;
 
-}
 
-int ckvs_local_get(const char *filename, const char *key, const char *pwd){
-    printf("File: %s, Key : %s, Password: %s",filename,key,pwd);
-    return ERR_NONE;
 }
-
+void ckvs_close(struct CKVS *ckvs){
+    if (ckvs->file!=NULL) fclose(ckvs->file);
+}
 

@@ -11,12 +11,20 @@
 /* *************************************************** *
  * TODO WEEK 04: Define struct CKVS here               *
  * *************************************************** */
+/**
+ * @brief Represents a CKVS database.
+ */
  struct CKVS{
      struct ckvs_header header;
      struct ckvs_entry entries[CKVS_FIXEDSIZE_TABLE];
      FILE *file;
 };
  typedef struct CKVS CKVS_t;
+
+/**
+ * @brief Represents the empty CKVS database.
+ */
+static const struct CKVS emptyCKVS;//Possible?
 
 
 
