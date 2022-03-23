@@ -4,8 +4,8 @@
 #include "ckvs.h"
 #include "error.h"
 #include <stdint.h>
+#include <stdbool.h>
 #include "ckvs_io.h"
-#include "ckvs.h"
 
 
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
