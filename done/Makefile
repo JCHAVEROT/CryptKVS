@@ -38,15 +38,15 @@ CPPFLAGS += -fsanitize=address
 LDFLAGS  += -fsanitize=address
 LDLIBS   += -fsanitize=address
 
-# add the debug flag
-CPPFLAGS += -DDEBUG
+# add the debug flag, may need to comment this line when doing make feedback
+#CPPFLAGS += -DDEBUG
 
 
 .PHONY: all
 
 all:: $(TARGETS)
 
-SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c
+SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c ckvs_crypto.c ckvs_io.c
 
 
 OBJS=$(subst .c,.o,$(SRCS))
@@ -85,8 +85,7 @@ style:
 	astyle -n -o -A8 -xt0 *.[ch]
 
 check:
-	make -B -C ../tests/end-to-end
-	make -B -C ../tests/unit
+	make SRC_DIR=$${PWD} -B -C ../provided/tests/unit
 ##	make -B -C ../tests/fuzzing
 
 ## --------------------------------------------------

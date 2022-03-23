@@ -18,17 +18,26 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
 
     memset(mr,0, sizeof(ckvs_memrecord_t));
 
-    char str[2*CKVS_MAXKEYLEN+2] = *key;
+    char str[2*CKVS_MAXKEYLEN+2] ;
+    strncat(str,key,strlen(key));
     const char slash[1]="|";
     strncat(str,slash,1);
     strncat(str,pwd, strlen(pwd));
 
-    mr->stretched_key=SHA256(str,strlen(str),mr->stretched_key);
+    SHA256(str,strlen(str),mr->stretched_key.sha);
+
+    mr->auth_key.sha=HMAC(EVP_sha256(),mr->stretched_key.sha,SHA256_DIGEST_LENGTH ,AUTH_MESSAGE);
+
+
+    if (strlen(mr->auth_key.sha)!= SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;
+
+    mr->c1.sha=HMAC(EVP_sha256(),mr->stretched_key.sha,SHA256_DIGEST_LENGTH ,C1_MESSAGE);
+    if (strlen(mr->c1.sha)!= SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;
 
 
 
 
-    return NOT_IMPLEMENTED;
+    return ERR_NONE;
 }
 
 
