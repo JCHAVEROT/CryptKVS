@@ -102,14 +102,13 @@ int ckvs_local_stats(const char *filename){
         return r;
     }
 
-    print_header(&ckvs.header);
+    print_header(&(ckvs.header));
 
     for (int i=0;i<CKVS_FIXEDSIZE_TABLE;i++){
         if(strlen(ckvs.entries[i].key)!=0){
             print_entry(&ckvs.entries[i]);
         }
     }
-
     return ERR_NONE;
 
 }

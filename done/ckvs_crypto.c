@@ -14,6 +14,12 @@
 
 int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *pwd)
 {
+    if (mr==NULL||key==NULL|| pwd==NULL) return ERR_INVALID_ARGUMENT;
+
+    memset(mr,0, sizeof(ckvs_memrecord_t));
+
+
+
     return NOT_IMPLEMENTED;
 }
 

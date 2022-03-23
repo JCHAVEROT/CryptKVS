@@ -21,13 +21,6 @@
 };
  typedef struct CKVS CKVS_t;
 
-/**
- * @brief Represents the empty CKVS database.
- */
-static const struct CKVS emptyCKVS;//Possible?
-
-
-
 /* *************************************************** *
  * TODO WEEK 05: Open/close refactoring                *
  * *************************************************** */

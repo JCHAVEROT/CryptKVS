@@ -9,12 +9,13 @@
 
 
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
-    //empty ckvs
     /*if (ckvs==NULL) return ERR_INVALID_ARGUMENT;
     ckvs->header = {"\0", 0, 0, 0, 0};
     ckvs->file = NULL;
     ckvs_entry_t empty_entry = {"\0", {"\0"}, {"\0"}, 0, 0};
     for (int i = 0; i < CKVS_FIXEDSIZE_TABLE; i++)  ckvs->entries[i] = empty_entry;*/
+
+    //empty ckvs
     memset(ckvs,0, sizeof(struct CKVS));
 
 
@@ -68,6 +69,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
             .threshold_entries =infos[2],
             .num_entries       =infos[3]
     };
+
     strcpy(header.header_string,header_str);
     ckvs->header= header;
 
@@ -78,15 +80,14 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
 
 
 
-    ckvs_entry_t entries[CKVS_FIXEDSIZE_TABLE];
 
-    size_t nb_ok3 = fread(entries, sizeof(ckvs_entry_t), CKVS_FIXEDSIZE_TABLE, file);
+
+    size_t nb_ok3 = fread(ckvs->entries, sizeof(ckvs_entry_t), CKVS_FIXEDSIZE_TABLE, file);
     if (nb_ok3 != CKVS_FIXEDSIZE_TABLE) {
         fclose(file);
         return ERR_IO;
     }
-
-    memcpy(entries, ckvs->entries, sizeof(entries));
+    
 
     return ERR_NONE;
 
