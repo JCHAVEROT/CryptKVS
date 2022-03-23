@@ -9,12 +9,6 @@
 
 
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
-    /*if (ckvs==NULL) return ERR_INVALID_ARGUMENT;
-    ckvs->header = {"\0", 0, 0, 0, 0};
-    ckvs->file = NULL;
-    ckvs_entry_t empty_entry = {"\0", {"\0"}, {"\0"}, 0, 0};
-    for (int i = 0; i < CKVS_FIXEDSIZE_TABLE; i++)  ckvs->entries[i] = empty_entry;*/
-
     //empty ckvs
     memset(ckvs,0, sizeof(struct CKVS));
 
@@ -87,7 +81,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
         fclose(file);
         return ERR_IO;
     }
-    
+
 
     return ERR_NONE;
 

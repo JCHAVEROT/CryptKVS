@@ -18,6 +18,14 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
 
     memset(mr,0, sizeof(ckvs_memrecord_t));
 
+    char str[2*CKVS_MAXKEYLEN+2] = *key;
+    const char slash[1]="|";
+    strncat(str,slash,1);
+    strncat(str,pwd, strlen(pwd));
+
+    mr->stretched_key=SHA256(str,strlen(str),mr->stretched_key);
+
+
 
 
     return NOT_IMPLEMENTED;
