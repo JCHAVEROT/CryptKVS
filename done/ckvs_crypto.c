@@ -45,6 +45,20 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
 }
 
 
+
+int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_sha *c2){
+    unsigned int l;
+    HMAC(EVP_sha256(),mr->c1.sha,SHA256_DIGEST_LENGTH ,c2->sha,
+         strlen(c2->sha),mr->master_key.sha,&l);
+
+
+    if (l != SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;
+
+    return ERR_NONE;
+
+
+}
+
 int ckvs_client_crypt_value(const struct ckvs_memrecord *mr, const int do_encrypt,
                             const unsigned char *inbuf, size_t inbuflen,
                             unsigned char *outbuf, size_t *outbuflen )
