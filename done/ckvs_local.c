@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include "ckvs_io.h"
 #include "ckvs_crypto.h"
+#include "util.h"
+#include "openssl/evp.h"
 
 
 /**
