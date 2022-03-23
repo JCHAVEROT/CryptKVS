@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include "ckvs_utils.h"
 #include "ckvs.h"
+#include "util.h"
 #include <inttypes.h>
 
 
@@ -37,7 +38,7 @@ void print_header(const struct ckvs_header* header){
  * @param entry (const struct ckvs_entry*) the entry to print
  */
 void print_entry(const struct ckvs_entry* entry){
-    pps_printf("    Key   : %.*s\n", CKVS_MAXKEYLEN, entry->key);
+    pps_printf("    %s   : " STR_LENGTH_FMT(CKVS_MAXKEYLEN) "\n", "Key", entry->key);
     pps_printf("    Value : off %" PRIu64 " len %" PRIu64 "\n", entry->value_off,entry->value_len);
     print_SHA("    Auth  ",&entry->auth_key);
     print_SHA("    C2    ",&entry->c2);

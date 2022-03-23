@@ -4,9 +4,10 @@
 #include "ckvs.h"
 #include "error.h"
 #include <stdint.h>
-#include <stdbool.h>
 #include "ckvs_io.h"
 
+// Enum allowing boolean
+typedef enum {false, true} bool;
 
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
     //empty ckvs
@@ -97,9 +98,10 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
         // Error
         return ERR_INVALID_ARGUMENT;
     }
+
     bool keyWasFound = false;
     bool authKeyIsCorrect = false;
-    for (int i = 0 ; i < CKVS_FIXEDSIZE_TABLE ; ++i) {
+    for (size_t i = 0 ; i < CKVS_FIXEDSIZE_TABLE ; ++i) {
         if (strcmp(ckvs->entries[i].key, key) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[i].auth_key, auth_key) == 0) {
@@ -110,11 +112,11 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
         }
     }
 
-    if (!keyWasFound) {
+    if (keyWasFound == false) {
         // Error
         return ERR_KEY_NOT_FOUND;
     }
-    if (!authKeyIsCorrect) {
+    if (authKeyIsCorrect == false) {
         // Error
         return ERR_DUPLICATE_ID;
     }

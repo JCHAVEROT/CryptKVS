@@ -59,6 +59,7 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
     memset(&ckvs, 0, sizeof(struct CKVS));
     int err1 = ckvs_open(filename,&ckvs);
     if (err1 != ERR_NONE) {
+        // Error
         return err1;
     }
     ckvs_memrecord_t ckvs_mem;
@@ -66,15 +67,16 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
 
     ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
 
-    print_SHA("Buffer",&ckvs_mem.stretched_key);
     ckvs_entry_t* ckvs_out;
-    memset(&ckvs_out, 0, sizeof(ckvs_entry_t));
-
+    memset(&ckvs_out, 0, sizeof(ckvs_entry_t*));
 
     int err2 = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
     if (err2 != ERR_NONE) {
+        // Error
         return err2;
     }
+
+    ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
 
     fseek(ckvs.file, ckvs_out->value_off, SEEK_SET);
 
@@ -84,11 +86,13 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
         ckvs_close(&ckvs);
         return ERR_IO;
     }
-    size_t decryptedSize = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
-    unsigned char decrypted[decryptedSize];
+
+    size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
+    unsigned char decrypted[decrypted_len];
     int err3 = ckvs_client_crypt_value(&ckvs_mem, 0, encrypted, ckvs_out->value_len, decrypted,
-                                       &decryptedSize);
+                                       &decrypted_len);
     if (err3 != ERR_NONE) {
+        // Error
         ckvs_close(&ckvs);
         return err3;
     }
