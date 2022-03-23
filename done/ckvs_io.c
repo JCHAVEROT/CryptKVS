@@ -87,7 +87,38 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
 
 
 }
+
 void ckvs_close(struct CKVS *ckvs){
     if (ckvs->file!=NULL) fclose(ckvs->file);
+}
+
+int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *auth_key, struct ckvs_entry **e_out){
+    if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) {
+        // Error
+        return ERR_INVALID_ARGUMENT;
+    }
+    bool keyWasFound = false;
+    bool authKeyIsCorrect = false;
+    for (int i = 0 ; i < CKVS_FIXEDSIZE_TABLE ; ++i) {
+        if (strcmp(ckvs->entries[i].key, key) == 0) {
+            keyWasFound = true;
+            if (ckvs_cmp_sha(&ckvs->entries[i].auth_key, auth_key) == 0) {
+                authKeyIsCorrect = true;
+                *e_out = &ckvs->entries[i];
+            }
+            break;
+        }
+    }
+
+    if (!keyWasFound) {
+        // Error
+        return ERR_KEY_NOT_FOUND;
+    }
+    if (!authKeyIsCorrect) {
+        // Error
+        return ERR_DUPLICATE_ID;
+    }
+
+    return ERR_NONE;
 }
 

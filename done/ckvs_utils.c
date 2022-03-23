@@ -92,6 +92,19 @@ void SHA256_to_string(const struct ckvs_sha *sha, char *buf) {
     return;
 }
 
+/**
+ * @brief Compares two SHA.
+ *
+ * @param a (const struct ckvs_sha*) the first SHA to compare
+ * @param b (const struct ckvs_sha*) the second SHA to compare
+ * @return int, a negative value if a < b ;
+ * 0 if a == b ;
+ * and a positive value if a > b.
+ */
+int ckvs_cmp_sha(const struct ckvs_sha *a, const struct ckvs_sha *b) {
+    return memcmp(a->sha, b->sha, SHA256_DIGEST_LENGTH);
+}
+
 
 
 
