@@ -55,28 +55,51 @@ int ckvs_local_stats(const char *filename){
  * @return int, an error code
  */
 int ckvs_local_get(const char *filename, const char *key, const char *pwd){
+    //initialize the struct
     struct CKVS ckvs;
     memset(&ckvs, 0, sizeof(struct CKVS));
-    int err1 = ckvs_open(filename,&ckvs);
-    if (err1 != ERR_NONE) {
+
+    //open the file
+    int err = ckvs_open(filename,&ckvs);
+    if (err != ERR_NONE) {
         // Error
-        return err1;
+        pps_printf("error open");
+        ckvs_close(&ckvs);
+        return err;
     }
+    //initialize the struct ckvs_memrecord_t
     ckvs_memrecord_t ckvs_mem;
     memset(&ckvs_mem,0, sizeof(ckvs_memrecord_t));
 
-    ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
+    err=ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
 
+    if (err != ERR_NONE) {
+        // Error
+        pps_printf("erreur encrypt pwd\n");
+        ckvs_close(&ckvs);
+        return err;
+    }
+
+    //initialize the struct ckvs_entry_t
     ckvs_entry_t* ckvs_out;
     memset(&ckvs_out, 0, sizeof(ckvs_entry_t*));
 
-    int err2 = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
-    if (err2 != ERR_NONE) {
+     err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
+
+    if (err != ERR_NONE) {
         // Error
-        return err2;
+        pps_printf("erreur find entry\n");
+        ckvs_close(&ckvs);
+        return err;
     }
 
-    ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
+    err=ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
+    if (err != ERR_NONE) {
+        // Error
+        pps_printf("erreur masterkey\n");
+        ckvs_close(&ckvs);
+        return err;
+    }
 
     fseek(ckvs.file, ckvs_out->value_off, SEEK_SET);
 
@@ -89,12 +112,13 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
 
     size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
     unsigned char decrypted[decrypted_len];
-    int err3 = ckvs_client_crypt_value(&ckvs_mem, 0, encrypted, ckvs_out->value_len, decrypted,
+    err = ckvs_client_crypt_value(&ckvs_mem, 0, encrypted, ckvs_out->value_len, decrypted,
                                        &decrypted_len);
-    if (err3 != ERR_NONE) {
+    if (err != ERR_NONE) {
         // Error
+        pps_printf("erreur crypt_value\n");
         ckvs_close(&ckvs);
-        return err3;
+        return err;
     }
     pps_printf("%s", decrypted);
 

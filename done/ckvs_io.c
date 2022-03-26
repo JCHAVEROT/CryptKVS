@@ -91,18 +91,18 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
 }
 
 void ckvs_close(struct CKVS *ckvs){
-    if (ckvs==NULL) return ERR_INVALID_ARGUMENT;
+    if (ckvs==NULL) return ;
     if (ckvs->file!=NULL) fclose(ckvs->file);
 }
 
 int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *auth_key, struct ckvs_entry **e_out){
-    if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) {
-        // Error
-        return ERR_INVALID_ARGUMENT;
-    }
+    // check pointeurs
+    if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) return ERR_INVALID_ARGUMENT;
+
 
     bool keyWasFound = false;
     bool authKeyIsCorrect = false;
+    //iterate in the array
     for (size_t i = 0 ; i < CKVS_FIXEDSIZE_TABLE ; ++i) {
         if (strcmp(ckvs->entries[i].key, key) == 0) {
             keyWasFound = true;
