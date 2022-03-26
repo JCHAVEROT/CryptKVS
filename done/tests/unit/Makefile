@@ -4,6 +4,7 @@
 CC = clang
 
 TARGETS := utils stats
+TARGETS += ios crypto get
 
 EXECS=$(foreach name,$(TARGETS),unit-test-$(name))
 
@@ -22,6 +23,12 @@ utils: unit-test-utils
 	./unit-test-utils
 stats: unit-test-stats
 	./unit-test-stats
+ios: unit-test-ios
+	./unit-test-ios
+crypto: unit-test-crypto
+	./unit-test-crypto
+get: unit-test-get
+	./unit-test-get
 
 # ======================================================================
 SRC_DIR:=../../done
@@ -40,10 +47,25 @@ unit-test-utils: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
 unit-test-utils: unit-test-utils.o ckvs_test_util.o \
    $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o
 
+unit-test-crypto.o: unit-test-crypto.c
+unit-test-crypto: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
+unit-test-crypto: unit-test-crypto.o ckvs_test_util.o \
+   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_crypto.o
+
+unit-test-ios.o: unit-test-ios.c
+unit-test-ios: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
+unit-test-ios: unit-test-ios.o ckvs_test_util.o \
+   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_io.o
+
 unit-test-stats.o: unit-test-stats.c
 unit-test-stats: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
 unit-test-stats: unit-test-stats.o ckvs_test_util.o \
-   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_local.o
+   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_crypto.o $(SRC_DIR)/ckvs_io.o $(SRC_DIR)/ckvs_local.o
+
+unit-test-get.o: unit-test-get.c
+unit-test-get: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
+unit-test-get: unit-test-get.o ckvs_test_util.o \
+   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_crypto.o $(SRC_DIR)/ckvs_io.o $(SRC_DIR)/ckvs_local.o
 
 # ======================================================================
 .PHONY: clean dist-clean reset

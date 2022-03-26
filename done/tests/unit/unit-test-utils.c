@@ -151,6 +151,50 @@ END_TEST
 
 
 // ======================================================================
+START_TEST(cmp_sha_1)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+
+    ckvs_sha_t s1 = { { 0x1 } };
+    ckvs_sha_t s2 = { { 0x1 } };
+
+    ck_assert_int_eq(ckvs_cmp_sha(&s1, &s1), 0);
+    ck_assert_int_eq(ckvs_cmp_sha(&s1, &s2), 0);
+
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(cmp_sha_2)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+
+    ckvs_sha_t s1  = { { 0x1 } };
+    ckvs_sha_t s2;
+    for (size_t i = 0 ; i < SHA256_DIGEST_LENGTH ; ++i)
+        s2.sha[i] = i;
+
+    // s1 > s2
+    ck_assert_int_gt(ckvs_cmp_sha(&s1, &s2), 0);
+    ck_assert_int_lt(ckvs_cmp_sha(&s2, &s1), 0);
+
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+
+// ======================================================================
 Suite* util_test_suite()
 {
 #ifdef WITH_RANDOM
@@ -169,6 +213,8 @@ Suite* util_test_suite()
     tcase_add_test(tc1, print_SHA_null);
     tcase_add_test(tc1, print_SHA_1);
     tcase_add_test(tc1, print_SHA_2);
+    tcase_add_test(tc1, cmp_sha_1);
+    tcase_add_test(tc1, cmp_sha_2);
 
     return s;
 }
