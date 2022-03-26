@@ -89,7 +89,7 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
 
     if (err != ERR_NONE) {
         // Error
-        pps_printf("PALIDE");
+
         ckvs_close(&ckvs);
         return err;
     }
@@ -119,7 +119,11 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
         ckvs_close(&ckvs);
         return err;
     }
-    pps_printf("%s", decrypted);
+    //check if we have to end the lecture
+    for (int i = 0; i < strlen(decrypted); ++i) {
+        if (!(isprint(decrypted[i])||decrypted[i]=='\n')) break;
+        pps_printf("%c",decrypted[i]);
+    }
 
     ckvs_close(&ckvs);
 

@@ -95,6 +95,15 @@ void ckvs_close(struct CKVS *ckvs){
     ckvs->file=NULL;
 }
 
+/**
+ * @brief Finds the entry with the given (key, auth_key) pair in the ckvs database.
+ *
+ * @param ckvs (struct CKVS*) the ckvs database to search
+ * @param key (const char*) the key of the entry
+ * @param auth_key (const struct ckvs_sha*) the auth_key of the entry
+ * @param e_out (struct ckvs_entry**) points to a pointer to an entry. Used to store the pointer to the entry if found.
+ * @return int, error code
+ */
 int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *auth_key, struct ckvs_entry **e_out){
     // check pointeurs
     if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) return ERR_INVALID_ARGUMENT;
@@ -104,7 +113,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     bool authKeyIsCorrect = false;
     //iterate in the array
     for (size_t i = 0 ; i < CKVS_FIXEDSIZE_TABLE ; ++i) {
-
+        //pps_printf("-------------\n %s \n---------------\n",ckvs->entries[i].key);
         if (strncmp(ckvs->entries[i].key, key,CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[i].auth_key, auth_key) == 0) {
