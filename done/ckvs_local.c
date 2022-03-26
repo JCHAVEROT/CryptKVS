@@ -89,6 +89,7 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
 
     if (err != ERR_NONE) {
         // Error
+        pps_printf("PALIDE");
         ckvs_close(&ckvs);
         return err;
     }

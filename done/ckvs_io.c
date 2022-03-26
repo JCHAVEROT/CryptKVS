@@ -104,7 +104,8 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     bool authKeyIsCorrect = false;
     //iterate in the array
     for (size_t i = 0 ; i < CKVS_FIXEDSIZE_TABLE ; ++i) {
-        if (strcmp(ckvs->entries[i].key, key) == 0) {
+
+        if (strncmp(ckvs->entries[i].key, key,CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[i].auth_key, auth_key) == 0) {
                 authKeyIsCorrect = true;
