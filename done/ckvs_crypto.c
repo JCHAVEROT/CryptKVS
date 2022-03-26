@@ -45,6 +45,7 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
 
 
 int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_sha *c2){
+    if (mr==NULL||c2==NULL) return ERR_INVALID_ARGUMENT;
     unsigned int l = 0;
     HMAC(EVP_sha256(), mr->c1.sha, SHA256_DIGEST_LENGTH, c2->sha,
          SHA256_DIGEST_LENGTH, mr->master_key.sha, &l);
