@@ -55,6 +55,10 @@ int ckvs_local_stats(const char *filename){
  * @return int, an error code
  */
 int ckvs_local_get(const char *filename, const char *key, const char *pwd){
+    if (filename==NULL) return ERR_INVALID_FILENAME;
+    if (key==NULL||pwd==NULL) return ERR_INVALID_ARGUMENT;
+
+
     //initialize the struct
     struct CKVS ckvs;
     memset(&ckvs, 0, sizeof(struct CKVS));
