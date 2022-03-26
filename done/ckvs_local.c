@@ -63,7 +63,6 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
     int err = ckvs_open(filename,&ckvs);
     if (err != ERR_NONE) {
         // Error
-        pps_printf("error open");
         ckvs_close(&ckvs);
         return err;
     }
@@ -75,7 +74,6 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
 
     if (err != ERR_NONE) {
         // Error
-        pps_printf("erreur encrypt pwd\n");
         ckvs_close(&ckvs);
         return err;
     }
@@ -88,7 +86,6 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
 
     if (err != ERR_NONE) {
         // Error
-        pps_printf("erreur find entry\n");
         ckvs_close(&ckvs);
         return err;
     }
@@ -96,7 +93,6 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
     err=ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
     if (err != ERR_NONE) {
         // Error
-        pps_printf("erreur masterkey\n");
         ckvs_close(&ckvs);
         return err;
     }
@@ -116,7 +112,6 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
                                        &decrypted_len);
     if (err != ERR_NONE) {
         // Error
-        pps_printf("erreur crypt_value\n");
         ckvs_close(&ckvs);
         return err;
     }

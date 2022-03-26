@@ -23,19 +23,19 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     const char slash[1]="|";
     strncat(str,slash,1);
     strncat(str,pwd, strlen(pwd));
-    pps_printf("Buffer :  %s\n", str);
+    //pps_printf("Buffer :  %s\n", str);
     SHA256((unsigned char*)str,strlen(str),mr->stretched_key.sha);
-    print_SHA("stretched key ",mr->stretched_key.sha);
+    //print_SHA("stretched key ",mr->stretched_key.sha);
     unsigned int l = 0;
     HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, AUTH_MESSAGE,
                           strlen(AUTH_MESSAGE), mr->auth_key.sha, &l);
-    print_SHA("auth key ",mr->auth_key.sha);
+    //print_SHA("auth key ",mr->auth_key.sha);
 
     if (l != SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;
 
     HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, C1_MESSAGE,
         strlen(C1_MESSAGE), mr->c1.sha, &l);
-    print_SHA("c1 ",mr->c1.sha);
+    //print_SHA("c1 ",mr->c1.sha);
 
     if (l!= SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;
 
@@ -49,8 +49,8 @@ int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_s
     HMAC(EVP_sha256(), mr->c1.sha, SHA256_DIGEST_LENGTH, c2->sha,
          SHA256_DIGEST_LENGTH, mr->master_key.sha, &l);
 
-    print_SHA("c2 ",c2->sha);
-    print_SHA("master key ",mr->master_key.sha);
+    //print_SHA("c2 ",c2->sha);
+    //print_SHA("master key ",mr->master_key.sha);
     if (l != SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;
 
     return ERR_NONE;
