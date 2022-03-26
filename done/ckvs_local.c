@@ -122,7 +122,8 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
     }
     //check if we have to end the lecture
     for (size_t i = 0; i < strlen(decrypted); ++i) {
-        if (!(isprint(decrypted[i])||decrypted[i]=='\n')) break;
+
+        if ((iscntrl(decrypted[i])&& decrypted[i]!='\n')) break;
         pps_printf("%c",decrypted[i]);
     }
 
