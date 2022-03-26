@@ -92,6 +92,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
 void ckvs_close(struct CKVS *ckvs){
     if (ckvs==NULL) return ;
     if (ckvs->file!=NULL) fclose(ckvs->file);
+    ckvs->file=NULL;
 }
 
 int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *auth_key, struct ckvs_entry **e_out){
