@@ -10,12 +10,13 @@
 typedef enum {false, true} bool;
 
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
+    if (ckvs==NULL) return ERR_INVALID_ARGUMENT;
     //empty ckvs
     memset(ckvs,0, sizeof(struct CKVS));
 
 
     //open the file
-    if (filename == NULL) return ERR_INVALID_ARGUMENT;
+    if (filename == NULL) return ERR_INVALID_FILENAME;
     FILE *file = NULL;
     file = fopen(filename, "r+b");
     if (file == NULL) {
@@ -90,6 +91,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
 }
 
 void ckvs_close(struct CKVS *ckvs){
+    if (ckvs==NULL) return ERR_INVALID_ARGUMENT;
     if (ckvs->file!=NULL) fclose(ckvs->file);
 }
 
