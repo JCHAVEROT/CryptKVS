@@ -14,6 +14,7 @@
 #include "ckvs_crypto.h"
 #include "util.h"
 #include "openssl/evp.h"
+#include <ctype.h>
 
 
 /**
@@ -120,7 +121,7 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd){
         return err;
     }
     //check if we have to end the lecture
-    for (int i = 0; i < strlen(decrypted); ++i) {
+    for (size_t i = 0; i < strlen(decrypted); ++i) {
         if (!(isprint(decrypted[i])||decrypted[i]=='\n')) break;
         pps_printf("%c",decrypted[i]);
     }
