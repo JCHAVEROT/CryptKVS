@@ -34,13 +34,13 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
 
     unsigned int l = 0;
     //computation of the auth_key from the SHA256 of the stretched_key with message AUTH_MESSAGE
-    HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, AUTH_MESSAGE,
+    HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, (unsigned char*) AUTH_MESSAGE,
                           strlen(AUTH_MESSAGE), mr->auth_key.sha, &l);
     //verify that the auth_key has a correct length
     if (l != SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;
 
     //computation of c1 from the SHA256 of the stretched_key with message C1_MESSAGE
-    HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, C1_MESSAGE,
+    HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, (unsigned char*) C1_MESSAGE,
         strlen(C1_MESSAGE), mr->c1.sha, &l);
     //verify that c1 has a correct length
     if (l!= SHA256_DIGEST_LENGTH) return ERR_INVALID_COMMAND;

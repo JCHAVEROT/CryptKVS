@@ -90,7 +90,7 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
     }
 
     //to make the pointer lead to the beginning of the encrypted secret
-    fseek(ckvs.file, ckvs_out->value_off, SEEK_SET);
+    fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
 
     //initialize the string where the encrypted secret will be stored
     unsigned char encrypted[ckvs_out->value_len];
