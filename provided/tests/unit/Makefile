@@ -5,6 +5,7 @@ CC = clang
 
 TARGETS := utils stats
 TARGETS += ios crypto get
+TARGETS += set
 
 EXECS=$(foreach name,$(TARGETS),unit-test-$(name))
 
@@ -29,9 +30,11 @@ crypto: unit-test-crypto
 	./unit-test-crypto
 get: unit-test-get
 	./unit-test-get
+set: unit-test-set
+	./unit-test-set
 
 # ======================================================================
-SRC_DIR:=../../done
+SRC_DIR ?=../../done
 CFLAGS  += -I$(SRC_DIR) -DCS212_TEST
 LDFLAGS += -L$(SRC_DIR)
 LDLIBS  += -lm -lssl -lcrypto -lcurl -ljson-c
@@ -65,6 +68,11 @@ unit-test-stats: unit-test-stats.o ckvs_test_util.o \
 unit-test-get.o: unit-test-get.c
 unit-test-get: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
 unit-test-get: unit-test-get.o ckvs_test_util.o \
+   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_crypto.o $(SRC_DIR)/ckvs_io.o $(SRC_DIR)/ckvs_local.o
+
+unit-test-set.o: unit-test-set.c
+unit-test-set: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
+unit-test-set: unit-test-set.o ckvs_test_util.o \
    $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_crypto.o $(SRC_DIR)/ckvs_io.o $(SRC_DIR)/ckvs_local.o
 
 # ======================================================================
