@@ -21,6 +21,7 @@ static void usage(const char *execname, int err)
         pps_printf("Available commands:\n");
         pps_printf("- cryptkvs <database> stats\n");
         pps_printf("- cryptkvs <database> get <key> <password>\n");
+        pps_printf("- cryptkvs <database> set <key> <password> <filename>\n");
     } else if (err >= 0 && err < ERR_NB_ERR) {
         pps_printf("%s exited with error: %s\n\n\n", execname, ERR_MESSAGES[err]);
     } else {
@@ -50,10 +51,16 @@ int ckvs_do_one_cmd(int argc, char *argv[])
        return ckvs_local_stats(db_filename);
     }
     if (strcmp(cmd,"get")==0){
-        if (argc < 5) return ERR_NOT_ENOUGH_ARGUMENTS; //MEME CHOSE POUR STATS??
+        if (argc < 5) return ERR_NOT_ENOUGH_ARGUMENTS;
         if (argc > 5) return ERR_TOO_MANY_ARGUMENTS;
 
         return ckvs_local_get(db_filename,argv[3],argv[4]);
+    }
+    if (strcmp(cmd,"get")==0){
+        if (argc < 6) return ERR_NOT_ENOUGH_ARGUMENTS;
+        if (argc > 6) return ERR_TOO_MANY_ARGUMENTS;
+
+        return ckvs_local_set(db_filename,argv[3],argv[4],argv[5]);
     }
 
 

@@ -131,3 +131,16 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     return ERR_NONE;
 }
 
+int read_value_file_content(const char* filename, char** buffer_ptr, size_t* buffer_size){
+    CKVS_t ckvs;
+    memset(&ckvs,0, sizeof(struct CKVS));
+    ckvs_open(filename,&ckvs);
+    fseek(ckvs.file, 0, SEEK_END);
+    size_t size = ftell(ckvs.file) ;
+    *buffer_ptr=calloc(size, sizeof(char));
+    
+    return ERR_NONE;
+
+}
+
+

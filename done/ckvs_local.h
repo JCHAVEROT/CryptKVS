@@ -40,6 +40,19 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd);
 /* *************************************************** *
  * TODO WEEK 06                                        *
  * *************************************************** */
+
+/**
+ * @brief Common part of ckvs_local_get and ckvs_local_set. If set_value is NULL then get is done otherwise set is done
+ *
+ * @param filename (const char*) the path to the CKVS database to open
+ * @param key (const char*) the key of the entry to set
+ * @param pwd (const char*) the password of the entry to set
+ * @param set_value (const char*) the path to the file which contains what will become the new encrypted content of the entry(only for ckvs_local_set).
+ * @return int, an error code
+ */
+int ckvs_local_getset(const char *filename, const char *key, const char *pwd, const char* set_value);
+
+
 /**
  * @brief Opens the CKVS database at the given filename and executes the 'set' command,
  * ie. fetches the entry corresponding to the key and password and

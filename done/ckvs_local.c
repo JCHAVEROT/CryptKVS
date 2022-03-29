@@ -103,7 +103,7 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
     //initialize the string where the decrypted secret will be stored
     size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
     unsigned char decrypted[decrypted_len];
-    //decrypts the the string with the secret with in particular the master_key stored in ckvs_mem
+    //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
     err = ckvs_client_crypt_value(&ckvs_mem, 0, encrypted, ckvs_out->value_len, decrypted,
                                        &decrypted_len);
     if (err != ERR_NONE) {
@@ -121,6 +121,11 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
     //close the CKVS database at filename since done decrypting
     ckvs_close(&ckvs);
 
+    return ERR_NONE;
+}
+
+
+int ckvs_local_getset(const char *filename, const char *key, const char *pwd, const char* set_value){
     return ERR_NONE;
 }
 
