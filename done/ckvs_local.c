@@ -15,6 +15,7 @@
 #include "openssl/evp.h"
 #include "openssl/rand.h"
 #include <ctype.h>
+#include "ckvs_local.h"
 
 #define C2_SIZE  32
 // ----------------------------------------------------------------------
@@ -44,6 +45,7 @@ int ckvs_local_stats(const char *filename) {
 
 // ----------------------------------------------------------------------
 int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
+    /*
     //check if the arguments are valid
     if (key == NULL || pwd == NULL || filename == NULL) return ERR_INVALID_ARGUMENT;
 
@@ -125,6 +127,8 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
     ckvs_close(&ckvs);
 
     return ERR_NONE;
+     */
+    return ckvs_local_getset(filename,key,pwd,NULL);
 }
 
 
@@ -236,6 +240,12 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         ckvs_close(&ckvs);
         return err;
     }
+
+    return ckvs_write_encrypted_value(&ckvs, ckvs_out, (const unsigned char*) set_value_encrypted, (uint64_t) set_value_encrypted_length);
+
+
+
+
 
 
     return NOT_IMPLEMENTED;
