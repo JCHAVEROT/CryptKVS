@@ -16,6 +16,7 @@
 #include "openssl/rand.h"
 #include <ctype.h>
 
+#
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename) {
     //check if the argument is valid
@@ -144,43 +145,42 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
 
-    char* c2="\0";
-    if (set_value == NULL) {
-
-        //initialize the struct ckvs_memrecord_t
-        ckvs_memrecord_t ckvs_mem;
-        memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
-
-        //to generate in particular the auth_key and c1 and store them in ckvs_mem
-        err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
-
-        if (err != ERR_NONE) {
-            // Error
-            ckvs_close(&ckvs);
-            return err;
-        }
-
-        //initialize the struct ckvs_entry_t
-        ckvs_entry_t *ckvs_out;
-        memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
-
-        //to find the right entry in the database with the key and the auth_key latterly computed
-        err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
-
-        if (err != ERR_NONE) {
-            // Error
-            ckvs_close(&ckvs);
-            return err;
-        }
-        c2=ckvs_out->c2
-    } else {
-        int err=RAND_bytes(c2,);
-        if (err!=)
 
 
+    //initialize the struct ckvs_memrecord_t
+    ckvs_memrecord_t ckvs_mem;
+    memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
+    //to generate in particular the auth_key and c1 and store them in ckvs_mem
+    err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
 
+    if (err != ERR_NONE) {
+        // Error
+        ckvs_close(&ckvs);
+        return err;
     }
+
+    //initialize the struct ckvs_entry_t
+    ckvs_entry_t *ckvs_out;
+    memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
+
+    //to find the right entry in the database with the key and the auth_key latterly computed
+    err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
+
+    char *c2 = NULL;
+    c2=calloc(C2_SIZE, sizeof(char));
+    if (err != ERR_NONE) {
+        // Error
+        ckvs_close(&ckvs);
+        return err;
+    }
+    c2 = ckvs_out->c2
+
+    if (set_value != NULL) {
+        int err = RAND_bytes(c2,C2_SIZE);
+        if (err !=1 ) return ERR_INVALID_COMMAND;
+    }
+    
 
     //now we have the entry and hence c2, to compute the masterkey
     err = ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
