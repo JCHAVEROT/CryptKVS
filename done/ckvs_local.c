@@ -16,7 +16,7 @@
 #include "openssl/rand.h"
 #include <ctype.h>
 
-#
+#define C2_SIZE  32
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename) {
     //check if the argument is valid
@@ -167,20 +167,20 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     //to find the right entry in the database with the key and the auth_key latterly computed
     err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
 
-    char *c2 = NULL;
-    c2=calloc(C2_SIZE, sizeof(char));
+    ckvs_sha_t *c2 = NULL;
+    c2=calloc(1, sizeof(ckvs_sha_t));
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
         return err;
     }
-    c2 = ckvs_out->c2
+    *c2 = ckvs_out->c2;
 
     if (set_value != NULL) {
-        int err = RAND_bytes(c2,C2_SIZE);
-        if (err !=1 ) return ERR_INVALID_COMMAND;
+        err = RAND_bytes(c2->sha,C2_SIZE);
+        if (err !=1 ) return ERR_IO;
     }
-    
+
 
     //now we have the entry and hence c2, to compute the masterkey
     err = ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
@@ -189,43 +189,56 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         ckvs_close(&ckvs);
         return err;
     }
+    if (set_value==NULL) {
 
-    //to make the pointer lead to the beginning of the encrypted secret
-    fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
+        //to make the pointer lead to the beginning of the encrypted secret
+        fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
 
-    //initialize the string where the encrypted secret will be stored
-    unsigned char encrypted[ckvs_out->value_len];
-    //to read the encrypted secret
-    size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
-    if (nb_ok != ckvs_out->value_len) {
+        //initialize the string where the encrypted secret will be stored
+        unsigned char encrypted[ckvs_out->value_len];
+        //to read the encrypted secret
+        size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
+        if (nb_ok != ckvs_out->value_len) {
+            ckvs_close(&ckvs);
+            return ERR_IO;
+        }
+        //initialize the string where the decrypted secret will be stored
+        size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
+        unsigned char decrypted[decrypted_len];
+        //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
+        err = ckvs_client_crypt_value(&ckvs_mem, 0, encrypted, ckvs_out->value_len, decrypted,
+                                      &decrypted_len);
+        if (err != ERR_NONE) {
+            // Error
+            ckvs_close(&ckvs);
+            return err;
+        }
+        //check if we have to end the lecture
+        for (size_t i = 0; i < strlen((char *) decrypted); ++i) {
+
+            if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
+            pps_printf("%c", decrypted[i]);
+        }
+
+        //close the CKVS database at filename since done decrypting
         ckvs_close(&ckvs);
-        return ERR_IO;
+
+        return ERR_NONE;
     }
-    //initialize the string where the decrypted secret will be stored
-    size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
-    unsigned char decrypted[decrypted_len];
-    //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
-    err = ckvs_client_crypt_value(&ckvs_mem, 0, encrypted, ckvs_out->value_len, decrypted,
-                                  &decrypted_len);
+
+    //cryptage du contenu de set_value
+    size_t set_value_encrypted_length = strlen(set_value) + EVP_MAX_BLOCK_LENGTH;
+    unsigned char* set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
+    err = ckvs_client_crypt_value(&ckvs_mem, 1, (const unsigned char*) set_value, strlen(set_value), set_value_encrypted,
+                                  &set_value_encrypted_length);
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
         return err;
     }
-    //check if we have to end the lecture
-    for (size_t i = 0; i < strlen((char *) decrypted); ++i) {
 
-        if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
-        pps_printf("%c", decrypted[i]);
-    }
-
-    //close the CKVS database at filename since done decrypting
-    ckvs_close(&ckvs);
-
-    return ERR_NONE;
 
     return NOT_IMPLEMENTED;
-
 }
 
 int ckvs_local_set(const char *filename, const char *key, const char *pwd, const char *valuefilename) {
