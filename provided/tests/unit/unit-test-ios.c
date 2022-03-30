@@ -311,6 +311,276 @@ START_TEST(close_open_file)
 END_TEST
 
 
+// ======================================================================
+START_TEST(find_entry_NULL)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    struct CKVS ckvs;
+    const char* key = "some key";
+    ckvs_sha_t auth_key;
+    ckvs_entry_t* e_out = NULL;
+
+    ck_assert_int_eq(ckvs_find_entry(NULL, NULL, NULL, NULL), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_find_entry(NULL, key, &auth_key, &e_out), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_find_entry(&ckvs, NULL, &auth_key, &e_out), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_find_entry(&ckvs, key, NULL, &e_out), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_find_entry(&ckvs, key, &auth_key, NULL), ERR_INVALID_ARGUMENT);
+
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(find_entry_present_1)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    // create empty CKVS struct:
+    init_ckvs(ckvs, 64, 16);
+
+    const char* key = "some key";
+    const uint32_t idx = 46; // not at random, compatible with hash (weeks >= 7)
+    ckvs_sha_t auth_key;
+    ckvs_entry_t* e_out = NULL;
+
+
+    strcpy(ckvs.entries[idx].key, key);
+    memcpy(&ckvs.entries[idx].auth_key, &auth_key, SHA256_DIGEST_LENGTH);
+    ckvs.header.num_entries = 1; // shouldn't matter, but for consistency
+    
+    ck_assert_int_eq(ckvs_find_entry(&ckvs, key, &auth_key, &e_out), ERR_NONE);
+    ck_assert_ptr_eq(e_out, ckvs.entries + idx);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(find_entry_present_2)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    // create empty CKVS struct:
+    init_ckvs(ckvs, 64, 16);
+
+    const char* key = "test_key";
+    const uint32_t idx = 18; // not at random, compatible with hash (weeks >= 7)
+    ckvs_sha_t auth_key = { { 1 } };
+    ckvs_sha_t stored_key = { { 0xFF } };
+    ckvs_entry_t* e_out = NULL;
+
+    strcpy(ckvs.entries[idx].key, key);
+    memcpy(&ckvs.entries[idx].auth_key, &stored_key, SHA256_DIGEST_LENGTH);
+    ckvs.header.num_entries = 1; // shouldn't matter, but for consistency
+    
+    ck_assert_int_eq(ckvs_find_entry(&ckvs, key, &auth_key, &e_out), ERR_DUPLICATE_ID);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(find_entry_present_3)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    // create empty CKVS struct:
+    init_ckvs(ckvs, 64, 16);
+    ckvs.header.num_entries = 2; // shouldn't matter, but for consistency
+
+    // setup a collision on hash(key)
+    const uint32_t idx = 6;
+    const char* k1 = "izkz"; // hash mod 64 = 6
+    const char* k2 = "ilcm"; // hash mod 64 = 6
+    ckvs_sha_t auth_key = { { 1 } };
+    ckvs_entry_t* e_out = NULL;
+
+    strcpy(ckvs.entries[idx].key, k1);
+    memcpy(&ckvs.entries[idx].auth_key, &auth_key, SHA256_DIGEST_LENGTH);
+    strcpy(ckvs.entries[idx + 1].key, k2);
+    memcpy(&ckvs.entries[idx + 1].auth_key, &auth_key, SHA256_DIGEST_LENGTH);
+    
+    ck_assert_int_eq(ckvs_find_entry(&ckvs, k2, &auth_key, &e_out), ERR_NONE);
+    ck_assert_ptr_eq(e_out, ckvs.entries + idx + 1);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(find_entry_present_4)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    // create empty CKVS struct:
+    init_ckvs(ckvs, 64, 16);
+    ckvs.header.num_entries = 2; // shouldn't matter, but for consistency
+
+    // setup a collision on hash(key)
+    const char* k1 = "two"; // hash mod 64 = 63
+    const char* k2 = "phi"; // hash mod 64 = 63
+    ckvs_sha_t auth_key = { { 1 } };
+    ckvs_entry_t* e_out = NULL;
+
+    // k1 is at idx 63, then k2 at idx 0 (we cycled back)
+    strcpy(ckvs.entries[63].key, k1);
+    memcpy(&ckvs.entries[63].auth_key, &auth_key, SHA256_DIGEST_LENGTH);
+    strcpy(ckvs.entries[0].key, k2);
+    memcpy(&ckvs.entries[0].auth_key, &auth_key, SHA256_DIGEST_LENGTH);
+    
+    ck_assert_int_eq(ckvs_find_entry(&ckvs, k2, &auth_key, &e_out), ERR_NONE);
+    ck_assert_ptr_eq(e_out, ckvs.entries);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(write_encrypted_value_NULL)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    struct CKVS ckvs;
+    const uint64_t buflen = 10;
+    const unsigned char buff[buflen];
+
+    ckvs_write_encrypted_value(NULL, NULL, NULL, 0);
+    ckvs_write_encrypted_value(NULL, ckvs.entries, buff, buflen);
+    ckvs_write_encrypted_value(&ckvs, NULL, buff, buflen);
+    ckvs_write_encrypted_value(&ckvs, ckvs.entries, NULL, buflen);
+
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(write_encrypted_value_1)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    FILE* dummy = fopen(DUMMY_NAME, "w+b");
+    ck_assert_ptr_nonnull(dummy);
+    
+    init_ckvs(ckvs, 64, 16);
+    ck_assert_int_eq(dump_db(dummy, &ckvs.header, ckvs.entries), 0);
+    ckvs.file = dummy;
+
+    const unsigned char buff[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    const uint64_t len = sizeof(buff);
+    ckvs_entry_t expected = { "ABCDEFGHIJKLMNOPQRST", { { 0x7 } }, { { 0x1 } }, 0, 0 };
+    memcpy(ckvs.entries, &expected, sizeof(ckvs_entry_t));
+    ckvs.header.num_entries = 1;
+    expected.value_off = sizeof(ckvs_header_t) + ckvs.header.table_size * sizeof(ckvs_entry_t);
+    expected.value_len = len;
+
+
+    ck_assert_int_eq(ckvs_write_encrypted_value(&ckvs, ckvs.entries, buff, len), ERR_NONE);
+
+    // ckvs_write_encrypted_value should set value offset and length in entries array
+    ck_assert_int_eq(ckvs.entries[0].value_off, expected.value_off);
+    ck_assert_int_eq(ckvs.entries[0].value_len, len);
+
+    // data appended at the end of the file should be == to buff
+    ck_assert_int_eq(fseek(dummy, ckvs.entries[0].value_off, SEEK_SET), 0);
+    unsigned char read_data[len];
+    ck_assert_int_eq(fread(read_data, 1, len, dummy), len);
+    ck_assert_int_eq(memcmp(read_data, buff, len), 0);    
+
+    // entry should have been overwritten in the file
+    assert_stored_entry_eq(dummy, 0, &expected);
+
+    fclose(dummy);
+    release_ckvs(ckvs);
+    remove(DUMMY_NAME);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(write_encrypted_value_2)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    FILE* dummy = fopen(DUMMY_NAME, "w+b");
+    ck_assert_ptr_nonnull(dummy);
+    
+    init_ckvs(ckvs, 64, 16);
+    ck_assert_int_eq(dump_db(dummy, &ckvs.header, ckvs.entries), 0);
+    const uint8_t padding[] = { 0, 1, 1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233 };
+    ck_assert_int_eq(fwrite(padding, sizeof(padding), 1, dummy), 1); // append some bytes after entries
+    ckvs.file = dummy;
+
+    const size_t idx = 41;
+    const uint64_t len = 32767; // 32KB
+    unsigned char* buff = malloc(len);
+    ckvs_entry_t expected = { { 0 }, { { 0xF } }, { { 0xA } }, 15, 10 };
+    strcpy(expected.key, "ABCD");
+    memcpy(ckvs.entries + idx, &expected, sizeof(ckvs_entry_t));
+    ckvs.header.num_entries = 1;
+    expected.value_off = sizeof(ckvs_header_t) + ckvs.header.table_size * sizeof(ckvs_entry_t) + sizeof(padding);
+    expected.value_len = len;
+
+    ck_assert_int_eq(ckvs_write_encrypted_value(&ckvs, ckvs.entries + idx, buff, len), ERR_NONE);
+
+    // ckvs_write_encrypted_value should set value offset and length in entries array
+    ck_assert_int_eq(ckvs.entries[idx].value_off, expected.value_off);
+    ck_assert_int_eq(ckvs.entries[idx].value_len, len);
+
+    // data appended at the end of the file should be == to buff
+    ck_assert_int_eq(fseek(dummy, ckvs.entries[idx].value_off, SEEK_SET), 0);
+    unsigned char read_data[len];
+    ck_assert_int_eq(fread(read_data, 1, len, dummy), len);
+    ck_assert_int_eq(memcmp(read_data, buff, len), 0);    
+
+    // entry should have been overwritten in the file
+    assert_stored_entry_eq(dummy, idx, &expected);
+
+    free(buff);
+    fclose(dummy);
+    release_ckvs(ckvs);
+    remove(DUMMY_NAME);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+
 
 // ======================================================================
 Suite* ios_test_suite()
@@ -337,6 +607,14 @@ Suite* ios_test_suite()
     tcase_add_test(tc1, open_valid_header_1);
     tcase_add_test(tc1, close_NULL_file);
     tcase_add_test(tc1, close_open_file);
+    tcase_add_test(tc1, find_entry_NULL);
+    tcase_add_test(tc1, find_entry_present_1);
+    tcase_add_test(tc1, find_entry_present_2);
+    tcase_add_test(tc1, find_entry_present_3);
+    tcase_add_test(tc1, find_entry_present_4);
+    tcase_add_test(tc1, write_encrypted_value_NULL);
+    tcase_add_test(tc1, write_encrypted_value_1);
+    tcase_add_test(tc1, write_encrypted_value_2);
 
     return s;
 }

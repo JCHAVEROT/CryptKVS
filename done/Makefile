@@ -23,13 +23,13 @@ TARGETS += cryptkvs
 
 
 # a bit more checks
-CFLAGS += -g
+CFLAGS += -g -I/usr/local/opt/openssl@1.1/include
 CFLAGS += -pedantic -Wall
 CFLAGS += -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Wwrite-strings \
 -Wconversion -Wunreachable-code -Wcast-qual -W -Wformat=2 -Winit-self -Wuninitialized
 #CFLAGS += -Wcast-align
 
-LDLIBS += -lm -lssl -lcrypto -lcurl -ljson-c
+LDLIBS += -lm -lssl -lcrypto -lcurl -ljson-c -L/usr/local/opt/openssl@1.1/lib
 LDDEPS =
 
 ## may require: export ASAN_OPTIONS=allocator_may_return_null=1
@@ -52,7 +52,7 @@ SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c ckvs_crypto.c ckvs_io.c
 OBJS=$(subst .c,.o,$(SRCS))
 
 cryptkvs: $(OBJS) $(LDDEPS)
-	$(LINK.o) -o $@ $(OBJS) $(LDLIBS)
+	$(LINK.o) -o $@ $(OBJS) $(LDLIBS) 
 
 
 #########################################################################

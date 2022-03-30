@@ -106,12 +106,15 @@ IMAGE := chappeli/pps22-feedback:latest
 REPO := $(shell git config --get remote.origin.url)
 SSH_DIR := $(HOME)/.ssh
 
-.PHONY: feedback feedback-VM-CO clone-ssh clean-fake-ssh
+.PHONY: feedback feedback-pull feedback-debug feedback-VM-CO feedback-debug-VM-CO clone-ssh clean-fake-ssh
 
-feedback:
+feedback-pull:
 	@echo Will use $(REPO) inside container
 	@docker pull $(IMAGE)
+feedback: feedback-pull
 	@docker run -it --rm -e REPO=$(REPO) -v $(SSH_DIR):/opt/.ssh $(IMAGE)
+feedback-debug: feedback-pull
+	@docker run -it --rm --entrypoint=./debugmode.sh -e REPO=$(REPO) -v $(SSH_DIR):/opt/.ssh $(IMAGE)
 
 clone-ssh:
 	@-$(eval SSH_DIR := $(HOME)/.$(shell date "+%s;$$"|sha256sum|cut -c-32))
@@ -121,6 +124,8 @@ clean-fake-ssh:
 	@case $(SSH_DIR) in $(HOME)/\.????????????????????????????????) $(RM) -fr $(SSH_DIR) ;; *) echo "Dare not remove \"$(SSH_DIR)\"" ;; esac
 
 feedback-VM-CO: clone-ssh feedback clean-fake-ssh
+
+feedback-debug-VM-CO: clone-ssh feedback-debug clean-fake-ssh
 
 ## ======================================================================
 ## Submit
