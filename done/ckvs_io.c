@@ -135,7 +135,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     if (filename == NULL || buffer_ptr == NULL || buffer_size == NULL) return ERR_INVALID_ARGUMENT;
 
     //creates and opens file
-    FILE* file = null;
+    FILE* file = NULL;
     file = fopen(filename, "rb"); //open in read binary mode
     if (file == NULL) {
         //error
@@ -150,32 +150,33 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 
     //places the pointer at the beginning of the file back
     fseek(file, 0, SEEK_SET);
-    *buffer_ptr = calloc(size + 1, sizeof(char));
-    //if (buffer_ptr==NULL) return ERR_INVALID_COMMAND;
+    //creates a buffer and checks errors to put the read value
+    *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
+    if (*buffer_ptr==NULL) return ERR_INVALID_COMMAND;
 
-    size_t err = fread(*buffer_ptr, sizeof(char), size, file);
+    size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
     //check errors
-    if (err!=size) return ERR_INVALID_COMMAND;
+    if (nb!=size) return ERR_INVALID_COMMAND;
+    *buffer_size = size + 1; //so to have the place for the final '\0'
     *buffer_ptr[size] = '\0'; // to add the final '\0' //NOTE : est-ce qu'il n'est pas déjà à la fin de la string
 
-    *buffer_size = size + 1; //so to have the place for the final '\0'
-
+    //closes the opened file and finishes
+    fclose(file);
     return ERR_NONE;
 }
 // ----------------------------------------------------------------------
 int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) {
     //check ckvs pointer and validity of idx value
-    if (ckvs == NULL || (inx < 0) || (idx >= CKVS_FIXEDSIZE_TABLE)) {
+    if (ckvs == NULL || (idx < 0) || (idx >= CKVS_FIXEDSIZE_TABLE)) {
         return ERR_INVALID_ARGUMENT;
     }
     //place the pointer on the file on the right place and check errors
-    int err = fseek(ckvs->file, idx * sizeof(struct ckvs_entry) + CKVS_HEADERSTRINGLEN, SEEK_END); // SEEK_SET plutôt ?
-    //int err = fseek(ckvs->file, sizeof(struct ckvs_entry), SEEK_END); //autre version à tester : partir de la fin et revenir une entry en arrière comme on a écrit la chaine a la fin du ckvs file
+    int err = fseek(ckvs->file, idx * sizeof(struct ckvs_entry) + CKVS_HEADERSTRINGLEN, SEEK_SET);
     if (err != 0) return ERR_IO;
 
     //write the entry and check errors
-    err = fwrite(ckvs->entries[idx], sizeof(ckvs_entry_t),1,ckvs->file);
-    if (err != sizeof(ckvs_entry_t)) return ERR_IO;
+    size_t nb2 = fwrite(&ckvs->entries[idx], sizeof(ckvs_entry_t),1,ckvs->file);
+    if (nb2 != sizeof(ckvs_entry_t)) return ERR_IO;
     return ERR_NONE;
 }
 // ----------------------------------------------------------------------
@@ -190,17 +191,24 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
         //error
         return err;
     }
+    //to assign the new values of c2, value_off and value_len
     e->value_len = buflen;
     e->value_off = (size_t) ftell(ckvs->file);
 
     //write at the end of the ckvs file the encrypted value to writes
-    err = fputs(ckvs->file, sizeof(buf), buflen, buf);
-    ckvs_entry_t out_entry = NULL;
+    err = fputs((const char *) buf , ckvs->file);
+    ckvs_entry_t out_entry;
     memset(&out_entry, 0, sizeof(out_entry));
-    free(**buf); //to free the pointer //NOTE : à faire ici ?
-    //to find the index of entry to be modified in the ckvs table
-    ckvs_find_entry(ckvs, e->key, e->auth_key, out_entry);
-    ckvs_write_entry_to_disk(ckvs, out_entry - ckvs->entry[0]);
+    //free(buf); //to free the pointer //NOTE : à faire ici ?
+
+    //to modify the right entry in the ckvs table, index is obtained by substracting the pointers
+    err = ckvs_write_entry_to_disk(ckvs, (size_t) (e - &ckvs->entries[0]));
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+
+    return ERR_NONE;
 }
 
 
