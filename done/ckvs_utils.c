@@ -2,7 +2,6 @@
  * @file ckvs_utils.c
  * @brief c.f. ckvs_utils.h
  *
- * @author A.Troussard, J.Chaverot
  */
 #include <stdio.h>
 #include "ckvs_utils.h"

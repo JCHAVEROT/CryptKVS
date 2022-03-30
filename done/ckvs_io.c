@@ -2,7 +2,6 @@
  * @file ckvs_io.c
  * @brief c.f. ckvs_io.h
  *
- * @author A.Troussard, J.Chaverot
  */
 #include <stdio.h>
 #include <string.h>
@@ -12,12 +11,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "ckvs_io.h"
+#include <stdlib.h>
+
 // ----------------------------------------------------------------------
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
     //check pointers
-    if (ckvs==NULL||filename == NULL) return ERR_INVALID_ARGUMENT;
+    if (ckvs == NULL || filename == NULL) return ERR_INVALID_ARGUMENT;
     //initialize the CKVS database
-    memset(ckvs,0, sizeof(struct CKVS));
+    memset(ckvs, 0, sizeof(struct CKVS));
 
     //open the file in read binary mode and assign it to the CKVS File
     FILE *file = NULL;
@@ -26,7 +27,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
         //error
         return ERR_IO;
     }
-    ckvs->file=file;
+    ckvs->file = file;
 
     //read the header and that it was well read
     char header_str[CKVS_HEADERSTRINGLEN];
@@ -37,7 +38,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
         return ERR_IO;
     }
     //read the infos and that they were well read
-    uint32_t infos[CKVS_UINT32_T_ELEMENTS]= {0};
+    uint32_t infos[CKVS_UINT32_T_ELEMENTS] = {0};
     size_t nb_ok2 = fread(infos, sizeof(uint32_t), 4, file);
     if (nb_ok2 != CKVS_UINT32_T_ELEMENTS) {
         //error
@@ -45,7 +46,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
         return ERR_IO;
     }
 
-    if (strncmp(CKVS_HEADERSTRING_PREFIX,header_str,strlen(CKVS_HEADERSTRING_PREFIX)) != 0) {
+    if (strncmp(CKVS_HEADERSTRING_PREFIX, header_str, strlen(CKVS_HEADERSTRING_PREFIX)) != 0) {
         //error
         fclose(file);
         return ERR_CORRUPT_STORE;
@@ -58,8 +59,8 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     }
     uint32_t table_size = infos[1];
     while (table_size >= 2) {
-        if (table_size%2 != 0) break;
-        table_size=table_size/2;
+        if (table_size % 2 != 0) break;
+        table_size = table_size / 2;
     }
     if (table_size != 1) {
         //error
@@ -73,8 +74,8 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
             .num_entries       =infos[3]
     };
 
-    strcpy(header.header_string,header_str);
-    ckvs->header= header;
+    strcpy(header.header_string, header_str);
+    ckvs->header = header;
 
     if (ckvs->header.table_size != CKVS_FIXEDSIZE_TABLE) { //For now but to be deleted later
         fclose(file);
@@ -89,16 +90,18 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
 
     return ERR_NONE;
 }
+
 // ----------------------------------------------------------------------
-void ckvs_close(struct CKVS *ckvs){
+void ckvs_close(struct CKVS *ckvs) {
     //check if the argument is valid, if so exit the function without doing anything
-    if (ckvs == NULL) return ;
+    if (ckvs == NULL) return;
     //close to file of the CKVS and make it point to NULL
     if (ckvs->file != NULL) fclose(ckvs->file);
-    ckvs->file=NULL;
+    ckvs->file = NULL;
 }
+
 // ----------------------------------------------------------------------
-int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *auth_key, struct ckvs_entry **e_out){
+int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *auth_key, struct ckvs_entry **e_out) {
     //check pointeurs
     if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) return ERR_INVALID_ARGUMENT;
 
@@ -107,9 +110,9 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     bool authKeyIsCorrect = false;
 
     //iterate in the array
-    for (size_t i = 0 ; i < CKVS_FIXEDSIZE_TABLE ; ++i) {
+    for (size_t i = 0; i < CKVS_FIXEDSIZE_TABLE; ++i) {
         //pps_printf("-------------\n %s \n---------------\n",ckvs->entries[i].key);
-        if (strncmp(ckvs->entries[i].key, key,CKVS_MAXKEYLEN) == 0) {
+        if (strncmp(ckvs->entries[i].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[i].auth_key, auth_key) == 0) {
                 authKeyIsCorrect = true;
@@ -131,14 +134,19 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     return ERR_NONE;
 }
 
-int read_value_file_content(const char* filename, char** buffer_ptr, size_t* buffer_size){
+int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) {
     CKVS_t ckvs;
-    memset(&ckvs,0, sizeof(struct CKVS));
-    ckvs_open(filename,&ckvs);
+    memset(&ckvs, 0, sizeof(struct CKVS));
+    ckvs_open(filename, &ckvs);
     fseek(ckvs.file, 0, SEEK_END);
-    size_t size = ftell(ckvs.file) ;
-    *buffer_ptr=calloc(size, sizeof(char));
-    
+    size_t size = (size_t) ftell(ckvs.file);
+    *buffer_ptr = calloc(size, sizeof(char));
+    if (buffer_ptr==NULL) return ERR_INVALID_COMMAND;
+
+    size_t err=fread(buffer_ptr, size, sizeof(char), ckvs.file);
+
+    if (err!=size) return ERR_INVALID_COMMAND;
+    *buffer_size = size;
     return ERR_NONE;
 
 }
