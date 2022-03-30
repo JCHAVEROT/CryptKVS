@@ -1,7 +1,6 @@
 /**
  * @file ckvs_crypto.c
  * @brief c.f. ckvs_crypto.h
- *
  */
 #include "ckvs.h"
 #include "ckvs_crypto.h"

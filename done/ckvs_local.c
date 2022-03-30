@@ -1,7 +1,6 @@
 /**
  * @file ckvs_local.c
  * @brief c.f. ckvs_local.h
- *
  */
 #include <stdio.h>
 #include <string.h>
@@ -18,6 +17,12 @@
 #include "ckvs_local.h"
 
 #define C2_SIZE  32
+// ----------------------------------------------------------------------
+//to make things clearer, instead of using O or 1 when calling ckvs_client_crypt_value
+enum crypt_type {
+    DECRYPTION,
+    ENCRYPTION
+};
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename) {
     //check if the argument is valid
@@ -131,7 +136,6 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
     return ckvs_local_getset(filename,key,pwd,NULL);
 }
 
-
 int ckvs_local_getset(const char *filename, const char *key, const char *pwd, const char *set_value) {
     //check if the arguments are valid
     if (key == NULL || pwd == NULL || filename == NULL) return ERR_INVALID_ARGUMENT;
@@ -147,9 +151,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         ckvs_close(&ckvs);
         return err;
     }
-
-
-
 
     //initialize the struct ckvs_memrecord_t
     ckvs_memrecord_t ckvs_mem;
@@ -185,7 +186,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         if (err !=1 ) return ERR_IO;
     }
 
-
     //now we have the entry and hence c2, to compute the masterkey
     err = ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
     if (err != ERR_NONE) {
@@ -210,7 +210,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
         unsigned char decrypted[decrypted_len];
         //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
-        err = ckvs_client_crypt_value(&ckvs_mem, 0, encrypted, ckvs_out->value_len, decrypted,
+        err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, ckvs_out->value_len, decrypted,
                                       &decrypted_len);
         if (err != ERR_NONE) {
             // Error
@@ -226,38 +226,46 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
         //close the CKVS database at filename since done decrypting
         ckvs_close(&ckvs);
-
         return ERR_NONE;
     }
 
-    //cryptage du contenu de set_value
+    //encrypts set_value content
     size_t set_value_encrypted_length = strlen(set_value) + EVP_MAX_BLOCK_LENGTH;
     unsigned char* set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
-    err = ckvs_client_crypt_value(&ckvs_mem, 1, (const unsigned char*) set_value, strlen(set_value), set_value_encrypted,
+    err = ckvs_client_crypt_value(&ckvs_mem, ENCRYPTION, (const unsigned char*) set_value, strlen(set_value), set_value_encrypted,
                                   &set_value_encrypted_length);
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
         return err;
     }
+re
+    err = ckvs_write_encrypted_value(&ckvs, ckvs_out, (const unsigned char*) set_value_encrypted, (uint64_t) set_value_encrypted_length);
+        ckvs_close(&ckvs);
+    if (err != ERR_NONE) {
+        // Error
+        ckvs_close(&ckvs);
+        return err;
+    }
+    free(**buf); //free the buffer pointer
 
-    err=ckvs_write_encrypted_value(&ckvs, ckvs_out, (const unsigned char*) set_value_encrypted, (uint64_t) set_value_encrypted_length);
-    fclose(&ckvs);
-    return err;
-
-
-
-
-
-    return NOT_IMPLEMENTED;
+    return ERR_NONE;
 }
-
+// ----------------------------------------------------------------------
 int ckvs_local_set(const char *filename, const char *key, const char *pwd, const char *valuefilename) {
+    //check pointers
     if (filename != NULL || key != NULL || pwd != NULL || valuefilename != NULL) return ERR_INVALID_ARGUMENT;
+
+    //initialize buffer and its size
     char *buffer = NULL;
     size_t buffer_size = 0;
+
+    //reads file called filename and prints it in the buffer
     int err = read_value_file_content(filename, &buffer, &buffer_size);
+    //checks errors
     if (err != ERR_NONE) return err;
+
+    //called the modularized funciton ckvs_local_getset with the buffer
     return ckvs_local_getset(filename, key, pwd, buffer);
 }
 
