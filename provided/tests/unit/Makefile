@@ -6,6 +6,7 @@ CC = clang
 TARGETS := utils stats
 TARGETS += ios crypto get
 TARGETS += set
+TARGETS += new
 
 EXECS=$(foreach name,$(TARGETS),unit-test-$(name))
 
@@ -32,6 +33,8 @@ get: unit-test-get
 	./unit-test-get
 set: unit-test-set
 	./unit-test-set
+new: unit-test-new
+	./unit-test-new
 
 # ======================================================================
 SRC_DIR ?=../../done
@@ -73,6 +76,11 @@ unit-test-get: unit-test-get.o ckvs_test_util.o \
 unit-test-set.o: unit-test-set.c
 unit-test-set: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
 unit-test-set: unit-test-set.o ckvs_test_util.o \
+   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_crypto.o $(SRC_DIR)/ckvs_io.o $(SRC_DIR)/ckvs_local.o
+
+unit-test-new.o: unit-test-new.c
+unit-test-new: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
+unit-test-new: unit-test-new.o ckvs_test_util.o \
    $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/ckvs_crypto.o $(SRC_DIR)/ckvs_io.o $(SRC_DIR)/ckvs_local.o
 
 # ======================================================================

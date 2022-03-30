@@ -580,6 +580,226 @@ START_TEST(write_encrypted_value_2)
 }
 END_TEST
 
+// ======================================================================
+START_TEST(new_entry_NULL)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    init_ckvs(ckvs, 64, 30);
+    const char* key = "key";
+    ckvs_sha_t auth_key;
+    ckvs_entry_t* e_out = NULL;
+
+    ck_assert_int_eq(ckvs_new_entry(NULL, NULL, NULL, NULL), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_new_entry(NULL, key, &auth_key, &e_out), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, NULL, &auth_key, &e_out), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, key, NULL, &e_out), ERR_INVALID_ARGUMENT);
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, key, &auth_key, NULL), ERR_INVALID_ARGUMENT);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(new_entry_on_full_table)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    init_ckvs(ckvs, 64, 10);
+    ckvs.header.num_entries = 10;
+    const char* key = "key";
+    ckvs_sha_t auth_key;
+    ckvs_entry_t* e_out = NULL;
+
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, key, &auth_key, &e_out), ERR_MAX_FILES);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(new_entry_key_already_present_1)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    init_ckvs(ckvs, 64, 2);
+    // setup a conflicting entry
+    const size_t idx = 44;
+    const char* key = "key";
+    ckvs_sha_t auth_key = { { 0x02 } };
+    strcpy(ckvs.entries[idx].key, key);
+    memcpy(&ckvs.entries[idx].auth_key, &auth_key, sizeof(ckvs_sha_t));
+    ckvs.header.num_entries = 1;
+
+    // there's already an entry with same key (and auth_key)
+    ckvs_entry_t* e_out = NULL;
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, key, &auth_key, &e_out), ERR_DUPLICATE_ID);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(new_entry_key_already_present_2)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    init_ckvs(ckvs, 64, 10);
+    // setup 2 entries with same hash
+    const size_t idx = 26;
+    const char* k1 = "rom";
+    const char* k2 = "ooo";
+    ckvs_sha_t auth_key = { { 0xF0 } };
+    strcpy(ckvs.entries[idx].key, k1);
+    memcpy(&ckvs.entries[idx].auth_key, &auth_key, sizeof(ckvs_sha_t));
+    strcpy(ckvs.entries[idx + 1].key, k2);
+    memcpy(&ckvs.entries[idx + 1].auth_key, &auth_key, sizeof(ckvs_sha_t));
+    ckvs.header.num_entries = 2;
+
+    // this time with same key (k2) but auth_key different
+    auth_key.sha[SHA256_DIGEST_LENGTH - 1] = 0;
+    ckvs_entry_t* e_out = NULL;
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, k2, &auth_key, &e_out), ERR_DUPLICATE_ID);
+
+    release_ckvs(ckvs);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(new_entry_key_not_present_1)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    FILE* dummy = fopen(DUMMY_NAME, "w+b");
+    ck_assert_ptr_nonnull(dummy);
+    
+    init_ckvs(ckvs, 64, 1);
+    ck_assert_int_eq(dump_db(dummy, &ckvs.header, ckvs.entries), 0);
+    ckvs.file = dummy;
+
+    const size_t idx = 13;
+    const char* key = "ABC-123";
+    ckvs_sha_t auth_key = { { 0x1 } };
+    ckvs_entry_t* e_out = NULL;
+
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, key, &auth_key, &e_out), ERR_NONE);
+    ck_assert_ptr_nonnull(e_out);
+
+    assert_stored_entry_eq(dummy, idx, e_out);
+    ck_assert_str_eq(e_out->key, key);
+    ck_assert_int_eq(memcmp(&e_out->auth_key, &auth_key, sizeof(ckvs_sha_t)), 0);
+    ck_assert_int_eq(e_out->value_off, 0);
+    ck_assert_int_eq(e_out->value_len, 0);
+
+    release_ckvs(ckvs);
+    remove(DUMMY_NAME);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(new_entry_key_not_present_2)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    FILE* dummy = fopen(DUMMY_NAME, "w+b");
+    ck_assert_ptr_nonnull(dummy);
+    
+    init_ckvs(ckvs, 64, 5);
+    ck_assert_int_eq(dump_db(dummy, &ckvs.header, ckvs.entries), 0);
+    ckvs.file = dummy;
+
+    // already existing entry
+    const size_t idx = 36;
+    const char* k1 = "pane"; // hash mod 64 = 36
+    strcpy(ckvs.entries[idx].key, k1);
+
+    const char* k2 = "poem"; // hash mod 64 = 36
+    ckvs_sha_t auth_key = { { 0x1 } };
+    ckvs_entry_t* e_out = NULL;
+
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, k2, &auth_key, &e_out), ERR_NONE);
+    ck_assert_ptr_nonnull(e_out);
+    assert_stored_entry_eq(dummy, idx + 1, e_out);
+
+    ck_assert_str_eq(e_out->key, k2);
+    ck_assert_int_eq(memcmp(&e_out->auth_key, &auth_key, sizeof(ckvs_sha_t)), 0);
+    ck_assert_int_eq(e_out->value_off, 0);
+    ck_assert_int_eq(e_out->value_len, 0);
+
+    release_ckvs(ckvs);
+    remove(DUMMY_NAME);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
+// ======================================================================
+START_TEST(new_entry_key_not_present_3)
+{
+// ------------------------------------------------------------
+#ifdef WITH_PRINT
+    printf("=== %s:\n", __func__);
+#endif
+    FILE* dummy = fopen(DUMMY_NAME, "w+b");
+    ck_assert_ptr_nonnull(dummy);
+    
+    init_ckvs(ckvs, 64, 5);
+    ck_assert_int_eq(dump_db(dummy, &ckvs.header, ckvs.entries), 0);
+    ckvs.file = dummy;
+
+    // already existing entry
+    const char* k1 = "cawzy"; // hash mod 64 = 63
+    strcpy(ckvs.entries[63].key, k1);
+
+    const char* k2 = "damne"; // hash mod 64 = 63
+    ckvs_sha_t auth_key = { { 0x1 } };
+    ckvs_entry_t* e_out = NULL;
+
+    ck_assert_int_eq(ckvs_new_entry(&ckvs, k2, &auth_key, &e_out), ERR_NONE);
+    ck_assert_ptr_nonnull(e_out);
+    assert_stored_entry_eq(dummy, 0, e_out);
+
+    ck_assert_str_eq(e_out->key, k2);
+    ck_assert_int_eq(memcmp(&e_out->auth_key, &auth_key, sizeof(ckvs_sha_t)), 0);
+    ck_assert_int_eq(e_out->value_off, 0);
+    ck_assert_int_eq(e_out->value_len, 0);
+
+    release_ckvs(ckvs);
+    remove(DUMMY_NAME);
+#ifdef WITH_PRINT
+    printf("=== END of %s\n", __func__);
+#endif
+}
+END_TEST
+
 
 
 // ======================================================================
@@ -615,6 +835,13 @@ Suite* ios_test_suite()
     tcase_add_test(tc1, write_encrypted_value_NULL);
     tcase_add_test(tc1, write_encrypted_value_1);
     tcase_add_test(tc1, write_encrypted_value_2);
+    tcase_add_test(tc1, new_entry_NULL);
+    tcase_add_test(tc1, new_entry_on_full_table);
+    tcase_add_test(tc1, new_entry_key_already_present_1);
+    tcase_add_test(tc1, new_entry_key_already_present_2);
+    tcase_add_test(tc1, new_entry_key_not_present_1);
+    tcase_add_test(tc1, new_entry_key_not_present_2);
+    tcase_add_test(tc1, new_entry_key_not_present_3);
 
     return s;
 }
