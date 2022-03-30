@@ -152,3 +152,17 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 }
 
 
+
+
+
+static int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx){
+    int err=fseek(ckvs->file,idx*sizeof(entry)+CKVS_HEADERSTRINGLEN,SEEK_SET);
+    if (err!=0) return ERR_IO;
+    err=fwrite(ckvs->entries[idx], sizeof(ckvs_entry_t),1,ckvs->file);
+    if (err!= sizeof(ckvs_entry_t)) return ERR_IO;
+    return ERR_NONE;
+
+
+}
+
+

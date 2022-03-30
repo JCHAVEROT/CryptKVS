@@ -241,8 +241,9 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         return err;
     }
 
-    return ckvs_write_encrypted_value(&ckvs, ckvs_out, (const unsigned char*) set_value_encrypted, (uint64_t) set_value_encrypted_length);
-
+    err=ckvs_write_encrypted_value(&ckvs, ckvs_out, (const unsigned char*) set_value_encrypted, (uint64_t) set_value_encrypted_length);
+    fclose(&ckvs);
+    return err;
 
 
 
