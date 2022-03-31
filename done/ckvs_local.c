@@ -159,6 +159,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
     //close the file and terminate
     ckvs_close(&ckvs);
+    free(set_value_encrypted);
+    set_value_encrypted=NULL;
 
     return ERR_NONE;
 }
