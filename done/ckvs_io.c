@@ -157,9 +157,10 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 
     size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
     //check errors
+    printf("%s , size:%d\n",*buffer_ptr,size);
     if (nb!=size) return ERR_INVALID_COMMAND;
-    *buffer_size = size + 1; //so to have the place for the final '\0'
-    *buffer_ptr[size] = '\0'; // to add the final '\0' //NOTE : est-ce qu'il n'est pas déjà à la fin de la string
+    *buffer_size = size + 1; //update the buffer size to have the place for the final '\0'
+    //*buffer_ptr[*buffer_size-1] = '\0'; // to add the final '\0' //NOTE : est-ce qu'il n'est pas déjà à la fin de la string
 
     //closes the opened file and finishes
     fclose(file);
@@ -173,11 +174,17 @@ int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) {
     }
     //place the pointer on the file on the right place and check errors
     int err = fseek(ckvs->file, idx * sizeof(struct ckvs_entry) + CKVS_HEADERSTRINGLEN, SEEK_SET);
-    if (err != 0) return ERR_IO;
+    if (err != 0) {
+        pps_printf("l");
+        return ERR_IO;
+    }
 
     //write the entry and check errors
     size_t nb2 = fwrite(&ckvs->entries[idx], sizeof(ckvs_entry_t),1,ckvs->file);
-    if (nb2 != sizeof(ckvs_entry_t)) return ERR_IO;
+    if (nb2 != 1) {
+        pps_printf("m");
+        return ERR_IO;
+    }
     return ERR_NONE;
 }
 // ----------------------------------------------------------------------
@@ -190,6 +197,7 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
     int err = fseek(ckvs->file, 0, SEEK_END);
     if (err != ERR_NONE) {
         //error
+        pps_printf("a");
         return err;
     }
     //to assign the new values of c2, value_off and value_len
@@ -198,14 +206,25 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
 
     //write at the end of the ckvs file the encrypted value to writes
     err = fputs((const char *) buf , ckvs->file);
+    if (err < 0) {//since fputs return a non-zero negative integer in case of success
+        //error
+        pps_printf("b");
+
+        return err;
+    }
     ckvs_entry_t out_entry;
     memset(&out_entry, 0, sizeof(out_entry));
     //free(buf); //to free the pointer //NOTE : à faire ici ?
 
+    size_t idx=(size_t) (e - &ckvs->entries[0]);
+    ckvs->entries[idx]=out_entry;
+    print_entry( &out_entry );
     //to modify the right entry in the ckvs table, index is obtained by substracting the pointers
-    err = ckvs_write_entry_to_disk(ckvs, (size_t) (e - &ckvs->entries[0]));
+    err = ckvs_write_entry_to_disk(ckvs,idx);
     if (err != ERR_NONE) {
         //error
+        pps_printf("c");
+
         return err;
     }
 

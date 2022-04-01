@@ -93,8 +93,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         // Error
         ckvs_close(&ckvs);
         pps_printf("0");
-        free(c2);
-        c2=NULL;
+        free_c2_sve(&c2,NULL,NULL);
         return err;
     }
     *c2 = ckvs_out->c2;
@@ -105,8 +104,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         if (err !=1 ) {
             pps_printf("zz");
             return ERR_IO;
-            free(c2);
-            c2=NULL;
+            free_c2_sve(&c2,NULL,NULL);
+
         }
     }
 
@@ -115,14 +114,12 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         pps_printf("1");
-
-
         ckvs_close(&ckvs);
-        free(c2);
-        c2=NULL;
+        free_c2_sve(&c2,NULL,NULL);
+
         return err;
     }
-    if (set_value == NULL) {
+    if (set_value == NULL) { //Get part
 
         //to make the pointer lead to the beginning of the encrypted secret
         fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
@@ -133,8 +130,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
         if (nb_ok != ckvs_out->value_len) {
             ckvs_close(&ckvs);
-            free(c2);
-            c2=NULL;
+            free_c2_sve(&c2,NULL,NULL);
             pps_printf("1");
             return ERR_IO;
         }
@@ -148,8 +144,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             // Error
             ckvs_close(&ckvs);
             pps_printf("2");
-            free(c2);
-            c2=NULL;
+            free_c2_sve(&c2,NULL,NULL);
 
             return err;
         }
@@ -162,8 +157,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
         //close the CKVS database at filename since done decrypting
         ckvs_close(&ckvs);
-        free(c2);
-        c2=NULL;
+        free_c2_sve(&c2,NULL,NULL);
         return ERR_NONE;
     }
 
@@ -175,22 +169,35 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
+        pps_printf("6");
+        free_c2_sve(&c2,&set_value_encrypted,&set_value_encrypted_length);
         return err;
     }
     err = ckvs_write_encrypted_value(&ckvs, ckvs_out, (const unsigned char*) set_value_encrypted, (uint64_t) set_value_encrypted_length);
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
+        pps_printf("7");
+        free_c2_sve(&c2,&set_value_encrypted,&set_value_encrypted_length);
         return err;
     }
     //close the file and terminate
     ckvs_close(&ckvs);
-    free(set_value_encrypted);
-    set_value_encrypted=NULL;
-    free(c2);
-    c2=NULL;
+    free_c2_sve(&c2,&set_value_encrypted,&set_value_encrypted_length);
 
     return ERR_NONE;
+}
+//-----------------------------------------------------------------------
+void free_c2_sve(ckvs_sha_t ** c2,unsigned char **sve,size_t* sve_length ){
+if (sve!=NULL&&*sve!=NULL){
+free(*sve);
+*sve=NULL;
+}
+if (sve_length!=NULL) *sve_length=0;
+if (c2!=NULL&&*c2!=NULL){
+free(*c2);
+*c2=NULL;
+}
 }
 // ----------------------------------------------------------------------
 int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
@@ -282,11 +289,13 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
 // ----------------------------------------------------------------------
 int ckvs_local_set(const char *filename, const char *key, const char *pwd, const char *valuefilename) {
     //check pointers
-    if (filename != NULL || key != NULL || pwd != NULL || valuefilename != NULL) return ERR_INVALID_ARGUMENT;
+    if (filename == NULL || key == NULL || pwd == NULL || valuefilename == NULL) return ERR_INVALID_ARGUMENT;
 
     //initialize buffer and its size
     char *buffer = NULL;
     size_t buffer_size = 0;
+
+
 
     //reads file called filename and prints it in the buffer
     int err = read_value_file_content(filename, &buffer, &buffer_size);
@@ -294,7 +303,10 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
     if (err != ERR_NONE) return err;
 
     //called the modularized funciton ckvs_local_getset with the buffer
-    return ckvs_local_getset(filename, key, pwd, buffer);
+    err= ckvs_local_getset(filename, key, pwd, buffer);
+    free(buffer);
+    buffer=NULL;
+    return err;
 }
 
 
