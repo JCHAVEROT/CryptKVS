@@ -23,6 +23,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     file = fopen(filename, "r+b");
     if (file == NULL) {
         //error
+        pps_printf("open");
         return ERR_IO;
     }
     ckvs->file = file;

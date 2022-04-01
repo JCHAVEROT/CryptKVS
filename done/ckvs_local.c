@@ -93,7 +93,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         // Error
         ckvs_close(&ckvs);
         pps_printf("0");
-
+        free(c2);
+        c2=NULL;
         return err;
     }
     *c2 = ckvs_out->c2;
@@ -104,6 +105,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         if (err !=1 ) {
             pps_printf("zz");
             return ERR_IO;
+            free(c2);
+            c2=NULL;
         }
     }
 
@@ -113,7 +116,10 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         // Error
         pps_printf("1");
 
+
         ckvs_close(&ckvs);
+        free(c2);
+        c2=NULL;
         return err;
     }
     if (set_value == NULL) {
@@ -127,6 +133,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
         if (nb_ok != ckvs_out->value_len) {
             ckvs_close(&ckvs);
+            free(c2);
+            c2=NULL;
             pps_printf("1");
             return ERR_IO;
         }
@@ -140,6 +148,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             // Error
             ckvs_close(&ckvs);
             pps_printf("2");
+            free(c2);
+            c2=NULL;
 
             return err;
         }
