@@ -56,7 +56,7 @@ int ckvs_do_one_cmd(int argc, char *argv[])
 
         return ckvs_local_get(db_filename,argv[3],argv[4]);
     }
-    if (strcmp(cmd,"get")==0){
+    if (strcmp(cmd,"set")==0){
         if (argc < 6) return ERR_NOT_ENOUGH_ARGUMENTS;
         if (argc > 6) return ERR_TOO_MANY_ARGUMENTS;
 

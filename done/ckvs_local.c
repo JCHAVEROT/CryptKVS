@@ -61,6 +61,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
+        pps_printf("sus");
         return err;
     }
 
@@ -74,6 +75,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
+        pps_printf("-10");
+
         return err;
     }
 
@@ -89,19 +92,27 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
+        pps_printf("0");
+
         return err;
     }
     *c2 = ckvs_out->c2;
 
     if (set_value != NULL) {
         err = RAND_bytes(c2->sha,C2_SIZE);
-        if (err !=1 ) return ERR_IO;
+
+        if (err !=1 ) {
+            pps_printf("zz");
+            return ERR_IO;
+        }
     }
 
     //now we have the entry and hence c2, to compute the masterkey
     err = ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
     if (err != ERR_NONE) {
         // Error
+        pps_printf("1");
+
         ckvs_close(&ckvs);
         return err;
     }
@@ -116,6 +127,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
         if (nb_ok != ckvs_out->value_len) {
             ckvs_close(&ckvs);
+            pps_printf("1");
             return ERR_IO;
         }
         //initialize the string where the decrypted secret will be stored
@@ -127,6 +139,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         if (err != ERR_NONE) {
             // Error
             ckvs_close(&ckvs);
+            pps_printf("2");
+
             return err;
         }
         //check if we have to end the lecture
@@ -138,6 +152,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
         //close the CKVS database at filename since done decrypting
         ckvs_close(&ckvs);
+        free(c2);
+        c2=NULL;
         return ERR_NONE;
     }
 
@@ -161,6 +177,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     ckvs_close(&ckvs);
     free(set_value_encrypted);
     set_value_encrypted=NULL;
+    free(c2);
+    c2=NULL;
 
     return ERR_NONE;
 }
