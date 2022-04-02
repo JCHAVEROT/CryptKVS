@@ -155,11 +155,11 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
     if (*buffer_ptr==NULL) return ERR_INVALID_COMMAND;
 
-    printf("size: %d \n",size);
-    pps_printf("%s\n",*buffer_ptr);
+   // printf("size: %d \n",size);
+    //pps_printf("%s\n",*buffer_ptr);
     size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
-    pps_printf("%s\n",*buffer_ptr);
-    pps_printf("nb : %d \n",nb);
+    //pps_printf("%s\n",*buffer_ptr);
+    //pps_printf("nb : %d \n",nb);
     //check errors
     //printf("%s , size:%d\n",*buffer_ptr,size);
     if (nb!=size) return ERR_INVALID_COMMAND;
