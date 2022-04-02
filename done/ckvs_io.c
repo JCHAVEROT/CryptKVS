@@ -156,7 +156,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
     if (*buffer_ptr==NULL) return ERR_INVALID_COMMAND;
 
-   // printf("size: %d \n",size);
+    //printf("size: %d \n",size);
     //pps_printf("%s\n",*buffer_ptr);
     size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
     //pps_printf("%s\n",*buffer_ptr);
@@ -207,13 +207,23 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
     }
     //to assign the new values of c2, value_off and value_len
     e->value_len = buflen;
+    //pps_printf("value_len: %d\n",e->value_len);
     e->value_off = (size_t) ftell(ckvs->file);
+    //pps_printf("value_off: %d\n",e->value_off);
 
     //write at the end of the ckvs file the encrypted value to writes
-    err = fputs((const char *) buf , ckvs->file);
+    //err = fputs((const char *) buf , ckvs->file);
+    err = fwrite(buf, sizeof(char),buflen,ckvs->file);
+
+
+    fseek(ckvs->file, 0, SEEK_END);
+    //pps_printf("file_size: %d\n",ftell(ckvs->file));
+    //pps_printf("file_size-value_off : %d\n",ftell(ckvs->file)-e->value_off);
+
+
     if (err < 0) {//since fputs return a non-zero negative integer in case of success
         //error
-        pps_printf("b");
+        //pps_printf("b");
 
         return err;
     }
@@ -223,26 +233,12 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
     //free(buf); //to free the pointer //NOTE : à faire ici ?
 
     size_t idx=(size_t) (e - &ckvs->entries[0]);
-    /*pps_printf("idx= %d \n",idx);
-    for(size_t i =0;i< ckvs->header.table_size;i++){
-        pps_printf("--------------------------");
-        if (strlen(ckvs->entries[i].key) != 0){
-            pps_printf("Entry %d : \n",i);
-            print_entry(&ckvs->entries[i]);
-        }
-        pps_printf("--------------------------");
-
-    }
-    //pps_printf("++++++++++++++++++++++++");
-    //print_entry(&ckvs->entries[idx]);*/
-
-
     //to modify the right entry in the ckvs table, index is obtained by substracting the pointers
+
+    //pps_printf("value_len: %d\n",ckvs->entries[idx].value_len);
     err = ckvs_write_entry_to_disk(ckvs,idx);
     if (err != ERR_NONE) {
         //error
-        pps_printf("c");
-
         return err;
     }
 

@@ -78,6 +78,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
+        pps_printf("Error 1");
+
         return err;
     }
 
@@ -90,6 +92,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
     if (err != ERR_NONE) {
         // Error
+        pps_printf("Error 2");
         ckvs_close(&ckvs);
         return err;
     }
@@ -97,6 +100,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (set_value != NULL) {
         err = RAND_bytes(&ckvs_out->c2.sha, C2_SIZE);
         if (err != 1) {
+            pps_printf("Error 3");
             return ERR_IO;
         }
     }
@@ -105,6 +109,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     err = ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
     if (err != ERR_NONE) {
         // Error
+        pps_printf("Error 4");
         ckvs_close(&ckvs);
         return err;
     }
@@ -116,10 +121,14 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         //initialize the string where the encrypted secret will be stored
         unsigned char encrypted[ckvs_out->value_len];
         //to read the encrypted secret
+       // pps_printf("value_off: %llu\n",ckvs_out->value_off);
+
         size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
+
         if (nb_ok != ckvs_out->value_len) {
+            //pps_printf("nb_ok: %zu, value_len: %llu \n",nb_ok,ckvs_out->value_len);
             ckvs_close(&ckvs);
-            free_sve(NULL, NULL);
+
             return ERR_IO;
         }
         //initialize the string where the decrypted secret will be stored
@@ -132,6 +141,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             // Error
             ckvs_close(&ckvs);
             free_sve(NULL, NULL);
+            pps_printf("Error 6");
+
 
             return err;
         }
@@ -151,6 +162,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
     //encrypts set_value content
     size_t set_value_encrypted_length = strlen(set_value) + EVP_MAX_BLOCK_LENGTH;
+    //pps_printf("%d \n",set_value_encrypted_length);
     unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
     err = ckvs_client_crypt_value(&ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value),
                                   set_value_encrypted,
@@ -171,6 +183,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
     //close the file and terminate
     ckvs_close(&ckvs);
+    //pps_printf("%d \n",set_value_encrypted_length);
     free_sve( &set_value_encrypted, &set_value_encrypted_length);
 
     return ERR_NONE;
