@@ -57,12 +57,11 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 /**
  * @brief Auxiliary function to easily free c2 and set_value_encrypted's dynamic allocations
  *
- * @param c2 ckvs_sha_t
  * @param sve (const char*)
  * @param sve_length size_t
  * @return void
  */
-void free_c2_sve(ckvs_sha_t ** c2,unsigned char **sve,size_t* sve_length);
+void free_sve(unsigned char **sve,size_t* sve_length);
 
 /**
  * @brief Opens the CKVS database at the given filename and executes the 'set' command,

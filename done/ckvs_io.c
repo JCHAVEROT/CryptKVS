@@ -157,10 +157,10 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 
     size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
     //check errors
-    printf("%s , size:%d\n",*buffer_ptr,size);
+    //printf("%s , size:%d\n",*buffer_ptr,size);
     if (nb!=size) return ERR_INVALID_COMMAND;
     *buffer_size = size + 1; //update the buffer size to have the place for the final '\0'
-    //*buffer_ptr[*buffer_size-1] = '\0'; // to add the final '\0' //NOTE : est-ce qu'il n'est pas déjà à la fin de la string
+    (*buffer_ptr)[size] = '\0'; // to add the final '\0' //NOTE : est-ce qu'il n'est pas déjà à la fin de la string
 
     //closes the opened file and finishes
     fclose(file);
@@ -189,6 +189,7 @@ int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) {
 }
 // ----------------------------------------------------------------------
 int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const unsigned char *buf, uint64_t buflen) {
+
     //check pointers
     if (ckvs == NULL || e == NULL || buf == NULL) {
         return ERR_INVALID_ARGUMENT;
@@ -212,13 +213,26 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
 
         return err;
     }
-    ckvs_entry_t out_entry;
+
+    ckvs_entry_t out_entry; // a quoi sert out_entry??
     memset(&out_entry, 0, sizeof(out_entry));
     //free(buf); //to free the pointer //NOTE : à faire ici ?
 
     size_t idx=(size_t) (e - &ckvs->entries[0]);
-    ckvs->entries[idx]=out_entry;
-    print_entry( &out_entry );
+    /*pps_printf("idx= %d \n",idx);
+    for(size_t i =0;i< ckvs->header.table_size;i++){
+        pps_printf("--------------------------");
+        if (strlen(ckvs->entries[i].key) != 0){
+            pps_printf("Entry %d : \n",i);
+            print_entry(&ckvs->entries[i]);
+        }
+        pps_printf("--------------------------");
+
+    }
+    //pps_printf("++++++++++++++++++++++++");
+    //print_entry(&ckvs->entries[idx]);*/
+
+
     //to modify the right entry in the ckvs table, index is obtained by substracting the pointers
     err = ckvs_write_entry_to_disk(ckvs,idx);
     if (err != ERR_NONE) {
