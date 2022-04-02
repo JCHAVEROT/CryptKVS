@@ -151,6 +151,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 
     //places the pointer at the beginning of the file back
     fseek(file, 0, SEEK_SET);
+    pps_printf("");
     //creates a buffer and checks errors to put the read value
     *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
     if (*buffer_ptr==NULL) return ERR_INVALID_COMMAND;
@@ -161,7 +162,6 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //pps_printf("%s\n",*buffer_ptr);
     //pps_printf("nb : %d \n",nb);
     //check errors
-    //printf("%s , size:%d\n",*buffer_ptr,size);
     if (nb!=size) return ERR_INVALID_COMMAND;
     *buffer_size = size + 1; //update the buffer size to have the place for the final '\0'
     (*buffer_ptr)[size] = '\0'; // to add the final '\0' //NOTE : est-ce qu'il n'est pas déjà à la fin de la string

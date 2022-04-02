@@ -138,7 +138,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         //check if we have to end the lecture
         for (size_t i = 0; i < strlen((char *) decrypted); ++i) {
 
-            if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
+            if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) continue;
             pps_printf("%c", decrypted[i]);
         }
 
@@ -282,11 +282,11 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
     size_t buffer_size = 0;
     
     //reads file called filename and prints it in the buffer
-    int err = read_value_file_content(filename, &buffer, &buffer_size);
+    int err = read_value_file_content(valuefilename, &buffer, &buffer_size);
     //checks errors
     if (err != ERR_NONE) return err;
 
-    pps_printf("bffer: %s",buffer);
+    //pps_printf("bffer: %s",buffer);
     //called the modularized funciton ckvs_local_getset with the buffer
     err = ckvs_local_getset(filename, key, pwd, buffer);
 
