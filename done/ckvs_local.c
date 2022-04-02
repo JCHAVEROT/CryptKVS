@@ -78,8 +78,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
-        pps_printf("-10");
-
         return err;
     }
 
@@ -93,15 +91,12 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
-        pps_printf("0");
         return err;
     }
 
     if (set_value != NULL) {
         err = RAND_bytes(&ckvs_out->c2.sha, C2_SIZE);
-        print_SHA("    C2    ", &ckvs_out->c2.sha);
         if (err != 1) {
-            pps_printf("zz");
             return ERR_IO;
         }
     }
@@ -110,7 +105,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     err = ckvs_client_compute_masterkey(&ckvs_mem, &ckvs_out->c2);
     if (err != ERR_NONE) {
         // Error
-        pps_printf("1");
         ckvs_close(&ckvs);
         return err;
     }
@@ -126,7 +120,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         if (nb_ok != ckvs_out->value_len) {
             ckvs_close(&ckvs);
             free_sve(NULL, NULL);
-            pps_printf("1");
             return ERR_IO;
         }
         //initialize the string where the decrypted secret will be stored
@@ -138,7 +131,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         if (err != ERR_NONE) {
             // Error
             ckvs_close(&ckvs);
-            pps_printf("2");
             free_sve(NULL, NULL);
 
             return err;
@@ -149,6 +141,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
             pps_printf("%c", decrypted[i]);
         }
+
 
         //close the CKVS database at filename since done decrypting
         ckvs_close(&ckvs);
@@ -164,7 +157,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
-        pps_printf("6");
         free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return err;
     }
@@ -173,7 +165,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
-        pps_printf("7");
         free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return err;
     }
@@ -295,8 +286,10 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
     //checks errors
     if (err != ERR_NONE) return err;
 
+    pps_printf("bffer: %s",buffer);
     //called the modularized funciton ckvs_local_getset with the buffer
     err = ckvs_local_getset(filename, key, pwd, buffer);
+
     free(buffer);
     buffer = NULL;
     return err;
