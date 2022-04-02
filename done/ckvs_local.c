@@ -136,11 +136,12 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             return err;
         }
         //check if we have to end the lecture
-        for (size_t i = 0; i < strlen((char *) decrypted); ++i) {
+        /*for (size_t i = 0; i < strlen((char *) decrypted); ++i) {
 
             if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) continue;
             pps_printf("%c", decrypted[i]);
-        }
+        }*/
+        pps_printf("%s",decrypted);
 
 
         //close the CKVS database at filename since done decrypting
