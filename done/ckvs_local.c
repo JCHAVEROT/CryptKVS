@@ -163,7 +163,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     //encrypts set_value content
     size_t set_value_encrypted_length = strlen(set_value) +1 + EVP_MAX_BLOCK_LENGTH;//don't forget the final '\0'
     unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
-    err = ckvs_client_crypt_value(&ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value),
+    err = ckvs_client_crypt_value(&ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value)+1,
                                   set_value_encrypted,
                                   &set_value_encrypted_length);
     //pps_printf("%d \n",set_value_encrypted_length);
