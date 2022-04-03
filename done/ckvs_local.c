@@ -54,6 +54,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     //check if the arguments are valid
     if (key == NULL || pwd == NULL || filename == NULL) return ERR_INVALID_ARGUMENT;
 
+    //pps_printf("%llu", strlen(set_value));
     //initialize the struct
     struct CKVS ckvs;
     memset(&ckvs, 0, sizeof(struct CKVS));
@@ -64,7 +65,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
-        pps_printf("sus");
         return err;
     }
 
@@ -161,12 +161,12 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
     //encrypts set_value content
-    size_t set_value_encrypted_length = strlen(set_value) + EVP_MAX_BLOCK_LENGTH;
-    //pps_printf("%d \n",set_value_encrypted_length);
+    size_t set_value_encrypted_length = strlen(set_value) +1 + EVP_MAX_BLOCK_LENGTH;//don't forget the final '\0'
     unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
     err = ckvs_client_crypt_value(&ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value),
                                   set_value_encrypted,
                                   &set_value_encrypted_length);
+    //pps_printf("%d \n",set_value_encrypted_length);
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
