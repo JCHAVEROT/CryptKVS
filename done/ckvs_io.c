@@ -329,7 +329,6 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     SHA256((unsigned char *) key, strlen(key), buff);
 
     uint32_t hashkey;
-    memcpy(&hashkey, buff + strlen(buff) - SHA256_DIGEST_LENGTH, SHA256_DIGEST_LENGTH);
+    memcpy(&hashkey, buff + strlen(buff) - SHA256_DIGEST_LENGTH - 1, SHA256_DIGEST_LENGTH);
     return hashkey & (ckvs->header.table_size - 1);
-
 }
