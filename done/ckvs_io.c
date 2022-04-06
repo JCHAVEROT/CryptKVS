@@ -11,7 +11,6 @@
 #include <stdbool.h>
 #include "ckvs_io.h"
 #include <stdlib.h>
-
 // ----------------------------------------------------------------------
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
     //check pointers
@@ -48,7 +47,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
         fclose(file);
         return ERR_IO;
     }
-    // check that the header start with the good prefix
+    //check that the header start with the good prefix
     if (strncmp(CKVS_HEADERSTRING_PREFIX, header_str, strlen(CKVS_HEADERSTRING_PREFIX)) != 0) {
         //error
         fclose(file);
