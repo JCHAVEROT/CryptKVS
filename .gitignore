@@ -1,6 +1,5 @@
 *~
 *.o
-.depend
+*.depend
 *.idea
-.idea
 *.DS_Store
