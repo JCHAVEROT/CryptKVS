@@ -133,7 +133,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     for (uint32_t i = hashkey; i < hashkey + ckvs->header.table_size; ++i) {
         if (strncmp(ckvs->entries[i % (ckvs->header.table_size - 1)].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
-            if (ckvs_cmp_sha(&ckvs->entries[i].auth_key, auth_key) == 0) {
+            if (ckvs_cmp_sha(&ckvs->entries[i % (ckvs->header.table_size - 1)].auth_key, auth_key) == 0) {
                 authKeyIsCorrect = true;
                 *e_out = &ckvs->entries[i % (ckvs->header.table_size - 1)];
             }

@@ -155,7 +155,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
             //check if we have to end the lecture
             for (size_t i = 0; i < decrypted_len; ++i) {
-
                 if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
                 pps_printf("%c", decrypted[i]);
             }
@@ -163,8 +162,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             //close the CKVS database at filename since done decrypting
             ckvs_close(&ckvs);
             return ERR_NONE;
-        }
-        return ERR_NO_VALUE;
+        } else return ERR_NO_VALUE;
     }
 
     //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
