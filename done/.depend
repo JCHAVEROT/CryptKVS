@@ -1,7 +1,68 @@
-cryptkvs.o: cryptkvs.c error.h ckvs_local.h ckvs_utils.h
+cryptkvs.o: cryptkvs.c error.h ckvs_local.h ckvs_utils.h \
+  /usr/local/opt/openssl@1.1/include/openssl/sha.h \
+  /usr/local/opt/openssl@1.1/include/openssl/e_os2.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslconf.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslv.h
 error.o: error.c
-ckvs_local.o: ckvs_local.c ckvs_utils.h ckvs.h error.h ckvs_io.h \
- ckvs_crypto.h util.h ckvs_local.h
-ckvs_utils.o: ckvs_utils.c ckvs_utils.h ckvs.h error.h util.h
-ckvs_crypto.o: ckvs_crypto.c ckvs.h ckvs_utils.h error.h ckvs_crypto.h
-ckvs_io.o: ckvs_io.c ckvs_utils.h ckvs.h error.h ckvs_io.h
+ckvs_local.o: ckvs_local.c ckvs_utils.h \
+  /usr/local/opt/openssl@1.1/include/openssl/sha.h \
+  /usr/local/opt/openssl@1.1/include/openssl/e_os2.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslconf.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslv.h ckvs.h error.h \
+  ckvs_io.h ckvs_crypto.h util.h \
+  /usr/local/opt/openssl@1.1/include/openssl/evp.h \
+  /usr/local/opt/openssl@1.1/include/openssl/ossl_typ.h \
+  /usr/local/opt/openssl@1.1/include/openssl/symhacks.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bio.h \
+  /usr/local/opt/openssl@1.1/include/openssl/crypto.h \
+  /usr/local/opt/openssl@1.1/include/openssl/safestack.h \
+  /usr/local/opt/openssl@1.1/include/openssl/stack.h \
+  /usr/local/opt/openssl@1.1/include/openssl/cryptoerr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bioerr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/evperr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/objects.h \
+  /usr/local/opt/openssl@1.1/include/openssl/obj_mac.h \
+  /usr/local/opt/openssl@1.1/include/openssl/asn1.h \
+  /usr/local/opt/openssl@1.1/include/openssl/asn1err.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bn.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bnerr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/objectserr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/rand.h \
+  /usr/local/opt/openssl@1.1/include/openssl/randerr.h ckvs_local.h
+ckvs_utils.o: ckvs_utils.c ckvs_utils.h \
+  /usr/local/opt/openssl@1.1/include/openssl/sha.h \
+  /usr/local/opt/openssl@1.1/include/openssl/e_os2.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslconf.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslv.h ckvs.h error.h \
+  util.h
+ckvs_crypto.o: ckvs_crypto.c ckvs.h ckvs_utils.h \
+  /usr/local/opt/openssl@1.1/include/openssl/sha.h \
+  /usr/local/opt/openssl@1.1/include/openssl/e_os2.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslconf.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslv.h error.h \
+  ckvs_crypto.h /usr/local/opt/openssl@1.1/include/openssl/rand.h \
+  /usr/local/opt/openssl@1.1/include/openssl/ossl_typ.h \
+  /usr/local/opt/openssl@1.1/include/openssl/randerr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/symhacks.h \
+  /usr/local/opt/openssl@1.1/include/openssl/hmac.h \
+  /usr/local/opt/openssl@1.1/include/openssl/evp.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bio.h \
+  /usr/local/opt/openssl@1.1/include/openssl/crypto.h \
+  /usr/local/opt/openssl@1.1/include/openssl/safestack.h \
+  /usr/local/opt/openssl@1.1/include/openssl/stack.h \
+  /usr/local/opt/openssl@1.1/include/openssl/cryptoerr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bioerr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/evperr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/objects.h \
+  /usr/local/opt/openssl@1.1/include/openssl/obj_mac.h \
+  /usr/local/opt/openssl@1.1/include/openssl/asn1.h \
+  /usr/local/opt/openssl@1.1/include/openssl/asn1err.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bn.h \
+  /usr/local/opt/openssl@1.1/include/openssl/bnerr.h \
+  /usr/local/opt/openssl@1.1/include/openssl/objectserr.h
+ckvs_io.o: ckvs_io.c ckvs_utils.h \
+  /usr/local/opt/openssl@1.1/include/openssl/sha.h \
+  /usr/local/opt/openssl@1.1/include/openssl/e_os2.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslconf.h \
+  /usr/local/opt/openssl@1.1/include/openssl/opensslv.h ckvs.h error.h \
+  ckvs_io.h
