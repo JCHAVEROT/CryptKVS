@@ -90,3 +90,4 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
  */
 int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out);
 
+static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key);

@@ -266,3 +266,33 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
 
     return ERR_NONE;
 }
+
+int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out){
+    uint32_t hashkey= ckvs_hashkey(ckvs,key);
+
+    for (int i = hashkey; i < hashkey+ckvs->header.table_size ; ++i) {
+        if (strncmp(ckvs->entries[hashkey%(ckvs->header.table_size-1)].key,"\0",1)==0){
+            write_new_entry(ckvs,key,auth_key,hashkey);
+        }
+    }
+
+    return ERR_NONE;
+}
+
+static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key){
+
+    char* buff;
+    memset(&key_sha,0, sizeof(ckvs_sha_t));
+
+    SHA256((unsigned char *) key, strlen(key), buff);
+
+    uint32_t hashkey;
+    memcpy( &hashkey, buff+strlen(buff)-SHA256_DIGEST_LENGTH, SHA256_DIGEST_LENGTH);
+    return  hashkey & (ckvs->header.table_size-1) ;
+
+}
+
+
+void write_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key,uint32_t idx){
+
+};

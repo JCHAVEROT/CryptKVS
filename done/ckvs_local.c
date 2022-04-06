@@ -249,3 +249,72 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
     return err;
 }
 
+int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
+    //check if the pointeurs are valid
+    if (filename == NULL || key == NULL || pwd == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //initialiaze the struct ckvs
+    struct CKVS ckvs;
+    memset(&ckvs, 0, sizeof(struct CKVS));
+
+    //open the filename and check errors
+    int err = ckvs_open(filename, &ckvs);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+    if (ckvs.header.table_size <= ckvs.header.num_entries) {
+        //error
+        return ERR_MAX_FILES;
+    }
+
+    //initialize the struct ckvs_memrecord_t
+    ckvs_memrecord_t ckvs_mem;
+    memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
+
+    //to generate in particular the auth_key and c1 and store them in ckvs_mem
+    err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
+    if (err != ERR_NONE) {
+        // error
+        ckvs_close(&ckvs);
+        return err;
+    }
+
+    //initialize the struct ckvs_entry_t
+    ckvs_entry_t *ckvs_out;
+    memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
+
+    //to find the right entry in the database with the key and the auth_key latterly computed
+    err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
+    if (err != ERR_KEY_NOT_FOUND) {
+        //error
+        ckvs_close(&ckvs);
+        //error if the entry is found
+        if (err==ERR_NONE) return ERR_DUPLICATE_ID;
+        return err;
+    }
+
+    err= ckvs_new_entry(&ckvs,key,&ckvs_mem.auth_key,&ckvs_out);
+    if (err != ERR_NONE) {
+        // error
+        ckvs_close(&ckvs);
+        return err;
+    }
+
+
+
+
+
+
+
+
+
+
+
+    return ERR_NONE;
+}
+
+
