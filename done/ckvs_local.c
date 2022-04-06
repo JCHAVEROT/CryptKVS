@@ -27,13 +27,13 @@ enum crypt_type {
 };
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename) {
-    //check if the argument is valid
+    //check if the pointeur is valid
     if (filename == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
     }
 
-    //initialiaze the struct
+    //initialiaze the struct ckvs
     struct CKVS ckvs;
     memset(&ckvs, 0, sizeof(struct CKVS));
 
@@ -44,10 +44,10 @@ int ckvs_local_stats(const char *filename) {
         return err;
     }
 
-    //to print the header of the ckvs read from the file
+    //print the header of the ckvs read from the file
     print_header(&(ckvs.header));
 
-    //to print the entries of the ckvs read from the file
+    //print the entries of the ckvs read from the file
     for (int i = 0; i < CKVS_FIXEDSIZE_TABLE; i++) {
         if (strlen(ckvs.entries[i].key) != 0) {
             print_entry(&ckvs.entries[i]);
@@ -65,7 +65,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         return ERR_INVALID_ARGUMENT;
     }
 
-    //initialize the struct
+    //initialize the struct ckvs
     struct CKVS ckvs;
     memset(&ckvs, 0, sizeof(struct CKVS));
 
@@ -103,10 +103,10 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
     //if in set mode, to generate randomly SHA256 of c2 so not to decrease entropy
     if (set_value != NULL) {
-        err = RAND_bytes(&ckvs_out->c2.sha, C2_SIZE);
+        err = RAND_bytes((unsigned char *) &ckvs_out->c2.sha, C2_SIZE);
         if (err != 1) {
             //error
-            //ckvs_close(&ckvs);
+            ckvs_close(&ckvs);
             return ERR_IO;
         }
     }
@@ -118,7 +118,9 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         ckvs_close(&ckvs);
         return err;
     }
-    if (set_value == NULL) { //the get part
+
+    //the get part
+    if (set_value == NULL) {
 
         //make the pointer lead to the beginning of the encrypted secret
         fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
@@ -132,21 +134,22 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             ckvs_close(&ckvs);
             return ERR_IO;
         }
+
         //initialize the string where the decrypted secret will be stored
         size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
         unsigned char decrypted[decrypted_len];
+
         //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
         err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, ckvs_out->value_len, decrypted,
                                       &decrypted_len);
         if (err != ERR_NONE) {
             // Error
             ckvs_close(&ckvs);
-            free_sve(NULL, NULL);
             return err;
         }
 
         //check if we have to end the lecture
-        for (size_t i = 0; i < strlen((char *) decrypted); ++i) {
+        for (size_t i = 0; i < decrypted_len; ++i) {
 
             if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
             pps_printf("%c", decrypted[i]);
@@ -157,9 +160,15 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         return ERR_NONE;
     }
 
-    //encrypt set_value content
-    size_t set_value_encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH; //don't forget the final '\0'
+    //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
+    size_t set_value_encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
     unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
+    if (set_value_encrypted==NULL){
+        //error
+        ckvs_close(&ckvs);
+        free_sve(&set_value_encrypted, &set_value_encrypted_length);
+        return ERR_OUT_OF_MEMORY;
+    }
     err = ckvs_client_crypt_value(&ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value)+1,
                                   set_value_encrypted,
                                   &set_value_encrypted_length);
@@ -196,12 +205,12 @@ void free_sve(unsigned char **sve, size_t *sve_length) {
 
 // ----------------------------------------------------------------------
 int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
-    //check if the arguments are valid
+    //check if the pointeurs are valid
     if (key == NULL || pwd == NULL || filename == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
     }
-    //call the moduralize getset function with NULL as set_value
+    //call the modularize getset function with NULL as set_value
     return ckvs_local_getset(filename, key, pwd, NULL);
 }
 
@@ -225,11 +234,14 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
     }
 
 
-    //called the modularized funciton ckvs_local_getset with the buffer
+    //called the modularized function ckvs_local_getset with the buffer
     err = ckvs_local_getset(filename, key, pwd, buffer);
 
-    free(buffer); //avec free sve ?
+    //free the buffer
+    free(buffer);
     buffer = NULL;
+    buffer_size = 0;
+
     return err;
 }
 

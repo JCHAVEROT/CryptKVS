@@ -30,6 +30,7 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     const char slash[1]= "|";
     strncat(str, slash, 1);
     strncat(str, pwd, strlen(pwd));
+
     //convertion of the stretched_key in SHA256, stored in the memrecord
     SHA256((unsigned char* )str, strlen(str), mr->stretched_key.sha);
 
@@ -38,6 +39,7 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     //computation of the auth_key from the SHA256 of the stretched_key with message AUTH_MESSAGE
     HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, (const unsigned char*) AUTH_MESSAGE,
                           strlen(AUTH_MESSAGE), mr->auth_key.sha, &l);
+
     //verify that the auth_key has a correct length
     if (l != SHA256_DIGEST_LENGTH) {
         //error
@@ -47,6 +49,7 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     //computation of c1 from the SHA256 of the stretched_key with message C1_MESSAGE
     HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, (const unsigned char*) C1_MESSAGE,
         strlen(C1_MESSAGE), mr->c1.sha, &l);
+
     //verify that c1 has a correct length
     if (l!= SHA256_DIGEST_LENGTH) {
         //error

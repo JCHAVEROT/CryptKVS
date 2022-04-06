@@ -55,7 +55,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
 
 /**
- * @brief Auxiliary function to easily free c2 and set_value_encrypted's dynamic allocations
+ * @brief Auxiliary function to easily free set_value_encrypted's dynamic allocation
  *
  * @param sve (const char*)
  * @param sve_length size_t
