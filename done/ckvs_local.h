@@ -6,6 +6,7 @@
  */
 
 #pragma once
+
 #include "ckvs_utils.h"
 
 
@@ -51,7 +52,7 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd);
  * @param set_value (const char*) the path to the file which contains what will become the new encrypted content of the entry(only for ckvs_local_set).
  * @return int, an error code
  */
-int ckvs_local_getset(const char *filename, const char *key, const char *pwd, const char* set_value);
+int ckvs_local_getset(const char *filename, const char *key, const char *pwd, const char *set_value);
 
 
 /**
@@ -61,7 +62,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
  * @param sve_length size_t
  * @return void
  */
-void free_sve(unsigned char **sve,size_t* sve_length);
+void free_sve(unsigned char **sve, size_t *sve_length);
 
 /**
  * @brief Opens the CKVS database at the given filename and executes the 'set' command,
