@@ -1,4 +1,6 @@
 *~
 *.o
-*.depend
+.depend
 *.idea
+.idea
+../.idea
