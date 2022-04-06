@@ -11,6 +11,7 @@
 #include <stdbool.h>
 #include "ckvs_io.h"
 #include <stdlib.h>
+
 // ----------------------------------------------------------------------
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
     //check pointers

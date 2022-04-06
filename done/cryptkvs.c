@@ -15,8 +15,7 @@
  * TODO WEEK 04-07: add message                        *
  * TODO WEEK 09: Refactor usage()                      *
  * *************************************************** */
-static void usage(const char *execname, int err)
-{
+static void usage(const char *execname, int err) {
     if (err == ERR_INVALID_COMMAND) {
         pps_printf("Available commands:\n");
         pps_printf("- cryptkvs <database> stats\n");
@@ -39,28 +38,27 @@ static void usage(const char *execname, int err)
  * @param argc (int) the number of arguments in the command line
  * @param argv (char*[]) the arguments of the command line, as passed to main()
  */
-int ckvs_do_one_cmd(int argc, char *argv[])
-{
+int ckvs_do_one_cmd(int argc, char *argv[]) {
     if (argc < 3) return ERR_INVALID_COMMAND;
 
-    const char* db_filename = argv[1];
-    const char* cmd = argv[2];
+    const char *db_filename = argv[1];
+    const char *cmd = argv[2];
 
-    if (strcmp(cmd,"stats")==0){
+    if (strcmp(cmd, "stats") == 0) {
         if (argc > 3) return ERR_TOO_MANY_ARGUMENTS;
-       return ckvs_local_stats(db_filename);
+        return ckvs_local_stats(db_filename);
     }
-    if (strcmp(cmd,"get")==0){
+    if (strcmp(cmd, "get") == 0) {
         if (argc < 5) return ERR_NOT_ENOUGH_ARGUMENTS;
         if (argc > 5) return ERR_TOO_MANY_ARGUMENTS;
 
-        return ckvs_local_get(db_filename,argv[3],argv[4]);
+        return ckvs_local_get(db_filename, argv[3], argv[4]);
     }
-    if (strcmp(cmd,"set")==0){
+    if (strcmp(cmd, "set") == 0) {
         if (argc < 6) return ERR_NOT_ENOUGH_ARGUMENTS;
         if (argc > 6) return ERR_TOO_MANY_ARGUMENTS;
 
-        return ckvs_local_set(db_filename,argv[3],argv[4],argv[5]);
+        return ckvs_local_set(db_filename, argv[3], argv[4], argv[5]);
     }
 
 
@@ -68,15 +66,16 @@ int ckvs_do_one_cmd(int argc, char *argv[])
 }
 
 #ifndef FUZZ
+
 /**
  * @brief main function, runs the requested command and prints the resulting error if any.
  */
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
     int ret = ckvs_do_one_cmd(argc, argv);
     if (ret != ERR_NONE) {
         usage(argv[0], ret);
     }
     return ret;
 }
+
 #endif

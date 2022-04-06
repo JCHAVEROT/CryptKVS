@@ -14,12 +14,12 @@
 /**
  * @brief Represents a CKVS database.
  */
- struct CKVS{
-     struct ckvs_header header;
-     struct ckvs_entry entries[CKVS_FIXEDSIZE_TABLE];
-     FILE *file;
+struct CKVS {
+    struct ckvs_header header;
+    struct ckvs_entry entries[CKVS_FIXEDSIZE_TABLE];
+    FILE *file;
 };
- typedef struct CKVS CKVS_t;
+typedef struct CKVS CKVS_t;
 
 /* *************************************************** *
  * TODO WEEK 05: Open/close refactoring                *
@@ -74,7 +74,7 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
  * @brief Reads the file at filename, then allocates a buffer to dumps the file content into.
  * Not asked to students but helpful to have
  */
-int read_value_file_content(const char* filename, char** buffer_ptr, size_t* buffer_size);
+int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size);
 
 /* *************************************************** *
  * TODO WEEK 07                                        *
