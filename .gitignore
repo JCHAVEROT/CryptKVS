@@ -3,3 +3,4 @@
 .depend
 *.idea
 .idea
+*.DS_Store
