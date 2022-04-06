@@ -266,53 +266,42 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
         //error
         return err;
     }
-    if (ckvs.header.table_size <= ckvs.header.num_entries) {
-        //error
-        return ERR_MAX_FILES;
-    }
 
     //initialize the struct ckvs_memrecord_t
     ckvs_memrecord_t ckvs_mem;
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
+    //initialize the pointer of a struct ckvs_entry_t for the new entry
+    ckvs_entry_t *new_ckvs_entry;
+    memset(&new_ckvs_entry, 0, sizeof(ckvs_entry_t *));
+
+    //verify is not too long
+    if (strlen(key) > CKVS_MAXKEYLEN) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //write the key in the new entry
+    strncpy(new_ckvs_entry->key, key, CKVS_MAXKEYLEN);
 
     //to generate in particular the auth_key and c1 and store them in ckvs_mem
     err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
     if (err != ERR_NONE) {
         // error
-        ckvs_close(&ckvs);
         return err;
     }
 
-    //initialize the struct ckvs_entry_t
-    ckvs_entry_t *ckvs_out;
-    memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
+    //associate the newly computed auth_key to the new entry
+    new_ckvs_entry->auth_key = ckvs_mem.auth_key;
 
-    //to find the right entry in the database with the key and the auth_key latterly computed
-    err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
-    if (err != ERR_KEY_NOT_FOUND) {
-        //error
-        ckvs_close(&ckvs);
-        //error if the entry is found
-        if (err==ERR_NONE) return ERR_DUPLICATE_ID;
-        return err;
-    }
-
-    err= ckvs_new_entry(&ckvs,key,&ckvs_mem.auth_key,&ckvs_out);
+    err = ckvs_new_entry(&ckvs, key, &new_ckvs_entry->auth_key, &new_ckvs_entry);
     if (err != ERR_NONE) {
         // error
         ckvs_close(&ckvs);
         return err;
     }
 
-
-
-
-
-
-
-
-
-
+    //close the file and finish
+    ckvs_close(&ckvs);
 
     return ERR_NONE;
 }
