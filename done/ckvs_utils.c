@@ -27,7 +27,13 @@ void print_entry(const struct ckvs_entry* entry){
 }
 // ----------------------------------------------------------------------
 void print_SHA(const char *prefix, const struct ckvs_sha *sha) {
-    if (prefix==NULL || sha==NULL) return;
+    //check pointers
+    if (prefix==NULL || sha==NULL) {
+        //error
+        return;
+    }
+
+    //initialize buffer of length SHA256_PRINTED_STRLEN and convert the SHA into string and print it
     char buffer[SHA256_PRINTED_STRLEN];
     SHA256_to_string(sha, buffer);
     pps_printf("%-5s: %s\n", prefix, buffer);
@@ -35,7 +41,13 @@ void print_SHA(const char *prefix, const struct ckvs_sha *sha) {
 }
 // ----------------------------------------------------------------------
 void hex_encode(const uint8_t *in, size_t len, char *buf) {
-    if (in==NULL || buf==NULL) return;
+    //check pointers
+    if (in==NULL || buf==NULL) {
+        //error
+        return;
+    }
+
+    //put in 'buf' the 'in' input string after converting it into printable hexadecimal
     for (size_t i = 0; i < len; ++i) {
         sprintf(&buf[2*i], "%02x", in[i]);
     }
@@ -43,12 +55,18 @@ void hex_encode(const uint8_t *in, size_t len, char *buf) {
 }
 // ----------------------------------------------------------------------
 void SHA256_to_string(const struct ckvs_sha *sha, char *buf) {
-    if (sha==NULL || buf==NULL) return;
+    //check pointers
+    if (sha == NULL || buf == NULL) {
+        //error
+        return;
+    }
+    //call the function that encodes in hexadecimal
     hex_encode(sha->sha, SHA256_DIGEST_LENGTH, buf);
     return;
 }
 // ----------------------------------------------------------------------
 int ckvs_cmp_sha(const struct ckvs_sha *a, const struct ckvs_sha *b) {
+    //call the function that compares two byte strings
     return memcmp(a->sha, b->sha, SHA256_DIGEST_LENGTH);
 }
 
