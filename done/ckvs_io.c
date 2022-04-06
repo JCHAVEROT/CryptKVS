@@ -322,13 +322,14 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     }
 
     //initilialize a buffer
-    char *buff;
-    memset(&buff, 0, sizeof(ckvs_sha_t));
+    ckvs_sha_t *buff;
+    memset(&buff, 0, sizeof(ckvs_sha_t *));
 
     //compute SHA256 of key and store it in buff
-    SHA256((unsigned char *) key, strlen(key), buff);
+    SHA256((unsigned char *) key, strlen(key), buff->sha);
 
     uint32_t hashkey;
-    memcpy(&hashkey, buff + strlen(buff) - SHA256_DIGEST_LENGTH - 1, SHA256_DIGEST_LENGTH);
+    pps_printf("%d parmi %d", strlen(buff->sha) - SHA256_DIGEST_LENGTH - 1, strlen(buff->sha));
+    memcpy(&hashkey, buff->sha + (strlen(buff->sha) - SHA256_DIGEST_LENGTH - 1), SHA256_DIGEST_LENGTH);
     return hashkey & (ckvs->header.table_size - 1);
 }
