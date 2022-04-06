@@ -12,6 +12,7 @@
 #include <stdbool.h>
 #include "ckvs_io.h"
 #include <stdlib.h>
+#include <openssl/sha.h>
 
 // ----------------------------------------------------------------------
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
@@ -321,15 +322,19 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
         return ERR_INVALID_ARGUMENT;
     }
 
-    //initilialize a buffer
-    ckvs_sha_t *buff;
-    memset(&buff, 0, sizeof(ckvs_sha_t *));
+    //initilialize a buffer to store the SHA256
+    char* buff;
+    memset(&buff, 0, sizeof(char*));
+
+    //initilialize a buffer to store the 4 last bytes of the precedent buffer
+    char* buff_suf;
+    memset(&buff_suf, 0, sizeof(char*));
 
     //compute SHA256 of key and store it in buff
-    SHA256((unsigned char *) key, strlen(key), buff->sha);
+    SHA256((unsigned char *) key, strlen(key), buff);
 
-    uint32_t hashkey;
-    pps_printf("%d parmi %d", strlen(buff->sha) - SHA256_DIGEST_LENGTH - 1, strlen(buff->sha));
-    memcpy(&hashkey, buff->sha + (strlen(buff->sha) - SHA256_DIGEST_LENGTH - 1), SHA256_DIGEST_LENGTH);
+    //pps_printf("%d parmi %d", strlen(buff) - SHA256_DIGEST_LENGTH - 1, strlen(buff));
+    memcpy(buff_suf, buff, SHA256_DIGEST_LENGTH);
+    uint32_t hashkey = atoi(buff_suf);
     return hashkey & (ckvs->header.table_size - 1);
 }
