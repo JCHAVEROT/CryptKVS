@@ -166,8 +166,8 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     }
     //place the pointer at the end of the file and check errors
     int err = fseek(file, 0, SEEK_END);
-    if (err != 0) {
-        return ERR_INVALID_COMMAND;
+    if (err != ERR_NONE) {
+        return ERR_IO;
     }
 
     //affects the string's length
@@ -175,15 +175,15 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 
     //places the pointer at the beginning of the file back
     err = fseek(file, 0, SEEK_SET);
-    if (err != 0) {
-        return ERR_INVALID_COMMAND;
+    if (err != ERR_NONE) {
+        return ERR_IO;
     }
 
     //create a buffer and check errors
     *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
     if (*buffer_ptr == NULL) {
         //error
-        return ERR_INVALID_COMMAND;
+        return ERR_OUT_OF_MEMORY;
     }
 
     //read file and check errors
@@ -209,7 +209,7 @@ int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) {
     }
     //place the pointer on the file on the right place and check errors
     int err = fseek(ckvs->file, (long int) (idx * sizeof(struct ckvs_entry) + sizeof(ckvs_header_t)), SEEK_SET);
-    if (err != 0) {
+    if (err != ERR_NONE) {
         //error
         return ERR_IO;
     }
@@ -234,7 +234,7 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
     int err = fseek(ckvs->file, 0, SEEK_END);
     if (err != ERR_NONE) {
         //error
-        return err;
+        return ERR_IO;
     }
 
     //to assign the new values of c2, value_off and value_len
@@ -247,14 +247,11 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
         //error
         return ERR_IO;
     }
-    err=fflush(ckvs->file);
-    if (err!=0) {
+    err = fflush(ckvs->file);
+    if (err != ERR_NONE) {
         //error
         return ERR_IO;
     }
-
-    //place the pointeur at the end of the file
-    fseek(ckvs->file, 0, SEEK_END);
 
     //to modify the right entry in the ckvs table, index is obtained by substracting the pointers
     uint32_t idx = (uint32_t)(e - &ckvs->entries[0]);

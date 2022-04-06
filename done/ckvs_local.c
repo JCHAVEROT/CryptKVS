@@ -123,7 +123,11 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (set_value == NULL) {
 
         //make the pointer lead to the beginning of the encrypted secret
-        fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
+        err = fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
+        if (err != ERR_NONE) {
+            //error
+            return ERR_IO;
+        }
 
         //initialize the string where the encrypted secret will be stored
         unsigned char encrypted[ckvs_out->value_len];
@@ -232,7 +236,6 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
         //error
         return err;
     }
-
 
     //called the modularized function ckvs_local_getset with the buffer
     err = ckvs_local_getset(filename, key, pwd, buffer);
