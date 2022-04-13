@@ -139,7 +139,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
                 *e_out = &ckvs->entries[i % (ckvs->header.table_size - 1)];
             }
             break;
-        } else if (ckvs->entries[i % (ckvs->header.table_size - 1)].key[0] == '\0') {
+        } else if (ckvs->entries[i % (ckvs->header.table_size - 1)].key[0] == '\0' && auth_key==0) {
             //store value of the entry in CKVS
             ckvs->entries[i % (ckvs->header.table_size - 1)]=**e_out;
             //change the pointeur of e_out to the corresponding entry
@@ -291,7 +291,7 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     }
 
     //to find the right entry in the database with the key and the auth_key latterly computed
-    int err = ckvs_find_entry(ckvs, key, auth_key, e_out);
+    int err = ckvs_find_entry(ckvs, key, 0, e_out);
     if (err != ERR_KEY_NOT_FOUND) {
         //error if an entry with this particular key is found
         return err == ERR_NONE ? ERR_DUPLICATE_ID : err;
