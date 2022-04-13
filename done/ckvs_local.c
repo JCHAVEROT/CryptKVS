@@ -98,7 +98,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         //error
         ckvs_close(&ckvs);
-        pps_printf("%s\n", "ERRROOR");
+        //pps_printf("%s\n", "ERRROOR");
         return err;
     }
 
@@ -163,7 +163,11 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             //close the CKVS database at filename since done decrypting
             ckvs_close(&ckvs);
             return ERR_NONE;
-        } else return ERR_NO_VALUE;
+        } else {
+            //error
+            ckvs_close(&ckvs);
+            return ERR_NO_VALUE;
+        }
     }
 
     //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
