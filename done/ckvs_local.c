@@ -278,7 +278,7 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
 
     //initialize the pointer of a struct ckvs_entry_t for the new entry
     ckvs_entry_t *new_ckvs_entry = calloc(1, sizeof(ckvs_entry_t));
-    ckvs_entry_t *new_ckvs_entry_delete = new_ckvs_entry;
+
     //verify is key is not too long
     if (strlen(key) > CKVS_MAXKEYLEN) {
         //free entry
@@ -313,15 +313,15 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
         // error
         ckvs_close(&ckvs);
         //free entry
-        free(new_ckvs_entry_delete);
-        new_ckvs_entry_delete = NULL;
+        free(new_ckvs_entry);
+        new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         return err;
     }
 
     //free entry
-    free(new_ckvs_entry_delete);
-    new_ckvs_entry_delete = NULL;
+    free(new_ckvs_entry);
+    new_ckvs_entry = NULL;
 
     //close the file and finish
     ckvs_close(&ckvs);
