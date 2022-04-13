@@ -314,7 +314,7 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
         return ERR_MAX_FILES;
     }
 
-    ckvs_entry_t* new_entry_in_table;
+    ckvs_entry_t* new_entry_in_table = &(**e_out);
     //to find the right entry in the database with the key and the auth_key latterly computed
     int err = ckvs_find_entry(ckvs, key, auth_key, &new_entry_in_table);
     if (err != ERR_KEY_NOT_FOUND) {
