@@ -93,12 +93,12 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     //initialize the struct ckvs_entry_t
     ckvs_entry_t* ckvs_out = calloc(1, sizeof(ckvs_entry_t));
 
-    pps_printf("%d",(int) ckvs_out->value_len);
     //to find the right entry in the database with the key and the auth_key latterly computed
     err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
     if (err != ERR_NONE) {
         //error
         ckvs_close(&ckvs);
+        //free(ckvs_out);
         return err;
     }
 
@@ -108,6 +108,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         if (err != 1) {
             //error
             ckvs_close(&ckvs);
+            free(ckvs_out);
             return ERR_IO;
         }
     }
@@ -117,6 +118,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
+        free(ckvs_out);
         return err;
     }
 
@@ -127,6 +129,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             err = fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
             if (err != ERR_NONE) {
                 //error
+                ckvs_close(&ckvs);
+                free(ckvs_out);
                 return ERR_IO;
             }
 
@@ -137,6 +141,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             if (nb_ok != ckvs_out->value_len) {
                 //error
                 ckvs_close(&ckvs);
+                free(ckvs_out);
                 return ERR_IO;
             }
 
@@ -150,6 +155,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             if (err != ERR_NONE) {
                 // Error
                 ckvs_close(&ckvs);
+                free(ckvs_out);
                 return err;
             }
 
@@ -161,6 +167,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
             //close the CKVS database at filename since done decrypting
             ckvs_close(&ckvs);
+            free(ckvs_out);
             return ERR_NONE;
         } else return ERR_NO_VALUE;
     }
@@ -171,6 +178,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (set_value_encrypted == NULL) {
         //error
         ckvs_close(&ckvs);
+        free(ckvs_out);
         free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return ERR_OUT_OF_MEMORY;
     }
@@ -180,6 +188,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         //error
         ckvs_close(&ckvs);
+        free(ckvs_out);
         free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return err;
     }
@@ -188,12 +197,14 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         //error
         ckvs_close(&ckvs);
+        free(ckvs_out);
         free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return err;
     }
 
     //close the file, free the pointer and finish
     ckvs_close(&ckvs);
+    free(ckvs_out);
     free_sve(&set_value_encrypted, &set_value_encrypted_length);
 
     return ERR_NONE;
@@ -322,8 +333,6 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
 
     //close the file and finish
     ckvs_close(&ckvs);
-
-
 
 
     return ERR_NONE;
