@@ -141,7 +141,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
                 *e_out = &ckvs->entries[i % (ckvs->header.table_size - 1)];
             }
             break;
-        } else if (ckvs->entries[i % (ckvs->header.table_size - 1)].key[0] == '\0' && (**e_out).value_len==0){
+        } else if (ckvs->entries[i % (ckvs->header.table_size - 1)].key[0] == '\0'){
             //change the pointeur of e_out to the corresponding entry
             *e_out = &ckvs->entries[i % (ckvs->header.table_size - 1)];
             break;
