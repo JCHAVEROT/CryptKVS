@@ -167,7 +167,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
             //close the CKVS database at filename since done decrypting
             ckvs_close(&ckvs);
-            free(ckvs_out);
+            //free(ckvs_out);
             return ERR_NONE;
         } else return ERR_NO_VALUE;
     }

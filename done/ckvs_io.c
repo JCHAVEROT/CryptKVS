@@ -129,12 +129,12 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     bool authKeyIsCorrect = false;
 
     uint32_t hashkey = ckvs_hashkey(ckvs, key);
-    uint32_t idx = hashkey % ckvs->header.table_size - 1;
+    uint32_t idx = hashkey % (ckvs->header.table_size - 1);
     pps_printf("KEY : %s \n", key);
     //iterate over the table from index hashkey in linear probing
-    while (ckvs->entries[idx].key[0] == '\0') {
+    while (ckvs->entries[idx].key[0] != '\0') {
         pps_printf("index : %u\n", idx);
-        print_entry(ckvs->entries);
+        print_entry(&ckvs->entries[idx]);
         *e_out = &ckvs->entries[idx];
         if (strncmp(ckvs->entries[idx].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
@@ -357,11 +357,18 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     //compute SHA256 of key
     SHA256((unsigned char *) key, strlen(key), key_sha.sha);
     //copy the 4 first bytes
-    hashkey = (uint32_t) key_sha.sha[0] << 3 * 8 |
+    /*hashkey = (uint32_t) key_sha.sha[0] << 3 * 8 |
               (uint32_t) key_sha.sha[1] << 2 * 8 |
               (uint32_t) key_sha.sha[2] << 8 |
-              (uint32_t) key_sha.sha[3];
+              (uint32_t) key_sha.sha[3];*/
+    memcpy(&hashkey, key_sha.sha , 4);
+    //pps_printf("key : 0x%x\n", hashkey);
+    //the mask
+    uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
+    //pps_printf("mask : 0x%02x\n", mask);
 
-    //apply and return the mask
-    return hashkey & (ckvs->header.table_size - 1);
+
+    //pps_printf("masked : 0x%02x\n", hashkey & mask);
+    //apply the mask and return the value
+    return hashkey & mask;
 }
