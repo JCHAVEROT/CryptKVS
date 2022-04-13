@@ -314,13 +314,11 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
         return ERR_MAX_FILES;
     }
 
-    ckvs_entry_t* new_entry_in_table = calloc(1, sizeof(ckvs_entry_t));
+    ckvs_entry_t* new_entry_in_table;
     //to find the right entry in the database with the key and the auth_key latterly computed
     int err = ckvs_find_entry(ckvs, key, auth_key, &new_entry_in_table);
     if (err != ERR_KEY_NOT_FOUND) {
         //error if an entry with this particular key is found
-        free(new_entry_in_table);
-        new_entry_in_table = NULL;
         return err == ERR_NONE ? ERR_DUPLICATE_ID : err;
     }
 
@@ -333,8 +331,6 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     err = ckvs_write_entry_to_disk(ckvs, idx);
     if (err != ERR_NONE) {
         //error
-        free(new_entry_in_table);
-        new_entry_in_table = NULL;
         return err;
     }
 
@@ -344,8 +340,6 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     //write the change in the header for the number of entries in the file
     ckvs_write_updated_header_to_disk(ckvs);
 
-    free(new_entry_in_table);
-    new_entry_in_table = NULL;
     return ERR_NONE;
 }
 
