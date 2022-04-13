@@ -326,22 +326,19 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
         return ERR_INVALID_ARGUMENT;
     }
 
-    //initilialize a buffer to store the SHA256
-    char buff[SHA256_DIGEST_LENGTH];
-    memset(&buff, 0, sizeof(char));
+    ckvs_sha_t key_sha;
 
     //initilialize a buffer to store the 4 last bytes of the precedent buffer
-    char buff_suf[4];
-    memset(&buff_suf, 0, sizeof(char));
+    char buff[4] = {0};
 
     //compute SHA256 of key and store it in buff
-    SHA256((unsigned char *) key, strlen(key), buff);
+    SHA256((unsigned char *) key, strlen(key), key_sha.sha);
 
-    //copy the 4 last bytes
-    memcpy(&buff_suf, buff + SHA256_DIGEST_LENGTH - 4 - 1, 4);
+    //copy the 4 first bytes
+    memcpy(&buff_suf, key_sha.sha, 4);
 
     //converts the string into an integer
-    uint32_t hashkey = atoi(buff_suf);
+    uint32_t hashkey = (uint32_t) atoi(buff);
 
     //apply the mask
     return hashkey & (ckvs->header.table_size - 1);

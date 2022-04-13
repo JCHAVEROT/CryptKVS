@@ -91,13 +91,11 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
     //initialize the struct ckvs_entry_t
-    ckvs_entry_t ckvs_out;
-    memset(&ckvs_out, 0, sizeof(ckvs_entry_t));
-    ckvs_entry_t* p_ckvs_out = &ckvs_out;
+    ckvs_entry_t* ckvs_out = calloc(1, sizeof(ckvs_entry_t));
 
-    pps_printf("%d", (int) ckvs_out.value_len);
+    pps_printf("%d",(int) ckvs_out->value_len);
     //to find the right entry in the database with the key and the auth_key latterly computed
-    err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &p_ckvs_out);
+    err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
     if (err != ERR_NONE) {
         //error
         ckvs_close(&ckvs);
@@ -106,7 +104,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
     //if in set mode, to generate randomly SHA256 of c2 so not to decrease entropy
     if (set_value != NULL) {
-        err = RAND_bytes((unsigned char *) p_ckvs_out->c2.sha, C2_SIZE);
+        err = RAND_bytes((unsigned char *) &(ckvs_out->c2.sha), C2_SIZE);
         if (err != 1) {
             //error
             ckvs_close(&ckvs);
@@ -115,7 +113,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
     //now we have the entry and hence c2, to compute the masterkey
-    err = ckvs_client_compute_masterkey(&ckvs_mem, &p_ckvs_out->c2);
+    err = ckvs_client_compute_masterkey(&ckvs_mem, &(ckvs_out->c2));
     if (err != ERR_NONE) {
         // Error
         ckvs_close(&ckvs);
@@ -124,30 +122,30 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
     //the get part
     if (set_value == NULL) {
-        if (ckvs_out.value_len > 0) {
+        if (ckvs_out->value_len > 0) {
             //make the pointer lead to the beginning of the encrypted secret
-            err = fseek(ckvs.file, (long int) p_ckvs_out->value_off, SEEK_SET);
+            err = fseek(ckvs.file, (long int) ckvs_out->value_off, SEEK_SET);
             if (err != ERR_NONE) {
                 //error
                 return ERR_IO;
             }
 
             //initialize the string where the encrypted secret will be stored
-            unsigned char encrypted[ckvs_out.value_len];
+            unsigned char encrypted[ckvs_out->value_len];
             //read the encrypted secret
-            size_t nb_ok = fread(encrypted, sizeof(unsigned char), p_ckvs_out->value_len, ckvs.file);
-            if (nb_ok != p_ckvs_out->value_len) {
+            size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
+            if (nb_ok != ckvs_out->value_len) {
                 //error
                 ckvs_close(&ckvs);
                 return ERR_IO;
             }
 
             //initialize the string where the decrypted secret will be stored
-            size_t decrypted_len = ckvs_out.value_len + EVP_MAX_BLOCK_LENGTH;
+            size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
             unsigned char decrypted[decrypted_len];
 
             //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
-            err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, p_ckvs_out->value_len, decrypted,
+            err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, ckvs_out->value_len, decrypted,
                                           &decrypted_len);
             if (err != ERR_NONE) {
                 // Error
@@ -185,7 +183,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return err;
     }
-    err = ckvs_write_encrypted_value(&ckvs, p_ckvs_out, (const unsigned char *) set_value_encrypted,
+    err = ckvs_write_encrypted_value(&ckvs, ckvs_out, (const unsigned char *) set_value_encrypted,
                                      (uint64_t) set_value_encrypted_length);
     if (err != ERR_NONE) {
         //error
