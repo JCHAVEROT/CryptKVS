@@ -130,8 +130,10 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 
     uint32_t hashkey = ckvs_hashkey(ckvs, key);
 
+    pps_printf("KEY : %s \n",key);
     //iterate in the array
     for (uint32_t i = hashkey; i < hashkey + ckvs->header.table_size; ++i) {
+        pps_printf("%s  \n",ckvs->entries[i % (ckvs->header.table_size - 1)].key);
         if (strncmp(ckvs->entries[i % (ckvs->header.table_size - 1)].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[i % (ckvs->header.table_size - 1)].auth_key, auth_key) == 0) {
@@ -139,9 +141,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
                 *e_out = &ckvs->entries[i % (ckvs->header.table_size - 1)];
             }
             break;
-        } else if (ckvs->entries[i % (ckvs->header.table_size - 1)].key[0] == '\0') {
-            //store value of the entry in CKVS
-            //ckvs->entries[i % (ckvs->header.table_size - 1)]=**e_out;
+        } else if (ckvs->entries[i % (ckvs->header.table_size - 1)].key[0] == '\0' && (**e_out).value_len==0){
             //change the pointeur of e_out to the corresponding entry
             *e_out = &ckvs->entries[i % (ckvs->header.table_size - 1)];
             break;

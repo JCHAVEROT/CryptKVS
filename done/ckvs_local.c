@@ -91,9 +91,9 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
     //initialize the struct ckvs_entry_t
-    ckvs_entry_t *ckvs_out;
-    memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
+    ckvs_entry_t *ckvs_out=calloc(1, sizeof(ckvs_entry_t));
 
+    pps_printf("%d",ckvs_out->value_len);
     //to find the right entry in the database with the key and the auth_key latterly computed
     err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
     if (err != ERR_NONE) {
