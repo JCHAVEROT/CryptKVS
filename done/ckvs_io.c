@@ -323,7 +323,7 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     }
 
     //copy the new entry content in the right entry in the table
-    memcpy(new_entry_in_table, *e_out, sizeof(ckvs_entry_t));
+    new_entry_in_table = *e_out;
 
     //to modify the right entry in the ckvs table, its index is obtained by substracting the pointers
     uint32_t idx = (uint32_t)(new_entry_in_table - &ckvs->entries[0]);
