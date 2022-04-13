@@ -135,11 +135,11 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     while (ckvs->entries[idx].key[0] != '\0') {
         pps_printf("index : %u\n", idx);
         print_entry(&ckvs->entries[idx]);
-        *e_out = &ckvs->entries[idx];
         if (strncmp(ckvs->entries[idx].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[idx].auth_key, auth_key) == 0) {
                 authKeyIsCorrect = true;
+                memcpy(*e_out, &ckvs->entries[idx], sizeof(ckvs_entry_t));
             }
             break;
         }
@@ -147,6 +147,8 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     }
 
     if (!keyWasFound) {
+        //the entry that can be given a new one
+        memcpy(*e_out, &ckvs->entries[idx], sizeof(ckvs_entry_t));
         //error
         return ERR_KEY_NOT_FOUND;
     }

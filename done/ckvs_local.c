@@ -91,14 +91,15 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
     //initialize the struct ckvs_entry_t
-    ckvs_entry_t* ckvs_out = calloc(1, sizeof(ckvs_entry_t));
+    ckvs_entry_t *ckvs_out = calloc(1, sizeof(ckvs_entry_t));
 
     //to find the right entry in the database with the key and the auth_key latterly computed
     err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
     if (err != ERR_NONE) {
         //error
         ckvs_close(&ckvs);
-        //free(ckvs_out);
+        pps_printf("%s\n", "ERRROOR");
+        free(ckvs_out);
         return err;
     }
 
@@ -167,7 +168,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
             //close the CKVS database at filename since done decrypting
             ckvs_close(&ckvs);
-            //free(ckvs_out);
+            free(ckvs_out);
             return ERR_NONE;
         } else return ERR_NO_VALUE;
     }
@@ -283,13 +284,13 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
     //initialize the pointer of a struct ckvs_entry_t for the new entry
-    ckvs_entry_t* new_ckvs_entry = calloc(1,sizeof(ckvs_entry_t));
-    ckvs_entry_t* new_ckvs_entry_delete=new_ckvs_entry;
-    //verify is not too long
+    ckvs_entry_t *new_ckvs_entry = calloc(1, sizeof(ckvs_entry_t));
+    ckvs_entry_t *new_ckvs_entry_delete = new_ckvs_entry;
+    //verify is key is not too long
     if (strlen(key) > CKVS_MAXKEYLEN) {
         //free entry
         free(new_ckvs_entry);
-        new_ckvs_entry=NULL;
+        new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         //error
         return ERR_INVALID_ARGUMENT;
@@ -299,14 +300,12 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
     //write the key in the new entry
     strncpy((char *) &(new_ckvs_entry->key), key, CKVS_MAXKEYLEN);
 
-
-
     //to generate in particular the auth_key and c1 and store them in ckvs_mem
     err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
     if (err != ERR_NONE) {
         //free entry
         free(new_ckvs_entry);
-        new_ckvs_entry=NULL;
+        new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         // error
         return err;
@@ -322,14 +321,14 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
         ckvs_close(&ckvs);
         //free entry
         free(new_ckvs_entry_delete);
-        new_ckvs_entry_delete=NULL;
+        new_ckvs_entry_delete = NULL;
         ckvs_close(&ckvs);
         return err;
     }
-
+    
     //free entry
     free(new_ckvs_entry_delete);
-    new_ckvs_entry_delete=NULL;
+    new_ckvs_entry_delete = NULL;
 
     //close the file and finish
     ckvs_close(&ckvs);
