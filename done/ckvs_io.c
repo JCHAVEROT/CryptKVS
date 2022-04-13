@@ -335,7 +335,7 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     SHA256((unsigned char *) key, strlen(key), key_sha.sha);
 
     //copy the 4 first bytes
-    memcpy(&buff_suf, key_sha.sha, 4);
+    memcpy(&buff, key_sha.sha, 4);
 
     //converts the string into an integer
     uint32_t hashkey = (uint32_t) atoi(buff);
