@@ -140,6 +140,9 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
             }
             break;
         } else if (ckvs->entries[i % (ckvs->header.table_size - 1)].key[0] == '\0') {
+            //store value of the entry in CKVS
+            ckvs->entries[i % (ckvs->header.table_size - 1)]=**e_out;
+            //change the pointeur of e_out to the corresponding entry
             *e_out = &ckvs->entries[i % (ckvs->header.table_size - 1)];
             break;
         }
@@ -287,21 +290,17 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
         return ERR_MAX_FILES;
     }
 
-    ckvs_entry_t* new_entry_in_table;
-    memset(&new_entry_in_table, 0, sizeof (ckvs_entry_t *));
-
     //to find the right entry in the database with the key and the auth_key latterly computed
-    int err = ckvs_find_entry(ckvs, key, auth_key, &new_entry_in_table);
+    int err = ckvs_find_entry(ckvs, key, auth_key, e_out);
     if (err != ERR_KEY_NOT_FOUND) {
         //error if an entry with this particular key is found
         return err == ERR_NONE ? ERR_DUPLICATE_ID : err;
     }
 
-    //associate the entry in the ckvs table to the new entry
-    new_entry_in_table = *e_out;
 
     //to modify the right entry in the ckvs table, index is obtained by substracting the pointers
-    uint32_t idx = (uint32_t)(new_entry_in_table - &ckvs->entries[0]);
+
+    uint32_t idx = (uint32_t)(*e_out - &ckvs->entries[0]);
 
     err = ckvs_write_entry_to_disk(ckvs, idx);
     if (err != ERR_NONE) {
@@ -323,18 +322,22 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     }
 
     //initilialize a buffer to store the SHA256
-    char* buff;
-    memset(&buff, 0, sizeof(char*));
+    char buff[SHA256_DIGEST_LENGTH];
+    memset(&buff, 0, sizeof(char));
 
     //initilialize a buffer to store the 4 last bytes of the precedent buffer
-    char* buff_suf;
-    memset(&buff_suf, 0, sizeof(char*));
+    char buff_suf[4];
+    memset(&buff_suf, 0, sizeof(char));
 
     //compute SHA256 of key and store it in buff
     SHA256((unsigned char *) key, strlen(key), buff);
 
-    //pps_printf("%d parmi %d", strlen(buff) - SHA256_DIGEST_LENGTH - 1, strlen(buff));
-    memcpy(buff_suf, buff, SHA256_DIGEST_LENGTH);
+    //copy the 4 last bytes
+    memcpy(&buff_suf, buff + SHA256_DIGEST_LENGTH - 4 - 1, 4);
+
+    //converts the string into an integer
     uint32_t hashkey = atoi(buff_suf);
+
+    //apply the mask
     return hashkey & (ckvs->header.table_size - 1);
 }
