@@ -314,19 +314,21 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
         return ERR_MAX_FILES;
     }
 
-    ckvs_entry_t* new_entry_in_table;
+    ckvs_entry_t new_entry_in_table;
+    memset(&new_entry_in_table, 0, sizeof(ckvs_entry_t));
+    ckvs_entry_t* p_new_entry_in_table = &new_entry_in_table;
     //to find the right entry in the database with the key and the auth_key latterly computed
-    int err = ckvs_find_entry(ckvs, key, auth_key, &new_entry_in_table);
+    int err = ckvs_find_entry(ckvs, key, auth_key, &p_new_entry_in_table);
     if (err != ERR_KEY_NOT_FOUND) {
         //error if an entry with this particular key is found
         return err == ERR_NONE ? ERR_DUPLICATE_ID : err;
     }
 
     //copy the new entry content in the right entry in the table
-    memcpy(new_entry_in_table, *e_out, sizeof(ckvs_entry_t));
+    memcpy(p_new_entry_in_table, *e_out, sizeof(ckvs_entry_t));
 
     //to modify the right entry in the ckvs table, its index is obtained by substracting the pointers
-    uint32_t idx = (uint32_t)(new_entry_in_table - &ckvs->entries[0]);
+    uint32_t idx = (uint32_t)(p_new_entry_in_table - &ckvs->entries[0]);
 
     err = ckvs_write_entry_to_disk(ckvs, idx);
     if (err != ERR_NONE) {
