@@ -305,20 +305,23 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     //check pointers
     if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) {
         //error
+        pps_printf("%s\n", "error 1");
         return ERR_INVALID_ARGUMENT;
     }
 
     //verify an entry can be added
     if (ckvs->header.threshold_entries <= ckvs->header.num_entries) {
         //error
+        pps_printf("%s\n", "error 2");
         return ERR_MAX_FILES;
     }
 
-    ckvs_entry_t* new_entry_in_table;
+    ckvs_entry_t* new_entry_in_table = *e_out;
     //to find the right entry in the database with the key and the auth_key latterly computed
     int err = ckvs_find_entry(ckvs, key, auth_key, &new_entry_in_table);
     if (err != ERR_KEY_NOT_FOUND) {
         //error if an entry with this particular key is found
+        pps_printf("%s\n", "error 3");
         return err == ERR_NONE ? ERR_DUPLICATE_ID : err;
     }
 
@@ -331,6 +334,7 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     err = ckvs_write_entry_to_disk(ckvs, idx);
     if (err != ERR_NONE) {
         //error
+        pps_printf("%s\n", "error 4");
         return err;
     }
 
