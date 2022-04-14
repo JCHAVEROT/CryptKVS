@@ -277,8 +277,8 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
     //initialize the pointer of a struct ckvs_entry_t for the new entry
-    ckvs_entry_t new_ckvs_entry;
-    ckvs_entry_t* new_ckvs_entry_a = &new_ckvs_entry;
+    //ckvs_entry_t new_ckvs_entry;
+    ckvs_entry_t* new_ckvs_entry = NULL;
 
     //verify is key is not too long
     if (strlen(key) > CKVS_MAXKEYLEN) {
@@ -293,7 +293,7 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
 
     //write the key in the new entry
 
-    strncpy((char *) &(new_ckvs_entry.key), key, CKVS_MAXKEYLEN);
+    //strncpy((char *) &(new_ckvs_entry.key), key, CKVS_MAXKEYLEN);
 
     //to generate in particular the auth_key and c1 and store them in ckvs_mem
     err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
@@ -308,9 +308,9 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
     }
 
     //associate the newly computed auth_key to the new entry
-    new_ckvs_entry.auth_key = ckvs_mem.auth_key;
+    //new_ckvs_entry.auth_key = ckvs_mem.auth_key;
 
-    err = ckvs_new_entry(&ckvs, key, &(new_ckvs_entry.auth_key), &new_ckvs_entry_a);
+    err = ckvs_new_entry(&ckvs, key, &(ckvs_mem.auth_key), &new_ckvs_entry);
     if (err != ERR_NONE) {
         // error
         ckvs_close(&ckvs);
