@@ -128,13 +128,14 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     bool keyWasFound = false;
     bool authKeyIsCorrect = false;
 
+    bool free_place_found =false;
+    uint32_t free_index=0;
+
     uint32_t hashkey = ckvs_hashkey(ckvs, key);
     uint32_t idx = hashkey % (ckvs->header.table_size - 1);
     //pps_printf("KEY : %s \n", key);
     //iterate over the table from index hashkey in linear probing
-    while (ckvs->entries[idx].key[0] != '\0') {
-        //pps_printf("index : %u\n", idx);
-        //print_entry(&ckvs->entries[idx]);
+    for (uint32_t i = idx; i < idx+ckvs->header.table_size; ++i) {
         if (strncmp(ckvs->entries[idx].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[idx].auth_key, auth_key) == 0) {
@@ -142,13 +143,24 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
                 *e_out = &ckvs->entries[idx];
             }
             break;
+        }else if (!free_place_found && ckvs->entries[i].key[0] == '\0'){
+            free_place_found=true;
+            free_index=i;
         }
-        idx = (idx + 1) % (ckvs->header.table_size - 1);
+
     }
+
+
+   /* while (ckvs->entries[idx].key[0] != '\0') {
+        //pps_printf("index : %u\n", idx);
+        //print_entry(&ckvs->entries[idx]);
+
+        idx = (idx + 1) % (ckvs->header.table_size - 1);
+    }*/
 
     if (!keyWasFound) {
         //the entry that can be given a new one
-        *e_out = &ckvs->entries[idx];
+        *e_out = &ckvs->entries[free_index];
         //error
         return ERR_KEY_NOT_FOUND;
     }
