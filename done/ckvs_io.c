@@ -344,7 +344,6 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     err = ckvs_write_entry_to_disk(ckvs, idx);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "error 4");
         return err;
     }
 

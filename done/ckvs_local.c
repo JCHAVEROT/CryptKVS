@@ -277,13 +277,14 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
     //initialize the pointer of a struct ckvs_entry_t for the new entry
-    ckvs_entry_t *new_ckvs_entry = calloc(1, sizeof(ckvs_entry_t));
+    ckvs_entry_t new_ckvs_entry;
+    ckvs_entry_t* new_ckvs_entry_a = &new_ckvs_entry;
 
     //verify is key is not too long
     if (strlen(key) > CKVS_MAXKEYLEN) {
         //free entry
-        free(new_ckvs_entry);
-        new_ckvs_entry = NULL;
+        //free(new_ckvs_entry);
+        //new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         //error
         return ERR_INVALID_ARGUMENT;
@@ -291,14 +292,15 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
 
 
     //write the key in the new entry
-    strncpy((char *) &(new_ckvs_entry->key), key, CKVS_MAXKEYLEN);
+
+    strncpy((char *) &(new_ckvs_entry.key), key, CKVS_MAXKEYLEN);
 
     //to generate in particular the auth_key and c1 and store them in ckvs_mem
     err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
     if (err != ERR_NONE) {
         //free entry
-        free(new_ckvs_entry);
-        new_ckvs_entry = NULL;
+        //free(new_ckvs_entry);
+       // new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         // error
         return err;
@@ -306,22 +308,22 @@ int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
     }
 
     //associate the newly computed auth_key to the new entry
-    new_ckvs_entry->auth_key = ckvs_mem.auth_key;
+    new_ckvs_entry.auth_key = ckvs_mem.auth_key;
 
-    err = ckvs_new_entry(&ckvs, key, &(new_ckvs_entry->auth_key), &new_ckvs_entry);
+    err = ckvs_new_entry(&ckvs, key, &(new_ckvs_entry.auth_key), &new_ckvs_entry_a);
     if (err != ERR_NONE) {
         // error
         ckvs_close(&ckvs);
         //free entry
-        free(new_ckvs_entry);
-        new_ckvs_entry = NULL;
+        //free(new_ckvs_entry);
+        //new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         return err;
     }
 
     //free entry
-    free(new_ckvs_entry);
-    new_ckvs_entry = NULL;
+    //free(new_ckvs_entry);
+    //new_ckvs_entry = NULL;
 
     //close the file and finish
     ckvs_close(&ckvs);
