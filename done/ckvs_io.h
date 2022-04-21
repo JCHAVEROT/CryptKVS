@@ -16,7 +16,7 @@
  */
 struct CKVS {
     struct ckvs_header header;
-    struct ckvs_entry entries[CKVS_FIXEDSIZE_TABLE];
+    ckvs_entry_t* entries;
     FILE *file;
 };
 typedef struct CKVS CKVS_t;

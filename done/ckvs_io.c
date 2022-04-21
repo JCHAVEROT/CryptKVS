@@ -86,14 +86,19 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     ckvs->header = header;
 
     //For now but to be modified later
-    if (ckvs->header.table_size != CKVS_FIXEDSIZE_TABLE) {
+    /*if (ckvs->header.table_size != CKVS_FIXEDSIZE_TABLE) {
         //error
         fclose(file);
         return ERR_CORRUPT_STORE;
+    }*/
+
+    ckvs->entries=calloc(ckvs->header.table_size, sizeof(ckvs_entry_t));
+    if (ckvs->entries==NULL){
+        return ERR_OUT_OF_MEMORY;
     }
 
-    size_t nb_ok3 = fread(ckvs->entries, sizeof(ckvs_entry_t), CKVS_FIXEDSIZE_TABLE, file);
-    if (nb_ok3 != CKVS_FIXEDSIZE_TABLE) {
+    size_t nb_ok3 = fread(ckvs->entries, sizeof(ckvs_entry_t), ckvs->header.table_size, file);
+    if (nb_ok3 != ckvs->header.table_size) {
         //error
         fclose(file);
         return ERR_IO;
@@ -113,6 +118,10 @@ void ckvs_close(struct CKVS *ckvs) {
     if (ckvs->file != NULL) {
         fclose(ckvs->file);
     }
+    if (ckvs->entries != NULL) {
+        free(ckvs->entries);
+    }
+    ckvs->entries=NULL;
     ckvs->file = NULL;
 }
 

@@ -98,7 +98,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (err != ERR_NONE) {
         //error
         ckvs_close(&ckvs);
-        //pps_printf("%s\n", "ERRROOR");
         return err;
     }
 

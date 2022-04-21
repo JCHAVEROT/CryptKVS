@@ -25,7 +25,11 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     memset(mr, 0, sizeof(ckvs_memrecord_t));
 
     //creation of the stretched_key in format key|password
-    char str[2*CKVS_MAXKEYLEN + 2] = "";
+    char* str=calloc(2*CKVS_MAXKEYLEN + 2, sizeof(char));
+    if (str==NULL){
+        return ERR_OUT_OF_MEMORY;
+    }
+    //char str[2*CKVS_MAXKEYLEN + 2] = "";
     strncat(str, key, strlen(key));
     const char slash[1]= "|";
     strncat(str, slash, 1);
@@ -33,6 +37,8 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     //convertion of the stretched_key in SHA256, stored in the memrecord
     SHA256((unsigned char* )str, strlen(str), mr->stretched_key.sha);
 
+    free(str);
+    str=NULL;
     unsigned int l = 0;
 
     //computation of the auth_key from the SHA256 of the stretched_key with message AUTH_MESSAGE
