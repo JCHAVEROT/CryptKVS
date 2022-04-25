@@ -7,6 +7,19 @@
 #include "ckvs_local.h"
 #include "ckvs_utils.h"
 
+
+//type for a command
+typedef int ckvs_command(const char* filename, int optargc, char* optargv[]);
+
+typedef struct{
+    const char* name;
+    const char* description;
+    ckvs_command command;
+} ckvs_command_mapping;
+
+
+ckvs_command_mapping commands[]
+
 /* *************************************************** *
  * TODO WEEK 09-11: Add then augment usage messages    *
  * *************************************************** */

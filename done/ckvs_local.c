@@ -27,7 +27,9 @@ enum crypt_type {
 };
 
 // ----------------------------------------------------------------------
-int ckvs_local_stats(const char *filename) {
+int ckvs_local_stats(const char* filename, int optargc, char* optargv[]) {
+    
+    if (optargc > 0) return ERR_TOO_MANY_ARGUMENTS;
     //check if the pointeur is valid
     if (filename == NULL) {
         //error
@@ -213,7 +215,12 @@ void free_sve(unsigned char **sve, size_t *sve_length) {
 }
 
 // ----------------------------------------------------------------------
-int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
+int ckvs_local_get(const char* filename, int optargc, char* optargv[]) {
+    if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
+    if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
+
+    const char *key=optargv[0];
+    const char *pwd=optargv[1];
     //check if the pointeurs are valid
     if (key == NULL || pwd == NULL || filename == NULL) {
         //error
@@ -224,7 +231,14 @@ int ckvs_local_get(const char *filename, const char *key, const char *pwd) {
 }
 
 // ----------------------------------------------------------------------
-int ckvs_local_set(const char *filename, const char *key, const char *pwd, const char *valuefilename) {
+int ckvs_local_set(const char* filename, int optargc, char* optargv[]) {
+    if (optargc < 3) return ERR_NOT_ENOUGH_ARGUMENTS;
+    if (optargc > 3) return ERR_TOO_MANY_ARGUMENTS;
+
+    const char *key=optargv[0];
+    const char *pwd=optargv[1];
+    const char *valuefilename=optargv[2];
+    
     //check pointers
     if (filename == NULL || key == NULL || pwd == NULL || valuefilename == NULL) {
         //error
@@ -253,7 +267,14 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
     return err;
 }
 
-int ckvs_local_new(const char *filename, const char *key, const char *pwd) {
+int ckvs_local_new(const char* filename, int optargc, char* optargv[]) {
+
+    if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
+    if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
+
+    const char *key=optargv[0];
+    const char *pwd=optargv[1];
+
     //check if the pointeurs are valid
     if (filename == NULL || key == NULL || pwd == NULL) {
         //error
