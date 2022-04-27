@@ -233,7 +233,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 // ----------------------------------------------------------------------
 int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) {
     //check ckvs pointer and validity of idx value
-    if (ckvs == NULL || (idx >= CKVS_FIXEDSIZE_TABLE)) {
+    if (ckvs == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
     }
