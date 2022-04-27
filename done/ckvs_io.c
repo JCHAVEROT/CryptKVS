@@ -142,7 +142,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     uint32_t free_index=0;
 
     uint32_t hashkey = ckvs_hashkey(ckvs, key);
-    uint32_t idx = hashkey;
+    uint32_t idx = hashkey %(ckvs->header.table_size-1) ;
     //iterate over the table from index hashkey in linear probing
     for (uint32_t i = idx; i < idx+ckvs->header.table_size; ++i) {
         if (strncmp(ckvs->entries[i%(ckvs->header.table_size-1)].key, key, CKVS_MAXKEYLEN) == 0) {
