@@ -85,15 +85,8 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     strcpy(header.header_string, header_str);
     ckvs->header = header;
 
-    //For now but to be modified later
-    /*if (ckvs->header.table_size != CKVS_FIXEDSIZE_TABLE) {
-        //error
-        fclose(file);
-        return ERR_CORRUPT_STORE;
-    }*/
-
-    ckvs->entries=calloc(ckvs->header.table_size, sizeof(ckvs_entry_t));
-    if (ckvs->entries==NULL){
+    ckvs->entries = calloc(ckvs->header.table_size, sizeof(ckvs_entry_t));
+    if (ckvs->entries == NULL) {
         ckvs_close(ckvs);
         return ERR_OUT_OF_MEMORY;
     }
@@ -122,7 +115,7 @@ void ckvs_close(struct CKVS *ckvs) {
     if (ckvs->entries != NULL) {
         free(ckvs->entries);
     }
-    ckvs->entries=NULL;
+    ckvs->entries = NULL;
     ckvs->file = NULL;
 }
 
@@ -138,13 +131,14 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     bool keyWasFound = false;
     bool authKeyIsCorrect = false;
 
-    bool free_place_found =false;
-    uint32_t free_index=0;
+    bool free_place_found = false;
+    uint32_t free_index = 0;
 
     uint32_t idx = ckvs_hashkey(ckvs, key);
+
     //iterate over the table from index hashkey in linear probing
-    for (uint32_t i = idx; i < idx+ckvs->header.table_size; ++i) {
-        uint32_t j= i%ckvs->header.table_size;
+    for (uint32_t i = idx; i < idx + ckvs->header.table_size; ++i) {
+        uint32_t j = i % ckvs->header.table_size;
         if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[j].auth_key, auth_key) == 0) {
@@ -152,18 +146,13 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
                 *e_out = &ckvs->entries[j];
             }
             break;
-        }else if (!free_place_found && ckvs->entries[j].key[0] == '\0'){
-            free_place_found=true;
-            free_index=j;
+        } else if (!free_place_found && ckvs->entries[j].key[0] == '\0') {
+            free_place_found = true;
+            free_index = j;
         }
 
     }
-   /* while (ckvs->entries[idx].key[0] != '\0') {
-        //pps_printf("index : %u\n", idx);
-        //print_entry(&ckvs->entries[idx]);
 
-        idx = (idx + 1) % (ckvs->header.table_size - 1);
-    }*/
     if (!keyWasFound) {
         //the entry that can be given a new one
         *e_out = &ckvs->entries[free_index];
@@ -179,7 +168,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 }
 
 // ----------------------------------------------------------------------
-int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) {
+int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
     //check pointers
     if (filename == NULL || buffer_ptr == NULL || buffer_size == NULL) {
         //error
@@ -199,10 +188,10 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
         return ERR_IO;
     }
 
-    //affects the string's length
+    //affect the string's length
     size_t size = (size_t) ftell(file);
 
-    //places the pointer at the beginning of the file back
+    //place the pointer at the beginning of the file back
     err = fseek(file, 0, SEEK_SET);
     if (err != ERR_NONE) {
         return ERR_IO;
@@ -230,7 +219,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 }
 
 // ----------------------------------------------------------------------
-int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) {
+int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) { //TODO : add a fflush(entry) after the fwrite ?
     //check ckvs pointer and validity of idx value
     if (ckvs == NULL) {
         //error
@@ -319,6 +308,7 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
     return ERR_NONE;
 }
 
+// ----------------------------------------------------------------------
 int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out) {
     //check pointers
     if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) {
@@ -332,7 +322,6 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
         return ERR_MAX_FILES;
     }
 
-    //ckvs_entry_t temp = **e_out;
     //to find the right entry in the database with the key and the auth_key latterly computed
     int err = ckvs_find_entry(ckvs, key, auth_key, e_out);
     if (err != ERR_KEY_NOT_FOUND) {
@@ -342,18 +331,11 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
 
     strncpy((char *) &((*e_out)->key), key, CKVS_MAXKEYLEN);
 
-    //(*e_out)->key=key;
-    (*e_out)->auth_key=*auth_key;
-
-
-
-    //**e_out=temp;
-    //copy the new entry content in the right entry in the table
-    //memcpy(new_entry_in_table,*e_out, sizeof(ckvs_entry_t));
+    //associate the auth_key
+    (*e_out)->auth_key = *auth_key;
 
     //to modify the right entry in the ckvs table, its index is obtained by substracting the pointers
     uint32_t idx = (uint32_t)(*e_out - &ckvs->entries[0]);
-
     err = ckvs_write_entry_to_disk(ckvs, idx);
     if (err != ERR_NONE) {
         //error
@@ -369,6 +351,7 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     return ERR_NONE;
 }
 
+// ----------------------------------------------------------------------
 static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     //check pointers
     if (ckvs == NULL || key == NULL) {
@@ -381,19 +364,13 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
 
     //compute SHA256 of key
     SHA256((unsigned char *) key, strlen(key), key_sha.sha);
+
     //copy the 4 first bytes
-    /*hashkey = (uint32_t) key_sha.sha[0] << 3 * 8 |
-              (uint32_t) key_sha.sha[1] << 2 * 8 |
-              (uint32_t) key_sha.sha[2] << 8 |
-              (uint32_t) key_sha.sha[3];*/
-    memcpy(&hashkey, key_sha.sha , sizeof(uint32_t));
-    //pps_printf("key : 0x%x\n", hashkey);
-    //the mask
+    memcpy(&hashkey, key_sha.sha, sizeof(uint32_t));
+
+    //initiliaze the mask
     uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
-    //pps_printf("mask : 0x%02x\n", mask);
 
-
-    //pps_printf("masked : 0x%02x\n", hashkey & mask);
     //apply the mask and return the value
     return hashkey & mask;
 }

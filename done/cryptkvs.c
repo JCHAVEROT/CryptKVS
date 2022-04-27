@@ -8,20 +8,22 @@
 #include "ckvs_utils.h"
 
 
-//type for a command
-typedef int ckvs_command(const char* filename, int optargc, char* optargv[]);
+//type for a command function
+typedef int ckvs_command(const char *filename, int optargc, char *optargv[]);
 
-typedef struct{
-    const char* name;
-    const char* description;
-    ckvs_command* command;
+//struct for a command mapping
+typedef struct {
+    const char *name;
+    const char *description;
+    ckvs_command *command;
 } ckvs_command_mapping;
 
-const ckvs_command_mapping commands[]={{"stats","- cryptkvs <database> stats\n",&ckvs_local_stats } ,
-                                 {"get","- cryptkvs <database> get <key> <password>\n",&ckvs_local_get },
-                                 {"set","- cryptkvs <database> set <key> <password> <filename>\n",&ckvs_local_set },
-                                 {"new","- cryptkvs <database> new <key> <password>\n",&ckvs_local_new }
-                                };
+//list of commands
+const ckvs_command_mapping commands[] = {{"stats", "- cryptkvs <database> stats\n",                           &ckvs_local_stats},
+                                         {"get",   "- cryptkvs <database> get <key> <password>\n",            &ckvs_local_get},
+                                         {"set",   "- cryptkvs <database> set <key> <password> <filename>\n", &ckvs_local_set},
+                                         {"new",   "- cryptkvs <database> new <key> <password>\n",            &ckvs_local_new}
+};
 
 
 
@@ -36,7 +38,7 @@ const ckvs_command_mapping commands[]={{"stats","- cryptkvs <database> stats\n",
 static void usage(const char *execname, int err) {
     if (err == ERR_INVALID_COMMAND) {
         pps_printf("Available commands:\n");
-        for (size_t i = 0; i < sizeof(commands)/ sizeof(ckvs_command_mapping); ++i) {
+        for (size_t i = 0; i < sizeof(commands) / sizeof(ckvs_command_mapping); ++i) {
             pps_printf("%s", commands[i].description);
         }
 
@@ -58,20 +60,19 @@ static void usage(const char *execname, int err) {
  * @param argv (char*[]) the arguments of the command line, as passed to main()
  */
 int ckvs_do_one_cmd(int argc, char *argv[]) {
-
-
-
+    //check number of arguments
     if (argc < 3) return ERR_INVALID_COMMAND;
 
     const char *db_filename = argv[1];
     const char *cmd = argv[2];
 
     int optargc = argc - 3;
-    char** optargv = argv + 3;
-    for (size_t i = 0; i < sizeof(commands)/ sizeof(ckvs_command_mapping); ++i) {
-        ckvs_command_mapping c=commands[i];
+    char **optargv = argv + 3;
+    //search for the right command and call it once found
+    for (size_t i = 0; i < sizeof(commands) / sizeof(ckvs_command_mapping); ++i) {
+        ckvs_command_mapping c = commands[i];
         if (strcmp(cmd, c.name) == 0) {
-            return c.command(db_filename,optargc,optargv);
+            return c.command(db_filename, optargc, optargv);
         }
     }
 

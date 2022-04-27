@@ -20,6 +20,8 @@
  * DO NOT FORGET TO USE pps_printf to print the header/entries!!!
  *
  * @param filename (const char*) the path to the CKVS database to open
+ * @param optargc (int) number of arguments (should be 0)
+ * @param optargv (char*) the arguments (not used)
  * @return int, an error code
  */
 int ckvs_local_stats(const char* filename, int optargc, char* optargv[]);
@@ -33,8 +35,8 @@ int ckvs_local_stats(const char* filename, int optargc, char* optargv[]);
  * DO NOT FORGET TO USE pps_printf to print to value!!!
  *
  * @param filename (const char*) the path to the CKVS database to open
- * @param key (const char*) the key of the entry to get
- * @param pwd (const char*) the password of the entry to get
+ * @param optargc (int) number of arguments (should be 2)
+ * @param optargv (char*) the arguments : should contain the key and the password of the entry to get
  * @return int, an error code
  */
 int ckvs_local_get(const char* filename, int optargc, char* optargv[]);
@@ -70,9 +72,9 @@ void free_sve(unsigned char **sve, size_t *sve_length);
  * then sets the encrypted content of valuefilename as new content.
  *
  * @param filename (const char*) the path to the CKVS database to open
- * @param key (const char*) the key of the entry to set
- * @param pwd (const char*) the password of the entry to set
- * @param valuefilename (const char*) the path to the file which contains what will become the new encrypted content of the entry.
+ * @param optargc (int) number of arguments (should be 3)
+ * @param optargv (char*) the arguments : should contain the key and the password of the entry to set,
+ *                                        and the path to the file which contains what will become the new encrypted content of the entry
  * @return int, an error code
  */
 int ckvs_local_set(const char* filename, int optargc, char* optargv[]);
@@ -86,8 +88,8 @@ int ckvs_local_set(const char* filename, int optargc, char* optargv[]);
  * ie. creates a new entry with the given key and password.
  *
  * @param filename (const char*) the path to the CKVS database to open
- * @param key (const char*) the key of the entry to create
- * @param pwd (const char*) the password of the entry to create
+ * @param optargc (int) number of arguments (should be 2)
+ * @param optargv (char*) the arguments : should contain the key and the password of the entry to create
  * @return int, an error code
  */
 int ckvs_local_new(const char* filename, int optargc, char* optargv[]);
