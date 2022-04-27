@@ -22,7 +22,7 @@
  * @param filename (const char*) the path to the CKVS database to open
  * @return int, an error code
  */
-int ckvs_local_stats(const char *filename);
+int ckvs_local_stats(const char* filename, int optargc, char* optargv[]);
 
 /* *************************************************** *
  * TODO WEEK 05                                        *
@@ -37,7 +37,7 @@ int ckvs_local_stats(const char *filename);
  * @param pwd (const char*) the password of the entry to get
  * @return int, an error code
  */
-int ckvs_local_get(const char *filename, const char *key, const char *pwd);
+int ckvs_local_get(const char* filename, int optargc, char* optargv[]);
 
 /* *************************************************** *
  * TODO WEEK 06                                        *
@@ -75,7 +75,7 @@ void free_sve(unsigned char **sve, size_t *sve_length);
  * @param valuefilename (const char*) the path to the file which contains what will become the new encrypted content of the entry.
  * @return int, an error code
  */
-int ckvs_local_set(const char *filename, const char *key, const char *pwd, const char *valuefilename);
+int ckvs_local_set(const char* filename, int optargc, char* optargv[]);
 
 
 /* *************************************************** *
@@ -90,7 +90,7 @@ int ckvs_local_set(const char *filename, const char *key, const char *pwd, const
  * @param pwd (const char*) the password of the entry to create
  * @return int, an error code
  */
-int ckvs_local_new(const char *filename, const char *key, const char *pwd);
+int ckvs_local_new(const char* filename, int optargc, char* optargv[]);
 
 /* *************************************************** *
  * TODO WEEK 09: Refactor ckvs_local_*** commands      *

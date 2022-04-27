@@ -14,11 +14,16 @@ typedef int ckvs_command(const char* filename, int optargc, char* optargv[]);
 typedef struct{
     const char* name;
     const char* description;
-    ckvs_command command;
+    ckvs_command* command;
 } ckvs_command_mapping;
 
+const ckvs_command_mapping commands[]={{"stats","- cryptkvs <database> stats\n",&ckvs_local_stats } ,
+                                 {"get","- cryptkvs <database> get <key> <password>\n",&ckvs_local_get },
+                                 {"set","- cryptkvs <database> set <key> <password> <filename>\n",&ckvs_local_set },
+                                 {"new","- cryptkvs <database> new <key> <password>\n",&ckvs_local_new }
+                                };
 
-ckvs_command_mapping commands[]
+
 
 /* *************************************************** *
  * TODO WEEK 09-11: Add then augment usage messages    *
@@ -31,10 +36,10 @@ ckvs_command_mapping commands[]
 static void usage(const char *execname, int err) {
     if (err == ERR_INVALID_COMMAND) {
         pps_printf("Available commands:\n");
-        pps_printf("- cryptkvs <database> stats\n");
-        pps_printf("- cryptkvs <database> get <key> <password>\n");
-        pps_printf("- cryptkvs <database> set <key> <password> <filename>\n");
-        pps_printf("- cryptkvs <database> new <key> <password>\n");
+        for (size_t i = 0; i < sizeof(commands)/ sizeof(ckvs_command_mapping); ++i) {
+            pps_printf("%s", commands[i].description);
+        }
+
     } else if (err >= 0 && err < ERR_NB_ERR) {
         pps_printf("%s exited with error: %s\n\n\n", execname, ERR_MESSAGES[err]);
     } else {
@@ -53,34 +58,22 @@ static void usage(const char *execname, int err) {
  * @param argv (char*[]) the arguments of the command line, as passed to main()
  */
 int ckvs_do_one_cmd(int argc, char *argv[]) {
+
+
+
     if (argc < 3) return ERR_INVALID_COMMAND;
 
     const char *db_filename = argv[1];
     const char *cmd = argv[2];
 
-    if (strcmp(cmd, "stats") == 0) {
-        if (argc > 3) return ERR_TOO_MANY_ARGUMENTS;
-        return ckvs_local_stats(db_filename);
+    int optargc = argc - 3;
+    char** optargv = argv + 3;
+    for (size_t i = 0; i < sizeof(commands)/ sizeof(ckvs_command_mapping); ++i) {
+        ckvs_command_mapping c=commands[i];
+        if (strcmp(cmd, c.name) == 0) {
+            return c.command(db_filename,optargc,optargv);
+        }
     }
-    if (strcmp(cmd, "get") == 0) {
-        if (argc < 5) return ERR_NOT_ENOUGH_ARGUMENTS;
-        if (argc > 5) return ERR_TOO_MANY_ARGUMENTS;
-
-        return ckvs_local_get(db_filename, argv[3], argv[4]);
-    }
-    if (strcmp(cmd, "set") == 0) {
-        if (argc < 6) return ERR_NOT_ENOUGH_ARGUMENTS;
-        if (argc > 6) return ERR_TOO_MANY_ARGUMENTS;
-
-        return ckvs_local_set(db_filename, argv[3], argv[4], argv[5]);
-    }
-    if (strcmp(cmd, "new") == 0) {
-        if (argc < 5) return ERR_NOT_ENOUGH_ARGUMENTS;
-        if (argc > 5) return ERR_TOO_MANY_ARGUMENTS;
-
-        return ckvs_local_new(db_filename, argv[3], argv[4]);
-    }
-
 
     return ERR_INVALID_COMMAND;
 }
