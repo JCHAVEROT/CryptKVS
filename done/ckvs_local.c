@@ -44,7 +44,6 @@ int ckvs_local_stats(const char* filename, int optargc, char* optargv[]) {
     int err = ckvs_open(filename, &ckvs);
     if (err != ERR_NONE) {
         //error
-        ckvs_close(&ckvs);
         return err;
     }
 
@@ -78,7 +77,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     int err = ckvs_open(filename, &ckvs);
     if (err != ERR_NONE) {
         //error
-        ckvs_close(&ckvs);
         return err;
     }
 
@@ -291,7 +289,6 @@ int ckvs_local_new(const char* filename, int optargc, char* optargv[]) {
     int err = ckvs_open(filename, &ckvs);
     if (err != ERR_NONE) {
         //error
-        ckvs_close(&ckvs);
         return err;
     }
 
