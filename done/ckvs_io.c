@@ -145,16 +145,17 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     uint32_t idx = hashkey %(ckvs->header.table_size) ;
     //iterate over the table from index hashkey in linear probing
     for (uint32_t i = idx; i < idx+ckvs->header.table_size; ++i) {
-        if (strncmp(ckvs->entries[i%(ckvs->header.table_size)].key, key, CKVS_MAXKEYLEN) == 0) {
+        uint32_t j=i%(ckvs->header.table_size);
+        if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
-            if (ckvs_cmp_sha(&ckvs->entries[i%(ckvs->header.table_size)].auth_key, auth_key) == 0) {
+            if (ckvs_cmp_sha(&ckvs->entries[j].auth_key, auth_key) == 0) {
                 authKeyIsCorrect = true;
-                *e_out = &ckvs->entries[i%(ckvs->header.table_size)];
+                *e_out = &ckvs->entries[j];
             }
             break;
-        }else if (!free_place_found && ckvs->entries[i%(ckvs->header.table_size)].key[0] == '\0'){
+        }else if (!free_place_found && ckvs->entries[j].key[0] == '\0'){
             free_place_found=true;
-            free_index=i;
+            free_index=j;
         }
 
     }
