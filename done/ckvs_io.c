@@ -142,14 +142,14 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     uint32_t free_index=0;
 
     uint32_t hashkey = ckvs_hashkey(ckvs, key);
-    uint32_t idx = hashkey %(ckvs->header.table_size-1) ;
+    uint32_t idx = hashkey %(ckvs->header.table_size) ;
     //iterate over the table from index hashkey in linear probing
     for (uint32_t i = idx; i < idx+ckvs->header.table_size; ++i) {
-        if (strncmp(ckvs->entries[i%(ckvs->header.table_size-1)].key, key, CKVS_MAXKEYLEN) == 0) {
+        if (strncmp(ckvs->entries[i%(ckvs->header.table_size)].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
-            if (ckvs_cmp_sha(&ckvs->entries[i%(ckvs->header.table_size-1)].auth_key, auth_key) == 0) {
+            if (ckvs_cmp_sha(&ckvs->entries[i%(ckvs->header.table_size)].auth_key, auth_key) == 0) {
                 authKeyIsCorrect = true;
-                *e_out = &ckvs->entries[i%(ckvs->header.table_size-1)];
+                *e_out = &ckvs->entries[i%(ckvs->header.table_size)];
             }
             break;
         }else if (!free_place_found && ckvs->entries[i].key[0] == '\0'){
@@ -386,7 +386,7 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
               (uint32_t) key_sha.sha[1] << 2 * 8 |
               (uint32_t) key_sha.sha[2] << 8 |
               (uint32_t) key_sha.sha[3];*/
-    memcpy(&hashkey, key_sha.sha , 4);
+    memcpy(&hashkey, key_sha.sha , sizeof(uint32_t));
     //pps_printf("key : 0x%x\n", hashkey);
     //the mask
     uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
