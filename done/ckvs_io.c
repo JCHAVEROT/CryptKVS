@@ -141,11 +141,10 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     bool free_place_found =false;
     uint32_t free_index=0;
 
-    uint32_t hashkey = ckvs_hashkey(ckvs, key);
-    uint32_t idx = hashkey %(ckvs->header.table_size) ;
+    uint32_t idx = ckvs_hashkey(ckvs, key);
     //iterate over the table from index hashkey in linear probing
     for (uint32_t i = idx; i < idx+ckvs->header.table_size; ++i) {
-        uint32_t j=i%(ckvs->header.table_size);
+        uint32_t j= i%ckvs->header.table_size;
         if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             if (ckvs_cmp_sha(&ckvs->entries[j].auth_key, auth_key) == 0) {
