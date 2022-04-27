@@ -152,7 +152,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
                 *e_out = &ckvs->entries[i%(ckvs->header.table_size)];
             }
             break;
-        }else if (!free_place_found && ckvs->entries[i].key[0] == '\0'){
+        }else if (!free_place_found && ckvs->entries[i%(ckvs->header.table_size)].key[0] == '\0'){
             free_place_found=true;
             free_index=i;
         }
