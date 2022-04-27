@@ -56,6 +56,7 @@ int ckvs_local_stats(const char* filename, int optargc, char* optargv[]) {
             print_entry(&ckvs.entries[i]);
         }
     }
+    ckvs_close(&ckvs);
 
     return ERR_NONE;
 }
