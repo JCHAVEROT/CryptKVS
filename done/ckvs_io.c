@@ -40,6 +40,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     if (nb_ok != CKVS_HEADERSTRINGLEN) {
         //error
         fclose(file);
+        ckvs->file = NULL;
         return ERR_IO;
     }
     //read the infos and that they were well read
@@ -48,18 +49,21 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     if (nb_ok2 != CKVS_UINT32_T_ELEMENTS) {
         //error
         fclose(file);
+        ckvs->file = NULL;
         return ERR_IO;
     }
     //check that the header start with the good prefix
     if (strncmp(CKVS_HEADERSTRING_PREFIX, header_str, strlen(CKVS_HEADERSTRING_PREFIX)) != 0) {
         //error
         fclose(file);
+        ckvs->file = NULL;
         return ERR_CORRUPT_STORE;
     }
 
     if (infos[0] != 1) {
         //error
         fclose(file);
+        ckvs->file = NULL;
         return ERR_CORRUPT_STORE;
     }
 
@@ -72,6 +76,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     if (table_size != 1) {
         //error
         fclose(file);
+        ckvs->file = NULL;
         return ERR_CORRUPT_STORE;
     }
 
@@ -101,6 +106,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     if (nb_ok3 != ckvs->header.table_size) {
         //error
         fclose(file);
+        ckvs->file = NULL;
         return ERR_IO;
     }
 
