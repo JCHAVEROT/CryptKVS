@@ -77,9 +77,14 @@ START_TEST(rpc_invalid_curl_1)
     printf("=== %s:\n", __func__);
 #endif
 
-    ckvs_connection_t conn = { .curl = NULL, .url = "https://cs212.epfl.ch" };
+    ckvs_connection_t conn;
+    ckvs_rpc_init(&conn, "https://cs212.epfl.ch");
     const char get[] = "/abc";
-    ck_assert_int_eq(ckvs_rpc(&conn, get), ERR_TIMEOUT);
+    ck_assert_int_eq(ckvs_rpc(&conn, get), ERR_NONE);
+
+    ck_assert_ptr_nonnull(conn.resp_buf);
+    ck_assert_str_eq(conn.resp_buf, "Error: Invalid command");
+    ckvs_rpc_close(&conn);
 
 #ifdef WITH_PRINT
     printf("=== END of %s\n", __func__);
