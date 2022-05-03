@@ -34,6 +34,15 @@ typedef struct CKVS CKVS_t;
  */
 int ckvs_open(const char *filename, struct CKVS *ckvs);
 
+
+/**
+ *
+ * @param ckvs
+ * @return the error code
+ */
+int read_header(CKVS_t* ckvs);
+
+
 /**
  * @brief Closes the CKVS database and releases its resources.
  *
@@ -75,6 +84,14 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
  * Not asked to students but helpful to have
  */
 int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size);
+
+
+/**
+ *
+ * @param file
+ * @param buffer_ptr
+ */
+void close_RVFC(FILE *file,char **buffer_ptr);
 
 /* *************************************************** *
  * TODO WEEK 07                                        *

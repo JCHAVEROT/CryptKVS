@@ -27,10 +27,9 @@ enum crypt_type {
 };
 
 // ----------------------------------------------------------------------
-int ckvs_local_stats(const char *filename, int optargc, char *optargv[]) {
-    //check the number of arguments
-    if (optargc > 0) return ERR_TOO_MANY_ARGUMENTS;
+int ckvs_local_stats(const char* filename, int optargc, char* optargv[]) {
 
+    if (optargc > 0) return ERR_TOO_MANY_ARGUMENTS;
     //check if the pointeur is valid
     if (filename == NULL) {
         //error
@@ -94,7 +93,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
     //initialize the struct ckvs_entry_t
-    ckvs_entry_t *ckvs_out = NULL;
+    ckvs_entry_t *ckvs_out=NULL;
 
     //to find the right entry in the database with the key and the auth_key latterly computed
     err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
@@ -216,15 +215,13 @@ void free_sve(unsigned char **sve, size_t *sve_length) {
 }
 
 // ----------------------------------------------------------------------
-int ckvs_local_get(const char *filename, int optargc, char *optargv[]) {
-    //check the number of arguments
+int ckvs_local_get(const char* filename, int optargc, char* optargv[]) {
     if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
     if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
 
-    const char *key = optargv[0];
-    const char *pwd = optargv[1];
-
-    //check pointers
+    const char *key=optargv[0];
+    const char *pwd=optargv[1];
+    //check if the pointeurs are valid
     if (key == NULL || pwd == NULL || filename == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
@@ -234,14 +231,13 @@ int ckvs_local_get(const char *filename, int optargc, char *optargv[]) {
 }
 
 // ----------------------------------------------------------------------
-int ckvs_local_set(const char *filename, int optargc, char *optargv[]) {
-    //check the number of arguments
+int ckvs_local_set(const char* filename, int optargc, char* optargv[]) {
     if (optargc < 3) return ERR_NOT_ENOUGH_ARGUMENTS;
     if (optargc > 3) return ERR_TOO_MANY_ARGUMENTS;
 
-    const char *key = optargv[0];
-    const char *pwd = optargv[1];
-    const char *valuefilename = optargv[2];
+    const char *key=optargv[0];
+    const char *pwd=optargv[1];
+    const char *valuefilename=optargv[2];
 
     //check pointers
     if (filename == NULL || key == NULL || pwd == NULL || valuefilename == NULL) {
@@ -271,15 +267,13 @@ int ckvs_local_set(const char *filename, int optargc, char *optargv[]) {
     return err;
 }
 
-//-----------------------------------------------------------------------
-int ckvs_local_new(const char *filename, int optargc, char *optargv[]) {
+int ckvs_local_new(const char* filename, int optargc, char* optargv[]) {
 
-    //check the number of arguments
     if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
     if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
 
-    const char *key = optargv[0];
-    const char *pwd = optargv[1];
+    const char *key=optargv[0];
+    const char *pwd=optargv[1];
 
     //check if the pointeurs are valid
     if (filename == NULL || key == NULL || pwd == NULL) {
@@ -303,35 +297,57 @@ int ckvs_local_new(const char *filename, int optargc, char *optargv[]) {
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
     //initialize the pointer of a struct ckvs_entry_t for the new entry
-    ckvs_entry_t *new_ckvs_entry = NULL;
+    //ckvs_entry_t new_ckvs_entry;
+    ckvs_entry_t* new_ckvs_entry = NULL;
 
     //verify is key is not too long
     if (strlen(key) > CKVS_MAXKEYLEN) {
-        //error
+        //free entry
+        //free(new_ckvs_entry);
+        //new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
+        //error
         return ERR_INVALID_ARGUMENT;
     }
+
+
+    //write the key in the new entry
+
+    //strncpy((char *) &(new_ckvs_entry.key), key, CKVS_MAXKEYLEN);
 
     //to generate in particular the auth_key and c1 and store them in ckvs_mem
     err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
     if (err != ERR_NONE) {
-
-        // error
+        //free entry
+        //free(new_ckvs_entry);
+       // new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
+        // error
         return err;
 
     }
 
-    //create the new entry
+    //associate the newly computed auth_key to the new entry
+    //new_ckvs_entry.auth_key = ckvs_mem.auth_key;
+
     err = ckvs_new_entry(&ckvs, key, &(ckvs_mem.auth_key), &new_ckvs_entry);
     if (err != ERR_NONE) {
         // error
         ckvs_close(&ckvs);
+        //free entry
+        //free(new_ckvs_entry);
+        //new_ckvs_entry = NULL;
+        ckvs_close(&ckvs);
         return err;
     }
 
+    //free entry
+    //free(new_ckvs_entry);
+    //new_ckvs_entry = NULL;
+
     //close the file and finish
     ckvs_close(&ckvs);
+
 
     return ERR_NONE;
 }

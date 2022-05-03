@@ -34,56 +34,11 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     }
     ckvs->file = file;
 
-    //read the header and that it was well read
-    char header_str[CKVS_HEADERSTRINGLEN];
-    size_t nb_ok = fread(header_str, sizeof(char), CKVS_HEADERSTRINGLEN, file);
-    if (nb_ok != CKVS_HEADERSTRINGLEN) {
-        //error
+    int a=read_header(ckvs);
+    if (a!=ERR_NONE){
         ckvs_close(ckvs);
-        return ERR_IO;
+        return a;
     }
-    //read the infos and that they were well read
-    uint32_t infos[CKVS_UINT32_T_ELEMENTS] = {0};
-    size_t nb_ok2 = fread(infos, sizeof(uint32_t), 4, file);
-    if (nb_ok2 != CKVS_UINT32_T_ELEMENTS) {
-        //error
-        ckvs_close(ckvs);
-        return ERR_IO;
-    }
-    //check that the header start with the good prefix
-    if (strncmp(CKVS_HEADERSTRING_PREFIX, header_str, strlen(CKVS_HEADERSTRING_PREFIX)) != 0) {
-        //error
-        ckvs_close(ckvs);
-        return ERR_CORRUPT_STORE;
-    }
-
-    if (infos[0] != 1) {
-        //error
-        ckvs_close(ckvs);
-        return ERR_CORRUPT_STORE;
-    }
-
-    //check that the table has a size power of 2
-    uint32_t table_size = infos[1];
-    while (table_size >= 2) {
-        if (table_size % 2 != 0) break;
-        table_size = table_size / 2;
-    }
-    if (table_size != 1) {
-        //error
-        ckvs_close(ckvs);
-        return ERR_CORRUPT_STORE;
-    }
-
-    //construct the header now that every field is safe
-    ckvs_header_t header = {
-            .version           =infos[0],
-            .table_size        =infos[1],
-            .threshold_entries =infos[2],
-            .num_entries       =infos[3]
-    };
-    strcpy(header.header_string, header_str);
-    ckvs->header = header;
 
     ckvs->entries = calloc(ckvs->header.table_size, sizeof(ckvs_entry_t));
     if (ckvs->entries == NULL) {
@@ -185,15 +140,22 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //place the pointer at the end of the file and check errors
     int err = fseek(file, 0, SEEK_END);
     if (err != ERR_NONE) {
+        close_RVFC(file,buffer_ptr);
         return ERR_IO;
     }
 
     //affect the string's length
     size_t size = (size_t) ftell(file);
+    if (size==-1){
+        //error
+        close_RVFC(file,buffer_ptr);
+        return ERR_IO;
+    }
 
     //place the pointer at the beginning of the file back
     err = fseek(file, 0, SEEK_SET);
     if (err != ERR_NONE) {
+        close_RVFC(file,buffer_ptr);
         return ERR_IO;
     }
 
@@ -201,6 +163,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
     if (*buffer_ptr == NULL) {
         //error
+        close_RVFC(file,buffer_ptr);
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -208,6 +171,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
     if (nb != size) {
         //error
+        close_RVFC(file,buffer_ptr);
         return ERR_IO;
     }
     *buffer_size = size + 1; //update the buffer size to have the place for the final '\0'
@@ -216,6 +180,20 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //close the opened file and finish
     fclose(file);
     return ERR_NONE;
+}
+//---------------------------
+void close_RVFC(FILE *file,char **buffer_ptr){
+    if (file!=NULL){
+        fclose(file);
+        file=NULL;
+    }
+    if (buffer_ptr!=NULL){
+        if (*buffer_ptr!=NULL){
+            free(*buffer_ptr);
+        }
+        buffer_ptr=NULL;
+    }
+
 }
 
 // ----------------------------------------------------------------------
@@ -373,4 +351,62 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
 
     //apply the mask and return the value
     return hashkey & mask;
+}
+
+//------------------------------------
+
+int read_header(CKVS_t* ckvs){
+    if (ckvs==NULL||ckvs->file==NULL){
+        return ERR_INVALID_ARGUMENT;
+    }
+
+
+    //read the header and that it was well read
+    char header_str[CKVS_HEADERSTRINGLEN];
+    size_t nb_ok = fread(header_str, sizeof(char), CKVS_HEADERSTRINGLEN, ckvs->file);
+    if (nb_ok != CKVS_HEADERSTRINGLEN) {
+        //error
+        return ERR_IO;
+    }
+    //read the infos and that they were well read
+    uint32_t infos[CKVS_UINT32_T_ELEMENTS] = {0};
+    size_t nb_ok2 = fread(infos, sizeof(uint32_t), 4, ckvs->file);
+    if (nb_ok2 != CKVS_UINT32_T_ELEMENTS) {
+        //error
+        return ERR_IO;
+    }
+    //check that the header start with the good prefix
+    if (strncmp(CKVS_HEADERSTRING_PREFIX, header_str, strlen(CKVS_HEADERSTRING_PREFIX)) != 0) {
+        //error
+        ckvs_close(ckvs);
+        return ERR_CORRUPT_STORE;
+    }
+
+    if (infos[0] != 1) {
+        //error
+        return ERR_CORRUPT_STORE;
+    }
+
+    //check that the table has a size power of 2
+    uint32_t table_size = infos[1];
+    while (table_size >= 2) {
+        if (table_size % 2 != 0) break;
+        table_size = table_size / 2;
+    }
+    if (table_size != 1) {
+        //error
+        return ERR_CORRUPT_STORE;
+    }
+
+    //construct the header now that every field is safe
+    ckvs_header_t header = {
+            .version           =infos[0],
+            .table_size        =infos[1],
+            .threshold_entries =infos[2],
+            .num_entries       =infos[3]
+    };
+    strcpy(header.header_string, header_str);
+    ckvs->header = header;
+
+    return ERR_NONE;
 }
