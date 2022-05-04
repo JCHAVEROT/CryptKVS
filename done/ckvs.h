@@ -42,10 +42,10 @@
  */
 struct ckvs_header {
     char header_string[CKVS_HEADERSTRINGLEN]; /**< should start with CKVS_HEADERSTRING_PREFIX */
-    uint32_t  version;                        /**< should be 1 */
-    uint32_t  table_size;                     /**< must be a power of 2 */
-    uint32_t  threshold_entries;              /**< max effective capacity */
-    uint32_t  num_entries;                    /**< number of valid entries */
+    uint32_t version;                        /**< should be 1 */
+    uint32_t table_size;                     /**< must be a power of 2 */
+    uint32_t threshold_entries;              /**< max effective capacity */
+    uint32_t num_entries;                    /**< number of valid entries */
 };
 
 /**
@@ -61,5 +61,5 @@ struct ckvs_entry {
 
 // convenience typedefs
 typedef struct ckvs_header ckvs_header_t;
-typedef struct ckvs_entry  ckvs_entry_t;
+typedef struct ckvs_entry ckvs_entry_t;
 

@@ -40,26 +40,27 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
 
 
     //computation of the auth_key from the SHA256 of the stretched_key with message AUTH_MESSAGE
-    int a =HMAC_and_check(mr->stretched_key.sha,(const unsigned char *) AUTH_MESSAGE,strlen(AUTH_MESSAGE),mr->auth_key.sha);
-    if (a!=ERR_NONE){
+    int a = HMAC_and_check(mr->stretched_key.sha, (const unsigned char *) AUTH_MESSAGE, strlen(AUTH_MESSAGE),
+                           mr->auth_key.sha);
+    if (a != ERR_NONE) {
         return a;
     }
 
     //computation of c1 from the SHA256 of the stretched_key with message C1_MESSAGE
-    a =HMAC_and_check(mr->stretched_key.sha,(const unsigned char *) C1_MESSAGE,strlen(C1_MESSAGE), mr->c1.sha);
-    if (a!=ERR_NONE){
+    a = HMAC_and_check(mr->stretched_key.sha, (const unsigned char *) C1_MESSAGE, strlen(C1_MESSAGE), mr->c1.sha);
+    if (a != ERR_NONE) {
         return a;
     }
 
     return ERR_NONE;
 }
 
-int HMAC_and_check(unsigned char* sha1,const unsigned char * message,size_t message_len,unsigned char* sha2 ){
-    if (sha1==NULL || message==NULL || sha2==NULL){
+int HMAC_and_check(unsigned char *sha1, const unsigned char *message, size_t message_len, unsigned char *sha2) {
+    if (sha1 == NULL || message == NULL || sha2 == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
-    unsigned int l=0;
-    HMAC(EVP_sha256(),sha1, SHA256_DIGEST_LENGTH, message,
+    unsigned int l = 0;
+    HMAC(EVP_sha256(), sha1, SHA256_DIGEST_LENGTH, message,
          message_len, sha2, &l);
 
     //verify the length
@@ -79,8 +80,8 @@ int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_s
     }
 
     //computation of the master_key from the SHA256 of the auth_key with the sha of c2 as message
-    int a =HMAC_and_check(mr->c1.sha,c2->sha,SHA256_DIGEST_LENGTH,mr->master_key.sha);
-    if (a!=ERR_NONE){
+    int a = HMAC_and_check(mr->c1.sha, c2->sha, SHA256_DIGEST_LENGTH, mr->master_key.sha);
+    if (a != ERR_NONE) {
         return a;
     }
 

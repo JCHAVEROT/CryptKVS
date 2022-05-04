@@ -27,7 +27,7 @@ enum crypt_type {
 };
 
 // ----------------------------------------------------------------------
-int ckvs_local_stats(const char* filename, int optargc,  _unused char* optargv[]) {
+int ckvs_local_stats(const char *filename, int optargc, _unused char *optargv[]) {
 
     if (optargc > 0) return ERR_TOO_MANY_ARGUMENTS;
     //check if the pointeur is valid
@@ -94,7 +94,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     }
 
     //initialize the struct ckvs_entry_t
-    ckvs_entry_t *ckvs_out=NULL;
+    ckvs_entry_t *ckvs_out = NULL;
 
     //to find the right entry in the database with the key and the auth_key latterly computed
     err = ckvs_find_entry(&ckvs, key, &ckvs_mem.auth_key, &ckvs_out);
@@ -126,8 +126,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
     if (set_value == NULL) {
         return do_get(&ckvs, ckvs_out, &ckvs_mem);
         //end get part
-    }else{
-        return do_set(&ckvs, ckvs_out, &ckvs_mem,set_value);
+    } else {
+        return do_set(&ckvs, ckvs_out, &ckvs_mem, set_value);
     }
 }
 
@@ -140,16 +140,16 @@ void free_sve(unsigned char **sve, size_t *sve_length) {
     if (sve_length != NULL) *sve_length = 0;
 }
 
-void free_uc(unsigned char** a){
-    if (a!=NULL){
-        if(*a!=NULL){
+void free_uc(unsigned char **a) {
+    if (a != NULL) {
+        if (*a != NULL) {
             free(*a);
-            *a=NULL;
+            *a = NULL;
         }
     }
 }
 
-int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem){
+int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
     if (ckvs_out->value_len > 0) {
         //make the pointer lead to the beginning of the encrypted secret
         int err = fseek(ckvs->file, (long int) ckvs_out->value_off, SEEK_SET);
@@ -160,8 +160,8 @@ int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem){
         }
 
         //initialize the string where the encrypted secret will be stored
-        unsigned char* encrypted = calloc(ckvs_out->value_len, sizeof(unsigned char));
-        if (encrypted==NULL){
+        unsigned char *encrypted = calloc(ckvs_out->value_len, sizeof(unsigned char));
+        if (encrypted == NULL) {
             return ERR_OUT_OF_MEMORY;
         }
 
@@ -177,9 +177,9 @@ int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem){
 
         //initialize the string where the decrypted secret will be stored
         size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
-        unsigned char* decrypted = calloc(decrypted_len, sizeof(unsigned char));
+        unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
 
-        if (decrypted==NULL){
+        if (decrypted == NULL) {
             free_uc(&encrypted);
             return ERR_OUT_OF_MEMORY;
         }
@@ -206,7 +206,7 @@ int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem){
 
         free_uc(&encrypted);
         free_uc(&decrypted);
-        decrypted=NULL;
+        decrypted = NULL;
 
         return ERR_NONE;
     } else {
@@ -216,7 +216,7 @@ int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem){
     }
 }
 
-int do_set(CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const char *set_value){
+int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, const char *set_value) {
     //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
     size_t set_value_encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
     unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
@@ -227,8 +227,8 @@ int do_set(CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const
         return ERR_OUT_OF_MEMORY;
     }
     int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
-                                  set_value_encrypted,
-                                  &set_value_encrypted_length);
+                                      set_value_encrypted,
+                                      &set_value_encrypted_length);
     if (err != ERR_NONE) {
         //error
         ckvs_close(ckvs);
@@ -252,12 +252,12 @@ int do_set(CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const
 }
 
 // ----------------------------------------------------------------------
-int ckvs_local_get(const char* filename, int optargc, char* optargv[]) {
+int ckvs_local_get(const char *filename, int optargc, char *optargv[]) {
     if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
     if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
 
-    const char *key=optargv[0];
-    const char *pwd=optargv[1];
+    const char *key = optargv[0];
+    const char *pwd = optargv[1];
     //check if the pointeurs are valid
     if (key == NULL || pwd == NULL || filename == NULL) {
         //error
@@ -268,13 +268,13 @@ int ckvs_local_get(const char* filename, int optargc, char* optargv[]) {
 }
 
 // ----------------------------------------------------------------------
-int ckvs_local_set(const char* filename, int optargc, char* optargv[]) {
+int ckvs_local_set(const char *filename, int optargc, char *optargv[]) {
     if (optargc < 3) return ERR_NOT_ENOUGH_ARGUMENTS;
     if (optargc > 3) return ERR_TOO_MANY_ARGUMENTS;
 
-    const char *key=optargv[0];
-    const char *pwd=optargv[1];
-    const char *valuefilename=optargv[2];
+    const char *key = optargv[0];
+    const char *pwd = optargv[1];
+    const char *valuefilename = optargv[2];
 
     //check pointers
     if (filename == NULL || key == NULL || pwd == NULL || valuefilename == NULL) {
@@ -304,13 +304,13 @@ int ckvs_local_set(const char* filename, int optargc, char* optargv[]) {
     return err;
 }
 
-int ckvs_local_new(const char* filename, int optargc, char* optargv[]) {
+int ckvs_local_new(const char *filename, int optargc, char *optargv[]) {
 
     if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
     if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
 
-    const char *key=optargv[0];
-    const char *pwd=optargv[1];
+    const char *key = optargv[0];
+    const char *pwd = optargv[1];
 
     //check if the pointeurs are valid
     if (filename == NULL || key == NULL || pwd == NULL) {
@@ -334,7 +334,7 @@ int ckvs_local_new(const char* filename, int optargc, char* optargv[]) {
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
     //initialize the pointer of a struct ckvs_entry_t for the new entry
-    ckvs_entry_t* new_ckvs_entry = NULL;
+    ckvs_entry_t *new_ckvs_entry = NULL;
 
     //verify is key is not too long
     if (strlen(key) > CKVS_MAXKEYLEN) {

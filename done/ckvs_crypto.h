@@ -52,7 +52,7 @@ int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_s
  * @param sha2
  * @return int, error code
  */
-int HMAC_and_check(unsigned char* sha1,const unsigned char * message,size_t message_len,unsigned char* sha2 );
+int HMAC_and_check(unsigned char *sha1, const unsigned char *message, size_t message_len, unsigned char *sha2);
 
 /**
  * @brief Performs symmetric encryption/decryption using AES256_CBC.
@@ -65,4 +65,5 @@ int HMAC_and_check(unsigned char* sha1,const unsigned char * message,size_t mess
  * @param outbuflen (size_t*) actual number of bytes that was written in the output
  * @return int, error code
  */
-int ckvs_client_crypt_value(const struct ckvs_memrecord *mr, const int do_encrypt, const unsigned char *inbuf, size_t inbuflen, unsigned char *outbufptr, size_t *outbuflen);
+int ckvs_client_crypt_value(const struct ckvs_memrecord *mr, const int do_encrypt, const unsigned char *inbuf,
+                            size_t inbuflen, unsigned char *outbufptr, size_t *outbuflen);

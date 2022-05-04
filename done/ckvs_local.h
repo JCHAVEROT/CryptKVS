@@ -26,7 +26,7 @@
  * @param optargv (char*) the arguments (not used)
  * @return int, an error code
  */
-int ckvs_local_stats(const char* filename, int optargc, char* optargv[]);
+int ckvs_local_stats(const char *filename, int optargc, char *optargv[]);
 
 /* *************************************************** *
  * TODO WEEK 05                                        *
@@ -41,7 +41,7 @@ int ckvs_local_stats(const char* filename, int optargc, char* optargv[]);
  * @param optargv (char*) the arguments : should contain the key and the password of the entry to get
  * @return int, an error code
  */
-int ckvs_local_get(const char* filename, int optargc, char* optargv[]);
+int ckvs_local_get(const char *filename, int optargc, char *optargv[]);
 
 /* *************************************************** *
  * TODO WEEK 06                                        *
@@ -73,7 +73,7 @@ void free_sve(unsigned char **sve, size_t *sve_length);
  *
  * @param a
  */
-void free_uc(unsigned char** a);
+void free_uc(unsigned char **a);
 
 /**
  * @brief do the set part of the getset function
@@ -83,7 +83,7 @@ void free_uc(unsigned char** a);
  * @param ckvs_mem
  * @return
  */
-int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem);
+int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem);
 
 /**
  *
@@ -93,10 +93,7 @@ int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem);
  * @param set_value
  * @return
  */
-int do_set(CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const char *set_value);
-
-
-
+int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, const char *set_value);
 
 
 /**
@@ -110,7 +107,7 @@ int do_set(CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const
  *                                        and the path to the file which contains what will become the new encrypted content of the entry
  * @return int, an error code
  */
-int ckvs_local_set(const char* filename, int optargc, char* optargv[]);
+int ckvs_local_set(const char *filename, int optargc, char *optargv[]);
 
 
 /* *************************************************** *
@@ -125,7 +122,7 @@ int ckvs_local_set(const char* filename, int optargc, char* optargv[]);
  * @param optargv (char*) the arguments : should contain the key and the password of the entry to create
  * @return int, an error code
  */
-int ckvs_local_new(const char* filename, int optargc, char* optargv[]);
+int ckvs_local_new(const char *filename, int optargc, char *optargv[]);
 
 /* *************************************************** *
  * TODO WEEK 09: Refactor ckvs_local_*** commands      *

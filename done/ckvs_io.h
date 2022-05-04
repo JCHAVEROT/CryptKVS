@@ -16,7 +16,7 @@
  */
 struct CKVS {
     struct ckvs_header header;
-    ckvs_entry_t* entries;
+    ckvs_entry_t *entries;
     FILE *file;
 };
 typedef struct CKVS CKVS_t;
@@ -40,7 +40,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs);
  * @param ckvs
  * @return int, error code
  */
-int read_header(CKVS_t* ckvs);
+int read_header(CKVS_t *ckvs);
 
 /**
  *
@@ -97,7 +97,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
  * @param file
  * @param buffer_ptr
  */
-void close_RVFC(FILE **file,char **buffer_ptr);
+void close_RVFC(FILE **file, char **buffer_ptr);
 
 /* *************************************************** *
  * TODO WEEK 07                                        *
