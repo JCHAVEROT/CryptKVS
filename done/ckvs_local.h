@@ -67,6 +67,13 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 void free_sve(unsigned char **sve, size_t *sve_length);
 
 /**
+ * @brief Auxiliary function to easily free an unsigned char*
+ *
+ * @param a
+ */
+void free_uc(unsigned char** a);
+
+/**
  * @brief Opens the CKVS database at the given filename and executes the 'set' command,
  * ie. fetches the entry corresponding to the key and password and
  * then sets the encrypted content of valuefilename as new content.

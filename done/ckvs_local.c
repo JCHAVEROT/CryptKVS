@@ -56,6 +56,7 @@ int ckvs_local_stats(const char* filename, int optargc, char* optargv[]) {
             print_entry(&ckvs.entries[i]);
         }
     }
+    //close the ckvs
     ckvs_close(&ckvs);
 
     return ERR_NONE;
@@ -133,18 +134,29 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             }
 
             //initialize the string where the encrypted secret will be stored
-            unsigned char encrypted[ckvs_out->value_len];
+            unsigned char* encrypted = calloc(ckvs_out->value_len, sizeof(unsigned char));
+            if (encrypted==NULL){
+                return ERR_OUT_OF_MEMORY;
+            }
+
+
             //read the encrypted secret
             size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs.file);
             if (nb_ok != ckvs_out->value_len) {
                 //error
                 ckvs_close(&ckvs);
+                free_uc(&encrypted);
                 return ERR_IO;
             }
 
             //initialize the string where the decrypted secret will be stored
             size_t decrypted_len = ckvs_out->value_len + EVP_MAX_BLOCK_LENGTH;
-            unsigned char decrypted[decrypted_len];
+            unsigned char* decrypted = calloc(decrypted_len, sizeof(unsigned char));
+
+            if (decrypted==NULL){
+                free_uc(&encrypted);
+                return ERR_OUT_OF_MEMORY;
+            }
 
             //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
             err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, ckvs_out->value_len, decrypted,
@@ -152,6 +164,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             if (err != ERR_NONE) {
                 // Error
                 ckvs_close(&ckvs);
+                free_uc(&encrypted);
+                free_uc(&decrypted);
                 return err;
             }
 
@@ -163,6 +177,11 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
             //close the CKVS database at filename since done decrypting
             ckvs_close(&ckvs);
+
+            free_uc(&encrypted);
+            free_uc(&decrypted);
+            decrypted=NULL;
+
             return ERR_NONE;
         } else {
             //error
@@ -170,6 +189,11 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             return ERR_NO_VALUE;
         }
     }
+  //end get part
+
+
+
+
 
     //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
     size_t set_value_encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
@@ -213,6 +237,17 @@ void free_sve(unsigned char **sve, size_t *sve_length) {
     }
     if (sve_length != NULL) *sve_length = 0;
 }
+
+void free_uc(unsigned char** a){
+    if (a!=NULL){
+        if(*a!=NULL){
+            free(*a);
+            *a=NULL;
+        }
+    }
+}
+
+
 
 // ----------------------------------------------------------------------
 int ckvs_local_get(const char* filename, int optargc, char* optargv[]) {
