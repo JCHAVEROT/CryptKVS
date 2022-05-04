@@ -45,6 +45,7 @@ int ckvs_client_encrypt_pwd(struct ckvs_memrecord *mr, const char *key, const ch
 int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_sha *c2);
 
 /**
+ *@brief Compute the MAC
  *
  * @param sha1
  * @param message

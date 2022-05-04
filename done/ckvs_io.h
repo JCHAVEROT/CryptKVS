@@ -121,3 +121,13 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
  * @return uint32_t, the hashkey
  */
 static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key);
+
+
+/**
+ *
+ * @param e
+ * @param ckvs
+ * @return
+ */
+int compute_idx_and_write(struct ckvs_entry *e,struct CKVS *ckvs);
+

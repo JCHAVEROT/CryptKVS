@@ -34,8 +34,8 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
     }
     ckvs->file = file;
 
-    int a=read_header(ckvs);
-    if (a!=ERR_NONE){
+    int a = read_header(ckvs);
+    if (a != ERR_NONE) {
         ckvs_close(ckvs);
         return a;
     }
@@ -66,12 +66,13 @@ void ckvs_close(struct CKVS *ckvs) {
     //close to file of the CKVS and make it point to NULL
     if (ckvs->file != NULL) {
         fclose(ckvs->file);
+        ckvs->file = NULL;
     }
+    //free entries and make it point to NULL
     if (ckvs->entries != NULL) {
         free(ckvs->entries);
+        ckvs->entries = NULL;
     }
-    ckvs->entries = NULL;
-    ckvs->file = NULL;
 }
 
 // ----------------------------------------------------------------------
@@ -92,16 +93,20 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     uint32_t idx = ckvs_hashkey(ckvs, key);
 
     //iterate over the table from index hashkey in linear probing
-    uint32_t max_it=idx + ckvs->header.table_size;
+    uint32_t max_it = idx + ckvs->header.table_size;
     for (uint32_t i = idx; i < max_it; ++i) {
+        // compute the index
         uint32_t j = i % ckvs->header.table_size;
+        //check the key
         if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
+            //check the auth_key
             if (ckvs_cmp_sha(&ckvs->entries[j].auth_key, auth_key) == 0) {
                 authKeyIsCorrect = true;
                 *e_out = &ckvs->entries[j];
             }
             break;
+            // for new check for an empty slot
         } else if (!free_place_found && ckvs->entries[j].key[0] == '\0') {
             free_place_found = true;
             free_index = j;
@@ -110,7 +115,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     }
 
     if (!keyWasFound) {
-        //the entry that can be given a new one
+        //the entry that can be given for new
         *e_out = &ckvs->entries[free_index];
         //error
         return ERR_KEY_NOT_FOUND;
@@ -124,7 +129,8 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 }
 
 // ----------------------------------------------------------------------
-int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
+int
+read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
     //check pointers
     if (filename == NULL || buffer_ptr == NULL || buffer_size == NULL) {
         //error
@@ -141,15 +147,15 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //place the pointer at the end of the file and check errors
     int err = fseek(file, 0, SEEK_END);
     if (err != ERR_NONE) {
-        close_RVFC(&file,buffer_ptr);
+        close_RVFC(&file, buffer_ptr);
         return ERR_IO;
     }
 
     //affect the string's length
-    long int size_temp =  ftell(file);
-    if (size_temp==-1){
+    long int size_temp = ftell(file);
+    if (size_temp == -1) {
         //error
-        close_RVFC(&file,buffer_ptr);
+        close_RVFC(&file, buffer_ptr);
         return ERR_IO;
     }
     size_t size = (size_t) size_temp;
@@ -157,7 +163,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //place the pointer at the beginning of the file back
     err = fseek(file, 0, SEEK_SET);
     if (err != ERR_NONE) {
-        close_RVFC(&file,buffer_ptr);
+        close_RVFC(&file, buffer_ptr);
         return ERR_IO;
     }
 
@@ -165,7 +171,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
     if (*buffer_ptr == NULL) {
         //error
-        close_RVFC(&file,buffer_ptr);
+        close_RVFC(&file, buffer_ptr);
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -173,7 +179,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
     if (nb != size) {
         //error
-        close_RVFC(&file,buffer_ptr);
+        close_RVFC(&file, buffer_ptr);
         return ERR_IO;
     }
     *buffer_size = size + 1; //update the buffer size to have the place for the final '\0'
@@ -181,27 +187,28 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 
     //close the opened file and finish
     fclose(file);
-    file=NULL;
+    file = NULL;
     return ERR_NONE;
 }
+
 //---------------------------
-void close_RVFC(FILE** file,char **buffer_ptr){
+void close_RVFC(FILE **file, char **buffer_ptr) {
     //check argument
-    if (file!=NULL){
+    if (file != NULL) {
         //check if the file hasn't been close previously
-        if (*file!=NULL) {
+        if (*file != NULL) {
             //close it
             fclose(*file);
             *file = NULL;
         }
     }
     //check argument
-    if (buffer_ptr!=NULL){
+    if (buffer_ptr != NULL) {
         //check if the buffer hasn't been free previously
-        if (*buffer_ptr!=NULL){
+        if (*buffer_ptr != NULL) {
             //free it
             free(*buffer_ptr);
-            *buffer_ptr=NULL;
+            *buffer_ptr = NULL;
         }
     }
 
@@ -272,29 +279,20 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
     e->value_len = buflen;
     e->value_off = (size_t) ftell(ckvs->file);
 
-    //write at the end of the ckvs file the encrypted value to writes
+    //write at the end of the ckvs file the encrypted value
     size_t nb_ok = fwrite(buf, sizeof(char), buflen, ckvs->file);
     if (nb_ok != buflen) {
         //error
         return ERR_IO;
     }
+    //flush to be sure
     err = fflush(ckvs->file);
     if (err != ERR_NONE) {
         //error
         return ERR_IO;
     }
 
-    //to modify the right entry in the ckvs table, index is obtained by substracting the pointers
-    uint32_t idx = (uint32_t)(e - &ckvs->entries[0]);
-
-    //modify the entry in the disk
-    err = ckvs_write_entry_to_disk(ckvs, idx);
-    if (err != ERR_NONE) {
-        //error
-        return err;
-    }
-
-    return ERR_NONE;
+    return compute_idx_and_write(e, ckvs);
 }
 
 // ----------------------------------------------------------------------
@@ -324,13 +322,8 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     //associate the auth_key
     (*e_out)->auth_key = *auth_key;
 
-    //to modify the right entry in the ckvs table, its index is obtained by substracting the pointers
-    uint32_t idx = (uint32_t)(*e_out - &ckvs->entries[0]);
-
-    //write the entry in the file
-    err = ckvs_write_entry_to_disk(ckvs, idx);
+    err = compute_idx_and_write(*e_out, ckvs);
     if (err != ERR_NONE) {
-        //error
         return err;
     }
 
@@ -341,6 +334,17 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     ckvs_write_updated_header_to_disk(ckvs);
 
     return ERR_NONE;
+}
+
+int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs) {
+    if (e==NULL || ckvs==NULL){
+        return ERR_INVALID_ARGUMENT;
+    }
+    //to modify the right entry in the ckvs table, index is obtained by subtracting the pointers
+    uint32_t idx = (uint32_t)(e - &ckvs->entries[0]);
+
+    return ckvs_write_entry_to_disk(ckvs, idx);
+
 }
 
 // ----------------------------------------------------------------------
@@ -360,7 +364,7 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     //copy the 4 first bytes
     memcpy(&hashkey, key_sha.sha, sizeof(uint32_t));
 
-    //initiliaze the mask
+    //initialize the mask
     uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
 
     //apply the mask and return the value
@@ -368,20 +372,21 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
 }
 
 //----------------------------------------------------------------------
-int read_header(CKVS_t* ckvs){
-    if (ckvs==NULL||ckvs->file==NULL){
+int read_header(CKVS_t *ckvs) {
+    //check pointers
+    if (ckvs == NULL || ckvs->file == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
 
 
-    //read the header and that it was well read
+    //read the header and that it was well-read
     char header_str[CKVS_HEADERSTRINGLEN];
     size_t nb_ok = fread(header_str, sizeof(char), CKVS_HEADERSTRINGLEN, ckvs->file);
     if (nb_ok != CKVS_HEADERSTRINGLEN) {
         //error
         return ERR_IO;
     }
-    //read the infos and that they were well read
+    //read the infos and that they were well-read
     uint32_t infos[CKVS_UINT32_T_ELEMENTS] = {0};
     size_t nb_ok2 = fread(infos, sizeof(uint32_t), 4, ckvs->file);
     if (nb_ok2 != CKVS_UINT32_T_ELEMENTS) {
@@ -401,8 +406,8 @@ int read_header(CKVS_t* ckvs){
     }
 
     //check that the table has a size power of 2
-    int a=check_pow_2(infos[1]);
-    if (a!=ERR_NONE){
+    int a = check_pow_2(infos[1]);
+    if (a != ERR_NONE) {
         return a;
     }
 
@@ -420,7 +425,7 @@ int read_header(CKVS_t* ckvs){
 }
 
 //----------------------------------------------------------------------
-int check_pow_2(uint32_t table_size){
+int check_pow_2(uint32_t table_size) {
     while (table_size >= 2) {
         if (table_size % 2 != 0) break;
         table_size = table_size / 2;

@@ -36,6 +36,7 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     //convertion of the stretched_key in SHA256, stored in the memrecord
     SHA256((unsigned char *) str, strlen(str), mr->stretched_key.sha);
 
+    //free the streched_key
     free(str);
 
 
@@ -56,10 +57,12 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
 }
 
 int HMAC_and_check(unsigned char *sha1, const unsigned char *message, size_t message_len, unsigned char *sha2) {
+    //check pointeurs
     if (sha1 == NULL || message == NULL || sha2 == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
     unsigned int l = 0;
+
     HMAC(EVP_sha256(), sha1, SHA256_DIGEST_LENGTH, message,
          message_len, sha2, &l);
 
@@ -68,6 +71,7 @@ int HMAC_and_check(unsigned char *sha1, const unsigned char *message, size_t mes
         //error
         return ERR_INVALID_COMMAND;
     }
+
     return ERR_NONE;
 }
 
