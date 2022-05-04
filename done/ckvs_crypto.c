@@ -37,28 +37,36 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     SHA256((unsigned char *) str, strlen(str), mr->stretched_key.sha);
 
     free(str);
-    unsigned int l = 0;
+
 
     //computation of the auth_key from the SHA256 of the stretched_key with message AUTH_MESSAGE
-    HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, (const unsigned char *) AUTH_MESSAGE,
-         strlen(AUTH_MESSAGE), mr->auth_key.sha, &l);
-
-    //verify that the auth_key has a correct length
-    if (l != SHA256_DIGEST_LENGTH) {
-        //error
-        return ERR_INVALID_COMMAND;
+    int a =HMAC_and_check(mr->stretched_key.sha,(const unsigned char *) AUTH_MESSAGE,strlen(AUTH_MESSAGE),mr->auth_key.sha);
+    if (a!=ERR_NONE){
+        return a;
     }
 
     //computation of c1 from the SHA256 of the stretched_key with message C1_MESSAGE
-    HMAC(EVP_sha256(), mr->stretched_key.sha, SHA256_DIGEST_LENGTH, (const unsigned char *) C1_MESSAGE,
-         strlen(C1_MESSAGE), mr->c1.sha, &l);
+    a =HMAC_and_check(mr->stretched_key.sha,(const unsigned char *) C1_MESSAGE,strlen(C1_MESSAGE), mr->c1.sha);
+    if (a!=ERR_NONE){
+        return a;
+    }
 
-    //verify that c1 has a correct length
+    return ERR_NONE;
+}
+
+int HMAC_and_check(unsigned char* sha1,const unsigned char * message,size_t message_len,unsigned char* sha2 ){
+    if (sha1==NULL || message==NULL || sha2==NULL){
+        return ERR_INVALID_ARGUMENT;
+    }
+    unsigned int l=0;
+    HMAC(EVP_sha256(),sha1, SHA256_DIGEST_LENGTH, message,
+         message_len, sha2, &l);
+
+    //verify the length
     if (l != SHA256_DIGEST_LENGTH) {
         //error
         return ERR_INVALID_COMMAND;
     }
-
     return ERR_NONE;
 }
 
@@ -73,13 +81,9 @@ int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_s
     unsigned int l = 0;
 
     //computation of the master_key from the SHA256 of the auth_key with the sha of c2 as message
-    HMAC(EVP_sha256(), mr->c1.sha, SHA256_DIGEST_LENGTH, c2->sha,
-         SHA256_DIGEST_LENGTH, mr->master_key.sha, &l);
-
-    //verify that the master_key has a correct length
-    if (l != SHA256_DIGEST_LENGTH) {
-        //error
-        return ERR_INVALID_COMMAND;
+    int a =HMAC_and_check(mr->c1.sha,c2->sha,SHA256_DIGEST_LENGTH,mr->master_key.sha);
+    if (a!=ERR_NONE){
+        return a;
     }
 
     return ERR_NONE;

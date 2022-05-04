@@ -44,6 +44,15 @@ int ckvs_client_encrypt_pwd(struct ckvs_memrecord *mr, const char *key, const ch
  */
 int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_sha *c2);
 
+/**
+ *
+ * @param sha1
+ * @param message
+ * @param message_len
+ * @param sha2
+ * @return int, error code
+ */
+int HMAC_and_check(unsigned char* sha1,const unsigned char * message,size_t message_len,unsigned char* sha2 );
 
 /**
  * @brief Performs symmetric encryption/decryption using AES256_CBC.
