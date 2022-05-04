@@ -12,6 +12,7 @@
 #include <openssl/sha.h>
 
 
+
 /**
  * @brief Holds data for a SHA256 hash (ie. 32B = 256b).
  */

@@ -38,10 +38,16 @@ int ckvs_open(const char *filename, struct CKVS *ckvs);
 /**
  *
  * @param ckvs
- * @return the error code
+ * @return int, error code
  */
 int read_header(CKVS_t* ckvs);
 
+/**
+ *
+ * @param table_size
+ * @return int, error code
+ */
+int check_pow_2(uint32_t table_size);
 
 /**
  * @brief Closes the CKVS database and releases its resources.

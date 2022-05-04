@@ -8,7 +8,8 @@
 #pragma once
 
 #include "ckvs_utils.h"
-
+#include "ckvs.h"
+#include "ckvs_crypto.h"
 
 
 /* *************************************************** *
@@ -72,6 +73,30 @@ void free_sve(unsigned char **sve, size_t *sve_length);
  * @param a
  */
 void free_uc(unsigned char** a);
+
+/**
+ * @brief do the set part of the getset function
+ *
+ * @param ckvs
+ * @param ckvs_out
+ * @param ckvs_mem
+ * @return
+ */
+int do_get(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem);
+
+/**
+ *
+ * @param ckvs
+ * @param ckvs_out
+ * @param ckvs_mem
+ * @param set_value
+ * @return
+ */
+int do_set(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const char *set_value);
+
+
+
+
 
 /**
  * @brief Opens the CKVS database at the given filename and executes the 'set' command,

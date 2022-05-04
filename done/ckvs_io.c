@@ -145,12 +145,13 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     }
 
     //affect the string's length
-    size_t size = (size_t) ftell(file);
-    if (size==-1){
+    long int size_temp =  ftell(file);
+    if (size_temp==-1){
         //error
         close_RVFC(file,buffer_ptr);
         return ERR_IO;
     }
+    size_t size = (size_t) size_temp;
 
     //place the pointer at the beginning of the file back
     err = fseek(file, 0, SEEK_SET);
@@ -341,7 +342,7 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
     uint32_t hashkey;
 
     //compute SHA256 of key
-    SHA256((unsigned char *) key, strlen(key), key_sha.sha);
+    SHA256((const unsigned char *) key, strlen(key), key_sha.sha);
 
     //copy the 4 first bytes
     memcpy(&hashkey, key_sha.sha, sizeof(uint32_t));
@@ -388,14 +389,9 @@ int read_header(CKVS_t* ckvs){
     }
 
     //check that the table has a size power of 2
-    uint32_t table_size = infos[1];
-    while (table_size >= 2) {
-        if (table_size % 2 != 0) break;
-        table_size = table_size / 2;
-    }
-    if (table_size != 1) {
-        //error
-        return ERR_CORRUPT_STORE;
+    int a=check_pow_2(infos[1]);
+    if (a!=ERR_NONE){
+        return a;
     }
 
     //construct the header now that every field is safe
@@ -408,5 +404,18 @@ int read_header(CKVS_t* ckvs){
     strcpy(header.header_string, header_str);
     ckvs->header = header;
 
+    return ERR_NONE;
+}
+
+//-----------------------------------------------
+int check_pow_2(uint32_t table_size){
+    while (table_size >= 2) {
+        if (table_size % 2 != 0) break;
+        table_size = table_size / 2;
+    }
+    if (table_size != 1) {
+        //error
+        return ERR_CORRUPT_STORE;
+    }
     return ERR_NONE;
 }
