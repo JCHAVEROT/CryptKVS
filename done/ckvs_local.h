@@ -10,6 +10,7 @@
 #include "ckvs_utils.h"
 #include "ckvs.h"
 #include "ckvs_crypto.h"
+#include "ckvs_io.h"
 
 
 /* *************************************************** *
@@ -82,7 +83,7 @@ void free_uc(unsigned char** a);
  * @param ckvs_mem
  * @return
  */
-int do_get(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem);
+int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem);
 
 /**
  *
@@ -92,7 +93,7 @@ int do_get(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem)
  * @param set_value
  * @return
  */
-int do_set(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const char *set_value);
+int do_set(CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const char *set_value);
 
 
 

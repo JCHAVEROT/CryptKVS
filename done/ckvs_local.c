@@ -27,7 +27,7 @@ enum crypt_type {
 };
 
 // ----------------------------------------------------------------------
-int ckvs_local_stats(const char* filename, int optargc, char* optargv[]) {
+int ckvs_local_stats(const char* filename, int optargc,  _unused char* optargv[]) {
 
     if (optargc > 0) return ERR_TOO_MANY_ARGUMENTS;
     //check if the pointeur is valid
@@ -149,7 +149,7 @@ void free_uc(unsigned char** a){
     }
 }
 
-int do_get(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem){
+int do_get( CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem){
     if (ckvs_out->value_len > 0) {
         //make the pointer lead to the beginning of the encrypted secret
         int err = fseek(ckvs->file, (long int) ckvs_out->value_off, SEEK_SET);
@@ -216,7 +216,7 @@ int do_get(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem)
     }
 }
 
-int do_set(struct CKVS* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const char *set_value){
+int do_set(CKVS_t* ckvs,ckvs_entry_t* ckvs_out,ckvs_memrecord_t * ckvs_mem,const char *set_value){
     //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
     size_t set_value_encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
     unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
@@ -334,53 +334,31 @@ int ckvs_local_new(const char* filename, int optargc, char* optargv[]) {
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
     //initialize the pointer of a struct ckvs_entry_t for the new entry
-    //ckvs_entry_t new_ckvs_entry;
     ckvs_entry_t* new_ckvs_entry = NULL;
 
     //verify is key is not too long
     if (strlen(key) > CKVS_MAXKEYLEN) {
-        //free entry
-        //free(new_ckvs_entry);
-        //new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         //error
         return ERR_INVALID_ARGUMENT;
     }
 
-
-    //write the key in the new entry
-
-    //strncpy((char *) &(new_ckvs_entry.key), key, CKVS_MAXKEYLEN);
-
     //to generate in particular the auth_key and c1 and store them in ckvs_mem
     err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
     if (err != ERR_NONE) {
-        //free entry
-        //free(new_ckvs_entry);
-       // new_ckvs_entry = NULL;
         ckvs_close(&ckvs);
         // error
         return err;
 
     }
 
-    //associate the newly computed auth_key to the new entry
-    //new_ckvs_entry.auth_key = ckvs_mem.auth_key;
-
+    //add the new entry to the table if possible
     err = ckvs_new_entry(&ckvs, key, &(ckvs_mem.auth_key), &new_ckvs_entry);
     if (err != ERR_NONE) {
         // error
         ckvs_close(&ckvs);
-        //free entry
-        //free(new_ckvs_entry);
-        //new_ckvs_entry = NULL;
-        ckvs_close(&ckvs);
         return err;
     }
-
-    //free entry
-    //free(new_ckvs_entry);
-    //new_ckvs_entry = NULL;
 
     //close the file and finish
     ckvs_close(&ckvs);

@@ -30,7 +30,7 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
         return ERR_OUT_OF_MEMORY;
     }
     strncpy(str, key, strlen(key));
-    strncat(str, "|", 1);
+    strcat(str, "|");
     strncat(str, pwd, strlen(pwd));
 
     //convertion of the stretched_key in SHA256, stored in the memrecord
@@ -77,8 +77,6 @@ int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_s
         //error
         return ERR_INVALID_ARGUMENT;
     }
-
-    unsigned int l = 0;
 
     //computation of the master_key from the SHA256 of the auth_key with the sha of c2 as message
     int a =HMAC_and_check(mr->c1.sha,c2->sha,SHA256_DIGEST_LENGTH,mr->master_key.sha);

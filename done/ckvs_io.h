@@ -97,7 +97,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
  * @param file
  * @param buffer_ptr
  */
-void close_RVFC(FILE *file,char **buffer_ptr);
+void close_RVFC(FILE **file,char **buffer_ptr);
 
 /* *************************************************** *
  * TODO WEEK 07                                        *

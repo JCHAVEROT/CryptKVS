@@ -1,5 +1,5 @@
 cryptkvs.o: cryptkvs.c error.h ckvs_local.h ckvs_utils.h ckvs.h \
- ckvs_crypto.h
+ ckvs_crypto.h ckvs_io.h
 error.o: error.c
 ckvs_local.o: ckvs_local.c ckvs_utils.h ckvs.h error.h ckvs_io.h \
  ckvs_crypto.h util.h ckvs_local.h
