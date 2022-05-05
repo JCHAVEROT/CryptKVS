@@ -331,7 +331,10 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     ckvs->header.num_entries += 1;
 
     //write the change in the header for the number of entries in the file
-    ckvs_write_updated_header_to_disk(ckvs);
+    err=ckvs_write_updated_header_to_disk(ckvs);
+    if (err != ERR_NONE) {
+        return err;
+    }
 
     return ERR_NONE;
 }
