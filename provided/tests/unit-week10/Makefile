@@ -89,7 +89,7 @@ unit-test-new: unit-test-new.o ckvs_test_util.o \
 unit-test-rpc.o: unit-test-rpc.c
 unit-test-rpc: LDLIBS += -lcheck -lm -lrt -pthread -lsubunit
 unit-test-rpc: unit-test-rpc.o ckvs_test_util.o \
-   $(SRC_DIR)/error.o $(SRC_DIR)/ckvs_rpc.o
+   $(SRC_DIR)/ckvs_rpc.o $(SRC_DIR)/ckvs_utils.o $(SRC_DIR)/error.o
 
 # ======================================================================
 .PHONY: clean dist-clean reset
