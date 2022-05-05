@@ -63,15 +63,14 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
  * @brief Auxiliary function to easily free set_value_encrypted's dynamic allocation
  *
  * @param sve (const char*)
- * @param sve_length size_t
- * @return void
+ * @param sve_length (size_t)
  */
 void free_sve(unsigned char **sve, size_t *sve_length);
 
 /**
  * @brief Auxiliary function to easily free an unsigned char*
  *
- * @param a
+ * @param a (unsigned char**) pointer to the unsigned char* to free
  */
 void free_uc(unsigned char **a);
 
@@ -86,6 +85,7 @@ void free_uc(unsigned char **a);
 int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem);
 
 /**
+ * @brief do the get part of the getset function
  *
  * @param ckvs
  * @param ckvs_out

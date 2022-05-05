@@ -36,15 +36,17 @@ int ckvs_open(const char *filename, struct CKVS *ckvs);
 
 
 /**
+ * @brief helper function to read the header of ckvs
  *
- * @param ckvs
+ * @param ckvs (struct CKVS*) the struct that will be initialized
  * @return int, error code
  */
 int read_header(CKVS_t *ckvs);
 
 /**
+ * @brief helper function to check if a uint32_t is a power of 2
  *
- * @param table_size
+ * @param (uint32_t) table_size the uint32_t to check
  * @return int, error code
  */
 int check_pow_2(uint32_t table_size);
@@ -93,9 +95,10 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 
 
 /**
+ * @brief helper function to close the file and free the buffer during the execution of read_value_file_content
  *
- * @param file
- * @param buffer_ptr
+ * @param file (FILE**) file to close
+ * @param buffer_ptr (char **) buffer to free
  */
 void close_RVFC(FILE **file, char **buffer_ptr);
 
@@ -124,10 +127,10 @@ static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key);
 
 
 /**
- *
- * @param e
- * @param ckvs
+ *@brief compute the index of the given entry in ckvs->entries and write to the disk
+ * @param e (struct ckvs_entry*) entry to be writen
+ * @param ckvs (struct CKVS*) the ckvs database to search
  * @return
  */
-int compute_idx_and_write(struct ckvs_entry *e,struct CKVS *ckvs);
+int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs);
 

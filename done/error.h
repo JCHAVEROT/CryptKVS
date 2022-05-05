@@ -105,7 +105,7 @@ typedef enum {
 *
 */
 extern
-const char* const ERR_MESSAGES[];
+const char *const ERR_MESSAGES[];
 
 #ifdef __cplusplus
 }

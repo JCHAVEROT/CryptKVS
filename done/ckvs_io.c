@@ -337,7 +337,7 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
 }
 
 int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs) {
-    if (e==NULL || ckvs==NULL){
+    if (e == NULL || ckvs == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
     //to modify the right entry in the ckvs table, index is obtained by subtracting the pointers

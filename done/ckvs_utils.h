@@ -12,7 +12,6 @@
 #include <openssl/sha.h>
 
 
-
 /**
  * @brief Holds data for a SHA256 hash (ie. 32B = 256b).
  */
@@ -21,8 +20,6 @@ struct __attribute__((packed, aligned(8))) ckvs_sha {
 };
 
 typedef struct ckvs_sha ckvs_sha_t;
-
-
 
 
 #define SHA256_PRINTED_STRLEN (SHA256_DIGEST_LENGTH*2+1)
@@ -50,7 +47,7 @@ struct ckvs_entry;
  *
  * @param header (const struct ckvs_header*) the header to print
  */
-void print_header(const struct ckvs_header* header);
+void print_header(const struct ckvs_header *header);
 
 /**
  * @brief Prints the given entry to the standard output,
@@ -59,7 +56,7 @@ void print_header(const struct ckvs_header* header);
  *
  * @param entry (const struct ckvs_entry*) the entry to print
  */
-void print_entry(const struct ckvs_entry* entry);
+void print_entry(const struct ckvs_entry *entry);
 
 /**
  * @brief Prints the given prefix and SHA (hex-encoded) to the standard output.
