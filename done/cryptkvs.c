@@ -5,8 +5,9 @@
 #include <stdio.h>
 #include "error.h"
 #include "ckvs_local.h"
-#include "ckvs_utils.h"
 #include "ckvs_client.h"
+#include "ckvs_utils.h"
+
 
 /**
  * @brief First prefix for an URL.
@@ -25,18 +26,15 @@ typedef int ckvs_command(const char *filename, int optargc, char *optargv[]);
 typedef struct {
     const char *name;
     const char *description;
-    ckvs_command *command;
+    ckvs_command *command_local;
+    ckvs_command *command_remote;
 } ckvs_command_mapping;
 
-//list of commands in local
-const ckvs_command_mapping commands_local[] = {{"stats", "- cryptkvs <database> stats\n",                     &ckvs_local_stats},
-                                         {"get",   "- cryptkvs <database> get <key> <password>\n",            &ckvs_local_get},
-                                         {"set",   "- cryptkvs <database> set <key> <password> <filename>\n", &ckvs_local_set},
-                                         {"new",   "- cryptkvs <database> new <key> <password>\n",            &ckvs_local_new}
-};
-
-//list of commands with client
-const ckvs_command_mapping commands_client[] = {{"stats", "- cryptkvs <url> stats\n", &ckvs_client_stats}
+//list of commands
+const ckvs_command_mapping commands[] = {{"stats", "- cryptkvs [database|<url>] stats\n",                           &ckvs_local_stats, &ckvs_client_stats },
+                                         {"get",   "- cryptkvs [database|<url>] get <key> <password>\n",            &ckvs_local_get,   &ckvs_client_get },
+                                         {"set",   "- cryptkvs [database|<url>] set <key> <password> <filename>\n", &ckvs_local_set,   &ckvs_client_set },
+                                         {"new",   "- cryptkvs [database|<url>] new <key> <password>\n",            &ckvs_local_new,   &ckvs_client_new }
 };
 
 /* *************************************************** *
@@ -50,11 +48,8 @@ const ckvs_command_mapping commands_client[] = {{"stats", "- cryptkvs <url> stat
 static void usage(const char *execname, int err) {
     if (err == ERR_INVALID_COMMAND) {
         pps_printf("Available commands:\n");
-        for (size_t i = 0; i < sizeof(commands_local) / sizeof(ckvs_command_mapping); ++i) {
-            pps_printf("%s", commands_local[i].description);
-        }
-        for (size_t i = 0; i < sizeof(commands_client) / sizeof(ckvs_command_mapping); ++i) {
-            pps_printf("%s", commands_client[i].description);
+        for (size_t i = 0; i < sizeof(commands) / sizeof(ckvs_command_mapping); ++i) {
+            pps_printf("%s", commands[i].description);
         }
 
     } else if (err >= 0 && err < ERR_NB_ERR) {
@@ -85,22 +80,17 @@ int ckvs_do_one_cmd(int argc, char *argv[]) {
     char **optargv = argv + 3;
 
     //check if in local or with client, and then search for the right command and call it once found
-    if (strncmp(URL_PREFIX_1, db_filename_or_url, strlen(URL_PREFIX_1)) == 0
-        || strncmp(URL_PREFIX_2, db_filename_or_url, strlen(URL_PREFIX_2)) == 0) {
-        for (size_t i = 0; i < sizeof(commands_client) / sizeof(ckvs_command_mapping); ++i) {
-            ckvs_command_mapping c = (commands_client[i];
-            if (strcmp(cmd, c.name) == 0) {
-                return c.command(db_filename_or_url, optargc, optargv);
-            }
-        }
-    } else {
-        for (size_t i = 0; i < sizeof(commands_local) / sizeof(ckvs_command_mapping); ++i) {
-            ckvs_command_mapping c = commands_local[i];
-            if (strcmp(cmd, c.name) == 0) {
-                return c.command(db_filename_or_url, optargc, optargv);
-            }
+
+    for (size_t i = 0; i < sizeof(commands) / sizeof(ckvs_command_mapping); ++i) {
+        ckvs_command_mapping c = commands[i];
+        if (strcmp(cmd, c.name) == 0) {
+            return (strncmp(URL_PREFIX_1, db_filename_or_url, strlen(URL_PREFIX_1)) == 0
+                || strncmp(URL_PREFIX_2, db_filename_or_url, strlen(URL_PREFIX_2)) == 0)
+                    ? c.command_remote(db_filename_or_url, optargc, optargv)
+                    : c.command_local(db_filename_or_url, optargc, optargv);
         }
     }
+
 
     return ERR_INVALID_COMMAND;
 }

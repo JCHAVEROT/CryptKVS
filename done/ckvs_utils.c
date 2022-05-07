@@ -3,6 +3,7 @@
  * @brief c.f. ckvs_utils.h
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include "ckvs_utils.h"
 #include "ckvs.h"
 #include "util.h"
@@ -73,6 +74,48 @@ void SHA256_to_string(const struct ckvs_sha *sha, char *buf) {
 int ckvs_cmp_sha(const struct ckvs_sha *a, const struct ckvs_sha *b) {
     //call the function that compares two byte strings
     return memcmp(a->sha, b->sha, SHA256_DIGEST_LENGTH);
+}
+
+// ----------------------------------------------------------------------
+int hex_decode(const char *in, uint8_t *buf) {
+    //check pointers
+    if (in == NULL || buf == NULL) {
+        //error
+        return -1;
+    }
+
+    char* endptr;
+    uint32_t result = strtoul(in, &endptr, 16);
+    if (endptr[0] != '\0') {
+        //error, there was at least one invalid character in the input string
+        return -1;
+    }
+
+    memcpy(buf, &result, sizeof(uint32_t));
+
+    size_t size = 0; //??
+
+    return size;
+}
+
+// ----------------------------------------------------------------------
+int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
+    //check pointers
+    if (in == NULL || sha == NULL) {
+        //error
+        return -1;
+    }
+    //call the function that decodes from hexadecimal
+    uint8_t buffer[SHA256_DIGEST_LENGTH];
+    int err = hex_decode(in, buffer);
+    if (err == -1) {
+        return err;
+    }
+
+    //compute the SHA256 and store it in sha
+    SHA256((unsigned char *) buffer, strlen(buffer), sha);
+
+    return err;
 }
 
 
