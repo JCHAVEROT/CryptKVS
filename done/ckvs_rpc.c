@@ -84,7 +84,7 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET)
     M_REQUIRE_NON_NULL(GET);
 
     //specify the URL
-    char* url = calloc(strlen(conn->url) + strlen(GET) + 2, sizeof(char));
+    char url[strlen(conn->url) + strlen(GET) + 2]; // dynamical array not necessary here
     strncpy(url, conn->url, strlen(conn->url));
     strncat(url, "/", 1);
     strncat(url, GET, strlen(GET));
@@ -99,10 +99,6 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET)
         //error
         return ERR_TIMEOUT;
     }
-
-    //free pointer
-    free(url);
-    url = NULL;
 
     return ERR_NONE;
 }

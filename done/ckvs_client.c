@@ -228,14 +228,11 @@ int retrieve_ckvs_header_from_json(struct CKVS* ckvs, const struct json_object* 
         return err;
     }
     //check that the table has a size power of 2
-    uint32_t table_size = infos[1];
-    while (table_size >= 2) {
-        if (table_size % 2 != 0) break;
-        table_size = table_size / 2;
-    }
-    if (table_size != 1) {
+    err = check_pow_2(infos[1]);
+    if (err != ERR_NONE) {
         //error
-        return ERR_CORRUPT_STORE;
+        pps_printf("%s\n", "fekfekfjevk");
+        return err;
     }
 
     err = get_int(obj, "threshold_entries", &infos[2]);
@@ -264,7 +261,7 @@ int retrieve_ckvs_header_from_json(struct CKVS* ckvs, const struct json_object* 
 
     return ERR_NONE;
 }
-/*
+
 void ckvs_close(struct CKVS *ckvs) {
     //check if the argument is valid, if so exit the function without doing anything
     if (ckvs == NULL) {
@@ -277,7 +274,7 @@ void ckvs_close(struct CKVS *ckvs) {
     }
     ckvs->entries = NULL;
 }
-*/
+
 /**
  * @brief Performs the 'get' command by connecting to the remote server at url.
  *
