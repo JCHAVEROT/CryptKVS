@@ -31,13 +31,12 @@
  * @param userp (void*) points to a ckvs_connection (set with the CURLOPT_WRITEDATA option)
  * @return (size_t) the number of written bytes, or 0 if an error occured
  */
-static size_t ckvs_curl_WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
-{
+static size_t ckvs_curl_WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
-    struct ckvs_connection *conn = (struct ckvs_connection *)userp;
+    struct ckvs_connection *conn = (struct ckvs_connection *) userp;
 
     char *ptr = realloc(conn->resp_buf, conn->resp_size + realsize + 1);
-    if(!ptr) {
+    if (!ptr) {
         /* out of memory! */
         debug_printf("not enough memory (realloc returned NULL)\n");
         return 0;
@@ -52,26 +51,24 @@ static size_t ckvs_curl_WriteMemoryCallback(void *contents, size_t size, size_t 
 }
 
 
-int ckvs_rpc_init(struct ckvs_connection *conn, const char *url)
-{
-    if (conn==NULL||url==NULL){
+int ckvs_rpc_init(struct ckvs_connection *conn, const char *url) {
+    if (conn == NULL || url == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
     bzero(conn, sizeof(*conn));
 
-    conn->url  = url;
+    conn->url = url;
     conn->curl = curl_easy_init();
     if (conn->curl == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
     curl_easy_setopt(conn->curl, CURLOPT_WRITEFUNCTION, ckvs_curl_WriteMemoryCallback);
-    curl_easy_setopt(conn->curl, CURLOPT_WRITEDATA, (void *)conn);
+    curl_easy_setopt(conn->curl, CURLOPT_WRITEDATA, (void *) conn);
 
     return ERR_NONE;
 }
 
-void ckvs_rpc_close(struct ckvs_connection *conn)
-{
+void ckvs_rpc_close(struct ckvs_connection *conn) {
     if (conn == NULL)
         return;
 
@@ -84,25 +81,27 @@ void ckvs_rpc_close(struct ckvs_connection *conn)
     bzero(conn, sizeof(*conn));
 }
 
-int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
+int ckvs_rpc(struct ckvs_connection *conn, const char *GET) {
     //check pointers
-    if (conn==NULL||GET==NULL){
+    if (conn == NULL || GET == NULL) {
+        //error
         return ERR_INVALID_ARGUMENT;
     }
 
-    //specify the URL
-     char *url = calloc(strlen(conn->url)+ strlen(GET) + 2, sizeof(char));
+    //compute the url
+    char *url = calloc(strlen(conn->url) + strlen(GET) + 2, sizeof(char));
     if (url == NULL) {
+        //error
         return ERR_OUT_OF_MEMORY;
     }
     strncpy(url, conn->url, strlen(conn->url));
     strcat(url, "/");
     strncat(url, GET, strlen(GET));
-    pps_printf("%s \n",url);
-
+    //pps_printf("%s\n", url);
 
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
-    free(url);
+    //free the computed url
+    free(url); url = NULL;
     if (ret != CURLE_OK) {
         //error
         return ERR_OUT_OF_MEMORY;
@@ -241,7 +240,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
 }
 
 
-int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj){
+int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj) {
 
     //check pointers
     if (ckvs == NULL || obj == NULL) {

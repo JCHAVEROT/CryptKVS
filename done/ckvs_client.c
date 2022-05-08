@@ -1,6 +1,6 @@
 /**
  * @file ckvs_client.c
- * @brief c.f. ckvs_client.c
+ * @brief c.f. ckvs_client.h
  */
 
 #include <stdio.h>
@@ -15,14 +15,8 @@
 #include "util.h"
 #include "ckvs_crypto.h"
 
-
-#define FORMATGET(key,auth_key) "get?key=<" ##key ">&auth_key=<" ##auth_key ">"
+#define FORMATGET(key, auth_key) "get?key=<" ##key ">&auth_key=<" ##auth_key ">"
 #define STR(a) #a
-/*
- * To avoid circular dependencies.
- */
-//struct json_object;
-
 
 
 int ckvs_client_stats(const char *url, int optargc, char **optargv) {
@@ -30,6 +24,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
         //error
         return ERR_TOO_MANY_ARGUMENTS;
     }
+
     //check if the pointer is valid
     if (url == NULL) {
         //error
@@ -48,12 +43,15 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     int err = ckvs_rpc_init(&conn, (const char *) url);
     if (err != ERR_NONE) {
         //error
+        ckvs_rpc_close(&conn);
         return err;
     }
 
+    //call the server
     err = ckvs_rpc(&conn, "stats");
     if (err != ERR_NONE) {
         //error
+        ckvs_rpc_close(&conn);
         return err;
     }
 
@@ -71,6 +69,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
         //error
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
+        ckvs_close(&ckvs);
         return err;
     }
 
@@ -89,6 +88,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     if (err != 1) {
         //error
         ckvs_rpc_close(&conn);
+        ckvs_close(&ckvs);
         return err;
     }
 
@@ -108,6 +108,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
 
     const char *key = optargv[0];
     const char *pwd = optargv[1];
+
     //check if the pointeurs are valid
     if (key == NULL || pwd == NULL || url == NULL) {
         //error
@@ -137,52 +138,61 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
     if (err != ERR_NONE) {
         // error
+        ckvs_rpc_close(&conn);
         ckvs_close(&ckvs);
         return err;
     }
 
-
-    char* ready_key=curl_easy_escape(conn.curl , key, strlen(key));
-    if (ready_key==NULL){
+    //computed the url-escaped key
+    char *ready_key = curl_easy_escape(conn.curl, key, strlen(key));
+    if (ready_key == NULL) {
+        //error
         ckvs_rpc_close(&conn);
+        ckvs_close(&ckvs);
         return ERR_OUT_OF_MEMORY;
     }
 
     //print_SHA("",&ckvs_mem.auth_key);
-    char buffer[SHA256_PRINTED_STRLEN];
-    SHA256_to_string(&ckvs_mem.auth_key, buffer);
 
-    char *page = calloc(SHA256_PRINTED_STRLEN+ strlen(ready_key) + 23, sizeof(char));
+    //compute the hex-encoded auth_key
+    char buffer[SHA256_PRINTED_STRLEN];
+    SHA256_to_string(&(ckvs_mem.auth_key), buffer);
+
+    char *page = calloc(SHA256_PRINTED_STRLEN + strlen(ready_key) + 23, sizeof(char));
     if (page == NULL) {
+        //error
+        curl_free(ready_key);
+        ckvs_rpc_close(&conn);
+        ckvs_close(&ckvs);
         return ERR_OUT_OF_MEMORY;
     }
     strcpy(page, "get?key=<");
     strncat(page, ready_key, strlen(ready_key));
     strcat(page, ">&auth_key=<");
-    strncat(page, &buffer, SHA256_PRINTED_STRLEN);
+    strncat(page, buffer, SHA256_PRINTED_STRLEN);
     strcat(page, ">");
 
-    //pps_printf("%s \n",page);
+    pps_printf("%s\n", page);
 
-
+    //call the server
     err = ckvs_rpc(&conn, page);
-    free(page);
+    //free pointer
+    free(page); page = NULL;
     if (err != ERR_NONE) {
         //error
+        curl_free(ready_key);
         ckvs_rpc_close(&conn);
+        ckvs_close(&ckvs);
         return err;
     }
 
-    pps_printf("%s \n",conn.resp_buf);
+    pps_printf("%s\n", conn.resp_buf);
 
-
-
-
-
-
-
+    //free elements
     curl_free(ready_key);
     ckvs_rpc_close(&conn);
+    ckvs_close(&ckvs);
+
     return ERR_NONE;
 
 }

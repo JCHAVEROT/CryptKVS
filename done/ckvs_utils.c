@@ -85,13 +85,13 @@ int hex_decode(const char *in, uint8_t *buf) {
     }
 
     char* endptr;
-    uint32_t result = strtoul(in, &endptr, 16);
+    uint64_t result = strtoul(in, &endptr, 16);
     if (endptr[0] != '\0') {
         //error, there was at least one invalid character in the input string
         return -1;
     }
 
-    memcpy(buf, &result, sizeof(uint32_t));
+    memcpy(buf, &result, sizeof(uint64_t));
 
     size_t size = 0; //??
 
