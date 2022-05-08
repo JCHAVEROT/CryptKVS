@@ -50,3 +50,6 @@ int ckvs_client_set(const char *url, int optargc, char **optargv);
  * @return int, error code
  */
 int ckvs_client_new(const char *url, int optargc, char **optargv);
+
+
+

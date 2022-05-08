@@ -20,7 +20,7 @@
 #define URL_PREFIX_2 "http://"
 
 //type for a command function
-typedef int ckvs_command(const char *filename, int optargc, char *optargv[]);
+typedef int ckvs_command(const char *filename_or_url, int optargc, char *optargv[]);
 
 //struct for a command mapping
 typedef struct {
@@ -84,8 +84,8 @@ int ckvs_do_one_cmd(int argc, char *argv[]) {
     for (size_t i = 0; i < sizeof(commands) / sizeof(ckvs_command_mapping); ++i) {
         ckvs_command_mapping c = commands[i];
         if (strcmp(cmd, c.name) == 0) {
-            return (strncmp(URL_PREFIX_1, db_filename_or_url, strlen(URL_PREFIX_1)) == 0
-                || strncmp(URL_PREFIX_2, db_filename_or_url, strlen(URL_PREFIX_2)) == 0)
+            return (strncmp(URL_PREFIX_1, db_filename_or_url, strlen(URL_PREFIX_1)) == 0 // start with https://
+                || strncmp(URL_PREFIX_2, db_filename_or_url, strlen(URL_PREFIX_2)) == 0) // start with http://
                     ? c.command_remote(db_filename_or_url, optargc, optargv)
                     : c.command_local(db_filename_or_url, optargc, optargv);
         }

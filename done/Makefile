@@ -46,7 +46,7 @@ LDLIBS   += -fsanitize=address
 
 all:: $(TARGETS)
 
-SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c ckvs_crypto.c ckvs_io.c
+SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c ckvs_crypto.c ckvs_io.c ckvs_rpc.c ckvs_client.c
 
 
 OBJS=$(subst .c,.o,$(SRCS))

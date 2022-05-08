@@ -13,201 +13,18 @@
 #include "ckvs_io.h"
 #include "ckvs.h"
 #include "util.h"
+#include "ckvs_crypto.h"
 
+
+#define FORMATGET(key,auth_key) "get?key=<" ##key ">&auth_key=<" ##auth_key ">"
+#define STR(a) #a
 /*
  * To avoid circular dependencies.
  */
-struct json_object;
+//struct json_object;
 
-int get_string(const struct json_object* obj, const char* key, char* buf) {
-    //check pointers
-    if (obj == NULL || key == NULL || buf == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
 
-    //get the right json object
-    struct json_object* value = NULL;
-    if (!json_object_object_get_ex(obj, key, &value)) {
-        pps_printf("%s %s\n", "An error occured : did not find the key", key);
-        return ERR_IO;
-    }
 
-    //get the string from the json object
-    const char* string_from_obj = json_object_get_string(value);
-    if (string_from_obj == NULL) {
-        //error
-        pps_printf("%s", "bouououou");
-        return ERR_IO;
-    }
-
-    //copy in the buffer
-    strcpy(buf, string_from_obj);
-
-    return ERR_NONE;
-}
-
-int get_int(const struct json_object* obj, const char* key, int* buf) {
-    //check pointers
-    if (obj == NULL || key == NULL || buf == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    struct json_object* value = NULL;
-    if (!json_object_object_get_ex(obj, key, &value)) {
-        pps_printf("%s %s", "An error occured : did not find the key", key);
-        return ERR_IO;
-    }
-
-    //assign to the buffer the value found
-    *buf = json_object_get_int(value);
-
-    return ERR_NONE;
-}
-
-int retrieve_ckvs_header_from_json(struct CKVS* ckvs, const struct json_object* obj) {
-    //check pointers
-    if (ckvs == NULL || obj == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    char header_str[CKVS_HEADERSTRINGLEN];
-    uint32_t infos[CKVS_UINT32_T_ELEMENTS] = {0};
-
-    int err = get_string(obj, "header_string", header_str);
-    if (err != ERR_NONE) {
-        //error
-        pps_printf("%s\n", "azafafafa");
-        return err;
-    }
-    //check that the header starts with the good prefix
-    if (strncmp(CKVS_HEADERSTRING_PREFIX, header_str, strlen(CKVS_HEADERSTRING_PREFIX)) != 0) {
-        //error
-        return ERR_CORRUPT_STORE;
-    }
-
-    err = get_int(obj, "version", &infos[0]);
-    if (err != ERR_NONE) {
-        //error
-        pps_printf("%s\n", "tetetete");
-        return err;
-    }
-    //check that it is the good version, i.e. 1
-    if (infos[0] != 1) {
-        //error
-        return ERR_CORRUPT_STORE;
-    }
-
-    err = get_int(obj, "table_size", &infos[1]);
-    if (err != ERR_NONE) {
-        //error
-        pps_printf("%s\n", "pevpevppv");
-        return err;
-    }
-    //check that the table has a size power of 2
-    err = check_pow_2(infos[1]);
-    if (err != ERR_NONE) {
-        //error
-        pps_printf("%s\n", "fekfekfjevk");
-        return err;
-    }
-
-    err = get_int(obj, "threshold_entries", &infos[2]);
-    if (err != ERR_NONE) {
-        //error
-        pps_printf("%s\n", "dzdzdzdzdzdzdzd");
-        return err;
-    }
-
-    err = get_int(obj, "num_entries", &infos[3]);
-    if (err != ERR_NONE) {
-        //error
-        pps_printf("%s\n", "mammamam");
-        return err;
-    }
-
-    //construct the header now that every field is safe
-    ckvs_header_t header = {
-            .version           =infos[0],
-            .table_size        =infos[1],
-            .threshold_entries =infos[2],
-            .num_entries       =infos[3]
-    };
-    strcpy(header.header_string, header_str);
-    ckvs->header = header;
-
-    return ERR_NONE;
-}
-
-void ckvs_close(struct CKVS *ckvs) {
-    //check if the argument is valid, if so exit the function without doing anything
-    if (ckvs == NULL) {
-        //error
-        return;
-    }
-    //close to file of the CKVS and make it point to NULL
-    if (ckvs->entries != NULL) {
-        free(ckvs->entries);
-    }
-    ckvs->entries = NULL;
-}
-
-/**
- * @brief Retrives the ckvs from a json object.
- *
- * @param ckvs (struct ckvs*) the ckvs in which we put the read content
- * @param obj (const json_object*) the json object we retrieve the information from
- * @return int, error code
- */
-int retrieve_ckvs_from_json(struct CKVS* ckvs, const struct json_object* obj) {
-
-    //check pointers
-    if (ckvs == NULL || obj == NULL) {
-        //error
-        pps_printf("%s\n", "gleubeusteufeu");
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    int err = retrieve_ckvs_header_from_json(ckvs, obj);
-    if (err != ERR_NONE) {
-        //error
-        pps_printf("%s\n", "papapap");
-        return err;
-    }
-
-    struct json_object* keys_json_object = NULL;
-    if (!json_object_object_get_ex(obj, "keys", &keys_json_object)) {
-        pps_printf("%s\n", "An error occured : did not find the json array keys");
-        return ERR_IO;
-    }
-
-    //pps_printf("\n%d\n", ckvs->header.table_size);
-    ckvs->entries = calloc(ckvs->header.table_size, sizeof(ckvs_entry_t));
-    for (size_t i = 0; i < json_object_array_length(keys_json_object); ++i) {
-        struct json_object* temp_obj = json_object_array_get_idx(keys_json_object, i);
-        if (temp_obj == NULL) {
-            //error
-            pps_printf("%s\n", "Adzdzdzd");
-            ckvs_close(ckvs);
-            return ERR_IO;
-        }
-        strncpy(ckvs->entries[i].key, json_object_get_string(temp_obj), CKVS_MAXKEYLEN);
-    }
-
-    return ERR_NONE;
-
-}
-
-/**
- * @brief Performs the 'stats' command by connecting to the remote server at url.
- *
- * @param url (const char*) the url of the remote CKVS server
- * @param optargc (int) the number of optional arguments that are provided (should be 0)
- * @param optargv (char**) the values of optional arguments that were provided
- * @return int, error code
- */
 int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     if (optargc > 0) {
         //error
@@ -223,10 +40,12 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     ckvs_connection_t conn;
 
     //initialiaze the struct ckvs
-    struct CKVS* ckvs = NULL;
+    struct CKVS ckvs;
+    memset(&ckvs, 0, sizeof(struct CKVS));
+
 
     //initialize the connection and check errors
-    int err = ckvs_rpc_init(&conn, (const char*) url);
+    int err = ckvs_rpc_init(&conn, (const char *) url);
     if (err != ERR_NONE) {
         //error
         return err;
@@ -238,10 +57,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
         return err;
     }
 
-    //trivial test from etape 3
-    pps_printf("\n\n%s\n\n", conn.resp_buf);
-
-    struct json_object* root_obj = json_tokener_parse(conn.resp_buf);
+    struct json_object *root_obj = json_tokener_parse(conn.resp_buf);
     if (root_obj == NULL) {
         //error
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
@@ -249,22 +65,22 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
         return ERR_IO;
     }
 
-    err = retrieve_ckvs_from_json(ckvs, root_obj);
+
+    err = retrieve_ckvs_from_json(&ckvs, root_obj);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "vnfefefvnvnvn");
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
         return err;
     }
 
     //print the content downloaded from the server
-    print_header(&(ckvs->header));
+    print_header(&(ckvs.header));
 
     //print the key of the entries
-    for (size_t i = 0; i < ckvs->header.table_size; ++i) {
-        if (strlen(ckvs->entries[i].key) != 0) {
-            pps_printf("    %s   : " STR_LENGTH_FMT(CKVS_MAXKEYLEN) "\n", "Key", ckvs->entries[i].key);
+    for (size_t i = 0; i < ckvs.header.table_size; ++i) {
+        if (strlen(ckvs.entries[i].key) != 0) {
+            pps_printf("  %s             : " STR_LENGTH_FMT(CKVS_MAXKEYLEN) "\n", "Key", ckvs.entries[i].key);
         }
     }
 
@@ -280,24 +96,104 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     ckvs_rpc_close(&conn);
 
     //free pointers
-    ckvs_close(ckvs);
+    ckvs_close(&ckvs);
 
     return ERR_NONE;
 }
 
-/**
- * @brief Performs the 'get' command by connecting to the remote server at url.
- *
- * @param url (const char*) the url of the remote CKVS server
- * @param optargc (int) the number of optional arguments that are provided (should be 2)
- * @param optargv (char**) the values of optional arguments that were provided
- * @return int, error code
- */
-int ckvs_client_get(const char *url, int optargc, char **optargv);
+
+int ckvs_client_get(const char *url, int optargc, char **optargv) {
+    if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
+    if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
+
+    const char *key = optargv[0];
+    const char *pwd = optargv[1];
+    //check if the pointeurs are valid
+    if (key == NULL || pwd == NULL || url == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //initialiaze the struct ckvs_connection
+    ckvs_connection_t conn;
+
+    //initialiaze the struct ckvs
+    struct CKVS ckvs;
+    memset(&ckvs, 0, sizeof(struct CKVS));
+
+
+    //initialize the connection and check errors
+    int err = ckvs_rpc_init(&conn, (const char *) url);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+
+    //initialize the struct ckvs_memrecord_t
+    ckvs_memrecord_t ckvs_mem;
+    memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
+
+    //to generate in particular the auth_key and c1 and store them in ckvs_mem
+    err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
+    if (err != ERR_NONE) {
+        // error
+        ckvs_close(&ckvs);
+        return err;
+    }
+
+
+    char* ready_key=curl_easy_escape(conn.curl , key, strlen(key));
+    if (ready_key==NULL){
+        ckvs_rpc_close(&conn);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    //print_SHA("",&ckvs_mem.auth_key);
+    char buffer[SHA256_PRINTED_STRLEN];
+    SHA256_to_string(&ckvs_mem.auth_key, buffer);
+
+    char *page = calloc(SHA256_PRINTED_STRLEN+ strlen(ready_key) + 23, sizeof(char));
+    if (page == NULL) {
+        return ERR_OUT_OF_MEMORY;
+    }
+    strcpy(page, "get?key=<");
+    strncat(page, ready_key, strlen(ready_key));
+    strcat(page, ">&auth_key=<");
+    strncat(page, &buffer, SHA256_PRINTED_STRLEN);
+    strcat(page, ">");
+
+    //pps_printf("%s \n",page);
+
+
+    err = ckvs_rpc(&conn, page);
+    free(page);
+    if (err != ERR_NONE) {
+        //error
+        ckvs_rpc_close(&conn);
+        return err;
+    }
+
+    pps_printf("%s \n",conn.resp_buf);
+
+
+
+
+
+
+
+    curl_free(ready_key);
+    ckvs_rpc_close(&conn);
+    return ERR_NONE;
+
+}
 
 /* *************************************************** *
  * TODO WEEK 13                                        *
  * *************************************************** */
-int ckvs_client_set(const char *url, int optargc, char **optargv);
+int ckvs_client_set(const char *url, int optargc, char **optargv) {
+    return NOT_IMPLEMENTED;
+}
 
-int ckvs_client_new(const char *url, int optargc, char **optargv);
+int ckvs_client_new(const char *url, int optargc, char **optargv) {
+    return NOT_IMPLEMENTED;
+}

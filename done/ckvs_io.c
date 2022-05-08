@@ -129,8 +129,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 }
 
 // ----------------------------------------------------------------------
-int
-read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
+int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
     //check pointers
     if (filename == NULL || buffer_ptr == NULL || buffer_size == NULL) {
         //error
