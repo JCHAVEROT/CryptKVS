@@ -11,6 +11,7 @@
 #include <string.h>
 #include <assert.h>
 
+
 #define AUTH_MESSAGE "Auth Key"
 #define C1_MESSAGE   "Master Key Encryption"
 
@@ -125,6 +126,7 @@ int ckvs_client_crypt_value(const struct ckvs_memrecord *mr, const int do_encryp
     int outlen = 0;
     if (!EVP_CipherUpdate(ctx, outbuf, &outlen, inbuf, (int) inbuflen)) {
         // Error
+
         EVP_CIPHER_CTX_free(ctx);
         return ERR_INVALID_ARGUMENT;
     }
@@ -132,6 +134,7 @@ int ckvs_client_crypt_value(const struct ckvs_memrecord *mr, const int do_encryp
     int tmplen = 0;
     if (!EVP_CipherFinal_ex(ctx, outbuf + outlen, &tmplen)) {
         // Error
+        pps_printf("crypt inbuflen %ld outlen %d tmplen %d \n", inbuflen, outlen, tmplen);
         debug_printf("crypt inbuflen %ld outlen %d tmplen %d", inbuflen, outlen, tmplen);
         EVP_CIPHER_CTX_free(ctx);
         return ERR_INVALID_ARGUMENT;

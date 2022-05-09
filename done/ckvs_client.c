@@ -14,10 +14,12 @@
 #include "ckvs.h"
 #include "util.h"
 #include "ckvs_crypto.h"
+#include "ckvs_local.h"
+
+#include <openssl/hmac.h>
 
 
-#define FORMATGET(key,auth_key) "get?key=<" ##key ">&auth_key=<" ##auth_key ">"
-#define STR(a) #a
+
 /*
  * To avoid circular dependencies.
  */
@@ -141,26 +143,34 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return err;
     }
 
+    char *ready_key = NULL;
+    CURL* curl=curl_easy_init();
+    if (curl!=NULL) {
+        ready_key = curl_easy_escape(curl, key, strlen(key));
+        if (ready_key == NULL) {
 
-    char* ready_key=curl_easy_escape(conn.curl , key, strlen(key));
-    if (ready_key==NULL){
+            ckvs_rpc_close(&conn);
+            curl_free(curl);
+            return ERR_IO;
+        }
+        curl_easy_cleanup(curl);
+    }else{
         ckvs_rpc_close(&conn);
-        return ERR_OUT_OF_MEMORY;
+        return ERR_IO;
     }
 
     //print_SHA("",&ckvs_mem.auth_key);
     char buffer[SHA256_PRINTED_STRLEN];
     SHA256_to_string(&ckvs_mem.auth_key, buffer);
 
-    char *page = calloc(SHA256_PRINTED_STRLEN+ strlen(ready_key) + 23, sizeof(char));
+    char *page = calloc(SHA256_PRINTED_STRLEN+ strlen(ready_key) + 19, sizeof(char));
     if (page == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
-    strcpy(page, "get?key=<");
-    strncat(page, ready_key, strlen(ready_key));
-    strcat(page, ">&auth_key=<");
+    strcpy(page, "get?key=");
+    strcat(page, ready_key);
+    strcat(page, "&auth_key=");
     strncat(page, &buffer, SHA256_PRINTED_STRLEN);
-    strcat(page, ">");
 
     //pps_printf("%s \n",page);
 
@@ -175,13 +185,128 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
 
     pps_printf("%s \n",conn.resp_buf);
 
+    char* c2_str[SHA256_PRINTED_STRLEN+1];
+    ckvs_sha_t* c2= calloc(1, sizeof(ckvs_sha_t));
+    //get_string(conn.resp_buf,"c2",c2);
+    //pps_printf("%s\n",c2);
+
+    struct json_object *root_obj = json_tokener_parse(conn.resp_buf);
+    if (root_obj == NULL) {
+        //error
+        pps_printf("%s\n", "An error occured when parsing the string into a json object");
+        ckvs_rpc_close(&conn);
+        free(c2);
+        return ERR_IO;
+    }
+    err=get_string(root_obj,"c2",c2_str);
+    if (err!=ERR_NONE){
+        ckvs_rpc_close(&conn);
+        free(c2);
+        json_object_put(root_obj);
+        return err;
+    }
+    //pps_printf("%s \n",c2_str);
+    err= SHA256_from_string(c2_str, c2);
+    if (err!=ERR_NONE){
+        ckvs_rpc_close(&conn);
+        free(c2);
+        json_object_put(root_obj);
+        return err;
+    }
+
+
+    unsigned char* data=calloc(conn.resp_size , sizeof(unsigned char));
+    if (data==NULL){
+        ckvs_rpc_close(&conn);
+        free(c2);
+        json_object_put(root_obj);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    err=get_string(root_obj,"data",data);
+    if (err!=ERR_NONE){
+        free(data);
+        ckvs_rpc_close(&conn);
+        free(c2);
+        json_object_put(root_obj);
+        return err;
+    }
+
+
+
+
+    err = ckvs_client_compute_masterkey(&ckvs_mem, c2);
+    if (err != ERR_NONE) {
+        // Error
+        free(data);
+        free(c2);
+        ckvs_close(&ckvs);
+        json_object_put(root_obj);
+        return err;
+    }
+
+
+    data=realloc(data, strlen(data)+1);
+
+    //initialize the string where the decrypted secret will be stored
+    size_t decrypted_len = strlen(data) + EVP_MAX_BLOCK_LENGTH;
+    unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
+
+    if (decrypted == NULL) {
+        free(data);
+        free(c2);
+        ckvs_close(&ckvs);
+        json_object_put(root_obj);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    //
+    uint8_t data_uint= calloc();
+     hex_decode(data,data_uint);
+
+
+    //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
+    err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, data, strlen(data), decrypted,
+                                  &decrypted_len);
+
+    if (err != ERR_NONE) {
+        // Error
+        /*print_SHA("auth :",&ckvs_mem.auth_key);
+        print_SHA("master :",&ckvs_mem.master_key);
+        print_SHA("streched :",&ckvs_mem.stretched_key);
+        print_SHA("c1 :",&ckvs_mem.c1);
+        pps_printf("%d , %s \n ", strlen(data),data);*/
+        //pps_printf("%d",decrypted_len);
+
+        //print_SHA("c2",c2);
+
+
+        pps_printf(" \n");
+        free(data);
+        free(c2);
+        curl_free(ready_key);
+        ckvs_close(&ckvs);
+        free_uc(&decrypted);
+        ckvs_rpc_close(&conn);
+
+        return err;
+    }
+
+    //check if we have to end the lecture
+    for (size_t i = 0; i < decrypted_len; ++i) {
+        if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
+        pps_printf("%c", decrypted[i]);
+    }
 
 
 
 
 
-
+    free(c2);
+    free(data);
+    json_object_put(root_obj);
     curl_free(ready_key);
+    free_uc(&decrypted);
     ckvs_rpc_close(&conn);
     return ERR_NONE;
 

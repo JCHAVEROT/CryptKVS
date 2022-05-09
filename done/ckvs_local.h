@@ -12,6 +12,13 @@
 #include "ckvs_crypto.h"
 #include "ckvs_io.h"
 
+/**
+ * @brief enum crypt_type with two modes decryption and encryption
+ */
+enum crypt_type {
+    DECRYPTION,
+    ENCRYPTION
+};
 
 /* *************************************************** *
  * TODO WEEK 04                                        *

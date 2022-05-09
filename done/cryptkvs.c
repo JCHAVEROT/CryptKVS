@@ -31,10 +31,10 @@ typedef struct {
 } ckvs_command_mapping;
 
 //list of commands
-const ckvs_command_mapping commands[] = {{"stats", "- cryptkvs [database|<url>] stats\n",                           &ckvs_local_stats, &ckvs_client_stats },
-                                         {"get",   "- cryptkvs [database|<url>] get <key> <password>\n",            &ckvs_local_get,   &ckvs_client_get },
-                                         {"set",   "- cryptkvs [database|<url>] set <key> <password> <filename>\n", &ckvs_local_set,   &ckvs_client_set },
-                                         {"new",   "- cryptkvs [database|<url>] new <key> <password>\n",            &ckvs_local_new,   &ckvs_client_new }
+const ckvs_command_mapping commands[] = {{"stats", "- cryptkvs [<database>|<url>] stats\n",                           &ckvs_local_stats, &ckvs_client_stats },
+                                         {"get",   "- cryptkvs [<database>|<url>] get <key> <password>\n",            &ckvs_local_get,   &ckvs_client_get },
+                                         {"set",   "- cryptkvs [<database>|<url>] set <key> <password> <filename>\n", &ckvs_local_set,   &ckvs_client_set },
+                                         {"new",   "- cryptkvs [<database>|<url>] new <key> <password>\n",            &ckvs_local_new,   &ckvs_client_new }
 };
 
 /* *************************************************** *

@@ -18,13 +18,7 @@
 
 #define C2_SIZE  32
 // ----------------------------------------------------------------------
-/**
- * @brief enum crypt_type with two modes decryption and encryption
- */
-enum crypt_type {
-    DECRYPTION,
-    ENCRYPTION
-};
+
 
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename, int optargc, _unused char *optargv[]) {
@@ -113,6 +107,8 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             return ERR_IO;
         }
     }
+    //print_SHA("c2",&ckvs_out->c2);
+
 
     //now we have the entry and hence c2, to compute the masterkey
     err = ckvs_client_compute_masterkey(&ckvs_mem, &(ckvs_out->c2));
@@ -194,6 +190,15 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
             free_uc(&decrypted);
             return err;
         }
+
+
+        /*print_SHA("auth :",&ckvs_mem->auth_key);
+        print_SHA("master :",&ckvs_mem->master_key);
+        print_SHA("streched :",&ckvs_mem->stretched_key);
+        print_SHA("c1 :",&ckvs_mem->c1);
+        pps_printf("%d , %s \n ", strlen(encrypted),encrypted);*/
+        pps_printf("%d",decrypted_len);
+
 
         //check if we have to end the lecture
         for (size_t i = 0; i < decrypted_len; ++i) {

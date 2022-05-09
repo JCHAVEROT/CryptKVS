@@ -84,18 +84,15 @@ int hex_decode(const char *in, uint8_t *buf) {
         return -1;
     }
 
-    char* endptr;
-    uint32_t result = strtoul(in, &endptr, 16);
-    if (endptr[0] != '\0') {
-        //error, there was at least one invalid character in the input string
-        return -1;
+    char temp[3]={0};
+    char* endptr=NULL;
+    for (size_t i = 0;i<SHA256_DIGEST_LENGTH;i++ ){
+        strncpy(temp,&in[2*i],2);
+        uint32_t result = strtoul(temp, &endptr, 16);
+        buf[i]=(uint8_t)result;
     }
 
-    memcpy(buf, &result, sizeof(uint32_t));
-
-    size_t size = 0; //??
-
-    return size;
+    return ERR_NONE;
 }
 
 // ----------------------------------------------------------------------
@@ -106,14 +103,14 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
         return -1;
     }
     //call the function that decodes from hexadecimal
-    uint8_t buffer[SHA256_DIGEST_LENGTH];
-    int err = hex_decode(in, buffer);
+    //uint8_t buffer[SHA256_DIGEST_LENGTH];
+    int err = hex_decode(in, sha->sha);
     if (err == -1) {
         return err;
     }
 
     //compute the SHA256 and store it in sha
-    SHA256((unsigned char *) buffer, strlen(buffer), sha);
+    //SHA256((unsigned char *) buffer, strlen(buffer), sha);
 
     return err;
 }

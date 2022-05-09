@@ -9,4 +9,4 @@ ckvs_io.o: ckvs_io.c ckvs_utils.h ckvs.h error.h ckvs_crypto.h ckvs_io.h
 ckvs_rpc.o: ckvs_rpc.c ckvs_rpc.h ckvs_io.h ckvs.h ckvs_utils.h error.h \
  util.h
 ckvs_client.o: ckvs_client.c ckvs_rpc.h ckvs_io.h ckvs.h ckvs_utils.h \
- error.h util.h ckvs_crypto.h
+ error.h util.h ckvs_crypto.h ckvs_local.h

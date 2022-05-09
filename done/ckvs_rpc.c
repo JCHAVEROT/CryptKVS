@@ -97,7 +97,8 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     }
     strncpy(url, conn->url, strlen(conn->url));
     strcat(url, "/");
-    strncat(url, GET, strlen(GET));
+    strcat(url, GET);
+
     pps_printf("%s \n",url);
 
 
@@ -136,7 +137,6 @@ int get_string(const struct json_object *obj, const char *key, char *buf) {
     const char *string_from_obj = json_object_get_string(value);
     if (string_from_obj == NULL) {
         //error
-        pps_printf("%s", "bouououou");
         return ERR_IO;
     }
 
@@ -190,7 +190,6 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     err = get_int(obj, "version", &infos[0]);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "tetetete");
         return err;
     }
     //check that it is the good version, i.e. 1
@@ -202,28 +201,24 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     err = get_int(obj, "table_size", &infos[1]);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "pevpevppv");
         return err;
     }
     //check that the table has a size power of 2
     err = check_pow_2(infos[1]);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "fekfekfjevk");
         return err;
     }
 
     err = get_int(obj, "threshold_entries", &infos[2]);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "dzdzdzdzdzdzdzd");
         return err;
     }
 
     err = get_int(obj, "num_entries", &infos[3]);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "mammamam");
         return err;
     }
 
