@@ -51,7 +51,7 @@ int ckvs_local_stats(const char *filename, int optargc, _unused char *optargv[])
     print_header(&(ckvs.header));
 
     //print the entries of the ckvs read from the file
-    for (int i = 0; i < ckvs.header.num_entries; i++) {
+    for (int i = 0; i < CKVS_FIXEDSIZE_TABLE; i++) {
         if (strlen(ckvs.entries[i].key) != 0) {
             print_entry(&ckvs.entries[i]);
         }

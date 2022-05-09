@@ -34,6 +34,10 @@
  */
 #define CKVS_UINT32_T_ELEMENTS 4
 
+// Only for the beginning of the project.
+#define CKVS_FIXEDSIZE_TABLE (1<<6)
+
+
 /**
  * @brief Represents a CKVS database header.
  */
