@@ -85,17 +85,22 @@ int hex_decode(const char *in, uint8_t *buf) {
     }
 
     char* endptr;
+    char* temp = calloc(strlen(in) + 1, sizeof(char));
     uint64_t result = strtoul(in, &endptr, 16);
     if (endptr[0] != '\0') {
         //error, there was at least one invalid character in the input string
         return -1;
     }
 
-    memcpy(buf, &result, sizeof(uint64_t));
+    //to convert the uint64_t into an array of bytes
+    memcpy(temp, &result, sizeof(uint64_t));
 
-    size_t size = 0; //??
+    //to reverse the array since in the wrong order
+    for (size_t i = 0; i < strlen(temp) ; ++i) {
+        buf[i] = temp[strlen(temp) - i - 1];
+    }
 
-    return size;
+    return strlen((const char *) buf);
 }
 
 // ----------------------------------------------------------------------
@@ -106,14 +111,17 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
         return -1;
     }
     //call the function that decodes from hexadecimal
-    uint8_t buffer[SHA256_DIGEST_LENGTH];
+    uint8_t* buffer = calloc(SHA256_PRINTED_STRLEN, sizeof(uint8_t));
     int err = hex_decode(in, buffer);
     if (err == -1) {
         return err;
     }
 
     //compute the SHA256 and store it in sha
-    SHA256((unsigned char *) buffer, strlen(buffer), sha);
+    strncpy(sha->sha, buffer, SHA256_DIGEST_LENGTH);
+
+    //free pointer
+    free(buffer); buffer = NULL;
 
     return err;
 }
