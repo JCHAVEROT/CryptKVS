@@ -215,7 +215,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         ckvs_rpc_close(&conn);
         free(c2);
         ckvs_close(&ckvs);
-        return err;
+        return err==ERR_NONE?ERR_IO:err;
     }
 
 
