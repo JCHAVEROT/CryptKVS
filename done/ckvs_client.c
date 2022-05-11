@@ -190,6 +190,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return err;
     }
 
+
     //pps_printf("%s \n",conn.resp_buf);
 
     char* c2_str[SHA256_PRINTED_STRLEN+1];
@@ -200,15 +201,31 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     struct json_object *root_obj = json_tokener_parse(conn.resp_buf);
     if (root_obj == NULL) {
         //error
+
+        //pps_printf("vbfb\n");
+
+
+       //pps_printf("%s\n",conn.resp_buf);
+
+
+        err= get_err(conn.resp_buf+7);
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
         ckvs_rpc_close(&conn);
         free(c2);
         ckvs_close(&ckvs);
-        return ERR_IO;
+        return err;
     }
+
+
     err=get_string(root_obj,"c2",c2_str);
     if (err!=ERR_NONE){
-
+        char error[30];
+        int err2=get_string(root_obj,"error",error);
+        //pps_printf("ff");
+        if (err2==ERR_NONE){
+            //pps_printf("ff");
+            err=get_err(error);
+        }
         ckvs_close(&ckvs);
         ckvs_rpc_close(&conn);
         free(c2);

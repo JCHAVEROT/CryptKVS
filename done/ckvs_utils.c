@@ -8,6 +8,7 @@
 #include "ckvs.h"
 #include "util.h"
 #include <inttypes.h>
+#include "error.h"
 
 // ----------------------------------------------------------------------
 void print_header(const struct ckvs_header *header) {
@@ -114,6 +115,17 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
     //SHA256((unsigned char *) buffer, strlen(buffer), sha);
 
     return err;
+}
+
+int get_err(char* error){
+    for (size_t i = 1; i < 18; ++i) {
+        if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i]))==0 ){
+            return i;
+        }
+
+
+    }
+    return ERR_PROTOCOL;
 }
 
 

@@ -112,7 +112,7 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     ret = curl_easy_perform(conn->curl);
     if (ret != CURLE_OK) {
         //error
-        
+
         return ERR_TIMEOUT;
     }
 
@@ -143,6 +143,7 @@ int get_string(const struct json_object *obj, const char *key, char *buf) {
 
     //copy in the buffer
     strcpy(buf, string_from_obj);
+
 
     return ERR_NONE;
 }

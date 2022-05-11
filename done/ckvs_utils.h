@@ -134,3 +134,6 @@ int hex_decode(const char *in, uint8_t *buf);
 int SHA256_from_string(const char *in, struct ckvs_sha *sha);
 
 
+int get_err(char* error);
+
+
