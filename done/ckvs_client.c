@@ -202,13 +202,13 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     if (root_obj == NULL) {
         //error
 
-        //pps_printf("vbfb\n");
 
 
        //pps_printf("%s\n",conn.resp_buf);
 
-        if (strcmp(conn.resp_buf,"Error : ")==0){
-            err= get_err(conn.resp_buf+ strlen("Error : "));
+
+        if (strncmp(conn.resp_buf,"Error:",6)==0){
+            err= get_err(conn.resp_buf+ 7);
         }
 
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
