@@ -112,6 +112,7 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     ret = curl_easy_perform(conn->curl);
     if (ret != CURLE_OK) {
         //error
+        
         return ERR_TIMEOUT;
     }
 

@@ -149,12 +149,14 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         ready_key = curl_easy_escape(curl, key, strlen(key));
         if (ready_key == NULL) {
 
+            ckvs_close(&ckvs);
             ckvs_rpc_close(&conn);
             curl_free(curl);
             return ERR_IO;
         }
         curl_easy_cleanup(curl);
     }else{
+        ckvs_close(&ckvs);
         ckvs_rpc_close(&conn);
         return ERR_IO;
     }
@@ -165,6 +167,9 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
 
     char *page = calloc(SHA256_PRINTED_STRLEN+ strlen(ready_key) + 19, sizeof(char));
     if (page == NULL) {
+        ckvs_rpc_close(&conn);
+        ckvs_close(&ckvs);
+        curl_free(ready_key);
         return ERR_OUT_OF_MEMORY;
     }
     strcpy(page, "get?key=");
@@ -175,11 +180,13 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     //pps_printf("%s \n",page);
 
 
+    curl_free(ready_key);
     err = ckvs_rpc(&conn, page);
     free(page);
     if (err != ERR_NONE) {
         //error
         ckvs_rpc_close(&conn);
+        ckvs_close(&ckvs);
         return err;
     }
 
@@ -196,10 +203,13 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
         ckvs_rpc_close(&conn);
         free(c2);
+        ckvs_close(&ckvs);
         return ERR_IO;
     }
     err=get_string(root_obj,"c2",c2_str);
     if (err!=ERR_NONE){
+
+        ckvs_close(&ckvs);
         ckvs_rpc_close(&conn);
         free(c2);
         json_object_put(root_obj);
@@ -208,6 +218,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     //pps_printf("%s \n",c2_str);
     err= SHA256_from_string(c2_str, c2);
     if (err!=ERR_NONE){
+        ckvs_close(&ckvs);
         ckvs_rpc_close(&conn);
         free(c2);
         json_object_put(root_obj);
@@ -217,6 +228,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
 
     unsigned char* data=calloc(conn.resp_size , sizeof(unsigned char));
     if (data==NULL){
+        ckvs_close(&ckvs);
         ckvs_rpc_close(&conn);
         free(c2);
         json_object_put(root_obj);
@@ -325,7 +337,6 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     free(c2);
     free(data);
     json_object_put(root_obj);
-    curl_free(ready_key);
     free_uc(&decrypted);
     ckvs_rpc_close(&conn);
     return ERR_NONE;
