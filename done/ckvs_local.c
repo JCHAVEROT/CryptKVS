@@ -197,7 +197,7 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
         print_SHA("streched :",&ckvs_mem->stretched_key);
         print_SHA("c1 :",&ckvs_mem->c1);
         pps_printf("%d , %s \n ", strlen(encrypted),encrypted);*/
-        pps_printf("%d",decrypted_len);
+        //pps_printf("%d",decrypted_len);
 
 
         //check if we have to end the lecture
