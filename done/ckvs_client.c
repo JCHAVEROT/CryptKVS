@@ -183,7 +183,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return err;
     }
 
-    pps_printf("%s \n",conn.resp_buf);
+    //pps_printf("%s \n",conn.resp_buf);
 
     char* c2_str[SHA256_PRINTED_STRLEN+1];
     ckvs_sha_t* c2= calloc(1, sizeof(ckvs_sha_t));
@@ -231,7 +231,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         json_object_put(root_obj);
         return err;
     }
-    pps_printf("%s",data);
+    //pps_printf("%s \n",data);
 
 
 
@@ -256,17 +256,21 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return ERR_OUT_OF_MEMORY;
     }
 
-    hex_decode(data,encrypted);
-    for (int i = 0; i < strlen(data)/2; ++i) {
-        pps_printf("%u ,",encrypted[i]);
+    err=hex_decode(data,encrypted);
+    if (err==-1){
+        return ERR_IO;
     }
+   // for (int i = 0; i < strlen(data)/2; ++i) {
+    //    pps_printf("%u ,",encrypted[i]);
+    //}
     //pps_printf("%s",encrypted);
 
 
     //initialize the string where the decrypted secret will be stored
-    size_t decrypted_len = strlen(data)/2+1 + EVP_MAX_BLOCK_LENGTH;
+    size_t decrypted_len = strlen(data)/2 + EVP_MAX_BLOCK_LENGTH;
     unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
 
+    //pps_printf("%s",data);
     if (decrypted == NULL) {
         free(data);
         free(c2);
@@ -276,13 +280,10 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return ERR_OUT_OF_MEMORY;
     }
 
-    //
-    //uint8_t data_uint= calloc();
-     //hex_decode(data,data_uint);
 
 
     //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
-    err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, strlen(data)/2+1, decrypted,
+    err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, strlen(data)/2, decrypted,
                                   &decrypted_len);
 
     if (err != ERR_NONE) {
@@ -291,9 +292,9 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         print_SHA("master :",&ckvs_mem.master_key);
         print_SHA("streched :",&ckvs_mem.stretched_key);
         print_SHA("c1 :",&ckvs_mem.c1);
-        pps_printf("%d , %s \n ", strlen(data),data);*/
+        pps_printf("%d , %s \n ", strlen(data),data);
         pps_printf("encrypted: %d",strlen(data)/2+1);
-        pps_printf("decrypted: %d",decrypted_len);
+        pps_printf("decrypted: %d",decrypted_len);*/
 
         //print_SHA("c2",c2);
 
@@ -319,7 +320,6 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
 
 
 
-    json_object_put(root_obj);
 
     free(encrypted);
     free(c2);

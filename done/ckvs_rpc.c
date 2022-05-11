@@ -99,7 +99,7 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     strcat(url, "/");
     strcat(url, GET);
 
-    pps_printf("%s \n",url);
+    //pps_printf("%s \n",url);
 
 
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
@@ -129,7 +129,7 @@ int get_string(const struct json_object *obj, const char *key, char *buf) {
     //get the right json object
     struct json_object *value = NULL;
     if (!json_object_object_get_ex(obj, key, &value)) {
-        pps_printf("%s %s\n", "An error occured : did not find the key", key);
+        pps_printf("%s %s\n", "An error occurred : did not find the key", key);
         return ERR_IO;
     }
 
