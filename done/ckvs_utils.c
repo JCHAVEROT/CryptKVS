@@ -86,9 +86,10 @@ int hex_decode(const char *in, uint8_t *buf) {
 
     char temp[3]={0};
     char* endptr=NULL;
-    for (size_t i = 0;i<SHA256_DIGEST_LENGTH;i++ ){
+    size_t half_size=strlen(in)/2;
+    for (size_t i = 0;i<half_size;i++ ){
         strncpy(temp,&in[2*i],2);
-        uint32_t result = strtoul(temp, &endptr, 16);
+        uint64_t result = strtoul(temp, &endptr, 16);
         buf[i]=(uint8_t)result;
     }
 
