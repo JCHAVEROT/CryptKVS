@@ -82,7 +82,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     //print the key of the entries
     for (size_t i = 0; i < ckvs.header.table_size; ++i) {
         if (strlen(ckvs.entries[i].key) != 0) {
-            pps_printf("  %s             : " STR_LENGTH_FMT(CKVS_MAXKEYLEN) "\n", "Key", ckvs.entries[i].key);
+            pps_printf("%s       : " STR_LENGTH_FMT(CKVS_MAXKEYLEN) "\n", "Key", ckvs.entries[i].key);
         }
     }
 
