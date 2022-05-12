@@ -272,6 +272,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         // Error
         free(data);
         free(c2);
+        ckvs_rpc_close(&conn);
         ckvs_close(&ckvs);
         json_object_put(root_obj);
         return err;
@@ -284,6 +285,11 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     //initialize the string where the encrypted secret will be stored
     unsigned char *encrypted = calloc(strlen(data)/2, sizeof(unsigned char));
     if (encrypted == NULL) {
+        free(data);
+        free(c2);
+        ckvs_rpc_close(&conn);
+        ckvs_close(&ckvs);
+        json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -307,6 +313,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         free(c2);
         free(encrypted);
         ckvs_close(&ckvs);
+        ckvs_rpc_close(&conn);
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }

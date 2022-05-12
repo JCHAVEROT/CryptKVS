@@ -99,7 +99,7 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     strcat(url, "/");
     strcat(url, GET);
 
-    pps_printf("%s \n",url);
+    //pps_printf("%s \n",url);
 
 
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
