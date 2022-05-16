@@ -26,6 +26,7 @@ static int s_signo;
 #define HTTP_OK_CODE 200
 #define HTTP_FOUND_CODE 302
 #define HTTP_NOTFOUND_CODE 404
+#define BUFFER_SIZE 1024
 
 static int add_string(const struct json_object *obj, const char *key, char *val) {
     return json_object_object_add(obj, key, json_object_new_string(val));;
@@ -33,6 +34,37 @@ static int add_string(const struct json_object *obj, const char *key, char *val)
 
 static int add_int(const struct json_object *obj, const char *key, char *val) {
     return json_object_object_add(obj, key, json_object_new_int(val));;
+}
+
+static char* get_urldecoded_argument(struct mg_http_message *hm, const char *arg)
+{
+    //check pointers
+    if (hm == NULL || arg == NULL) {
+        //error
+        return NULL;
+    }
+
+    //retrieve the the argument called arg from hm
+    char* buf = calloc(BUFFER_SIZE, sizeof(char));
+    int err = mg_http_get_var(&hm->query, arg, buf, BUFFER_SIZE);
+    if (err < 1) {
+        //error
+        return NULL;
+    }
+
+
+    CURL* curl = curl_easy_init();
+    if (curl == NULL) {
+        //error
+        return NULL;
+    }
+    //get the unescaped version of the argument
+    int size = CKVS_MAXKEYLEN;
+    char* result = curl_easy_unescape(curl, buf, sizeof(buf), &size);
+    curl_easy_cleanup(curl);
+    free(buf); buf = NULL;
+    return result;
+
 }
 
 /**
@@ -142,6 +174,38 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     mg_http_reply(nc, HTTP_OK_CODE, "Content-Type: application/json\r\n", "%s\n", json_string);
 }
 
+static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct mg_http_message *hm) {
+    //check pointers
+    if (nc == NULL) {
+        //error
+        return;
+    }
+
+    if (ckvs == NULL || hm == NULL) {
+        //error
+        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+    }
+
+    //get the url escaped key
+    char* key = get_urldecoded_argument(hm, "key");
+    if (key == NULL) {
+        mg_error_msg(nc, ERR_IO);
+    }
+
+    //get the encoded auth key
+    char* auth_key_buffer = calloc(SHA256_PRINTED_STRLEN, sizeof(char));
+    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, 1024);
+    if (err < 1) {
+        //error
+        mg_error_msg(nc, ERR_IO);
+    }
+
+    //free pointers
+    curl_free(key);
+    free(auth_key_buffer); auth_key_buffer = NULL;
+
+}
+
 // ======================================================================
 /**
  * @brief Handles server events (eg HTTP requests).
@@ -179,7 +243,12 @@ struct mg_connection *nc, int ev, void *ev_data, void *fn_data)
         if (mg_http_match_uri(hm,"/stats")) {
             handle_stats_call(nc, ckvs, hm);
         }
-        mg_error_msg(nc, NOT_IMPLEMENTED);
+        else if (mg_http_match_uri(hm,"/get")) {
+            handle_get_call(nc, ckvs, hm);
+        } else {
+            mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+        }
+
         break;
 
     default:
