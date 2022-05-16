@@ -264,7 +264,6 @@ int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj){
         struct json_object *temp_obj = json_object_array_get_idx(keys_json_object, i);
         if (temp_obj == NULL) {
             //error
-            ckvs_close(ckvs);
             return ERR_IO;
         }
         strncpy(ckvs->entries[i].key, json_object_get_string(temp_obj), CKVS_MAXKEYLEN);
