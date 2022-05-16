@@ -62,7 +62,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     struct json_object *root_obj = json_tokener_parse(conn.resp_buf);
     if (root_obj == NULL) {
         //error
-        pps_printf("%s\n", "An error occured when parsing the string into a json object");
+        printf("%s\n", "An error occured when parsing the string into a json object");
         ckvs_rpc_close(&conn);
         return ERR_IO;
     }
