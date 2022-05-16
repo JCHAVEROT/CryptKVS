@@ -18,6 +18,7 @@ struct CKVS {
     struct ckvs_header header;
     ckvs_entry_t *entries;
     FILE *file;
+    const char* listening_addr;
 };
 typedef struct CKVS CKVS_t;
 

@@ -29,7 +29,7 @@ CFLAGS += -Wextra -Wfloat-equal -Wshadow -Wpointer-arith -Wbad-function-cast -Ww
 -Wconversion -Wunreachable-code -Wcast-qual -W -Wformat=2 -Winit-self -Wuninitialized
 #CFLAGS += -Wcast-align
 
-LDLIBS += -lm -lssl -lcrypto -lcurl -ljson-c -L/usr/local/opt/openssl@1.1/lib
+LDLIBS += -lm -lssl -lcrypto -lcurl -ljson-c -L/usr/local/opt/openssl@1.1/lib 
 LDDEPS =
 
 ## may require: export ASAN_OPTIONS=allocator_may_return_null=1
@@ -46,7 +46,7 @@ LDLIBS   += -fsanitize=address
 
 all:: $(TARGETS)
 
-SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c ckvs_crypto.c ckvs_io.c ckvs_rpc.c ckvs_client.c
+SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c ckvs_crypto.c ckvs_io.c ckvs_rpc.c ckvs_client.c $(LIBMONGOOSEDIR)/mongoose.c ckvs_httpd.c
 
 
 OBJS=$(subst .c,.o,$(SRCS))
