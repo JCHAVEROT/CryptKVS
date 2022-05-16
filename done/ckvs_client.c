@@ -131,6 +131,9 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return err;
     }
 
+
+
+
     //initialize the struct ckvs_memrecord_t
     ckvs_memrecord_t ckvs_mem;
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
@@ -190,6 +193,8 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     }
 
 
+
+
     char* c2_str[SHA256_PRINTED_STRLEN + 1];
     ckvs_sha_t* c2= calloc(1, sizeof(ckvs_sha_t));
 
@@ -222,6 +227,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     }
 
 
+
     err = SHA256_from_string(c2_str, c2);
     if (err != ERR_NONE) {
         //error
@@ -231,7 +237,6 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         json_object_put(root_obj);
         return err;
     }
-
 
     unsigned char* data = calloc(conn.resp_size , sizeof(unsigned char));
     if (data == NULL) {
@@ -252,6 +257,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         json_object_put(root_obj);
         return err;
     }
+
 
     err = ckvs_client_compute_masterkey(&ckvs_mem, c2);
     if (err != ERR_NONE) {
@@ -277,6 +283,8 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
+
+    pps_printf("6-");
 
     err = hex_decode(data,encrypted);
     if (err == -1) {

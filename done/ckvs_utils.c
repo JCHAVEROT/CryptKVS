@@ -88,13 +88,16 @@ int hex_decode(const char *in, uint8_t *buf) {
     char temp[3]={0};
     char* endptr=NULL;
     size_t half_size=strlen(in)/2;
-    for (size_t i = 0;i<half_size;i++ ){
-        strncpy(temp,&in[2*i],2);
-        uint64_t result = strtoul(temp, &endptr, 16);
-        buf[i]=(uint8_t)result;
-    }
 
-    return ERR_NONE;
+        for (size_t i = 0;i<half_size;i++ ){
+            strncpy(temp,&in[2*i],2);
+            uint64_t result = strtoul(temp, &endptr, 16);
+            buf[i]=(uint8_t)result;
+        }
+
+
+
+    return half_size;
 }
 
 // ----------------------------------------------------------------------
@@ -114,7 +117,7 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
     //compute the SHA256 and store it in sha
     //SHA256((unsigned char *) buffer, strlen(buffer), sha);
 
-    return err;
+    return ERR_NONE;
 }
 
 int get_err(char* error){
