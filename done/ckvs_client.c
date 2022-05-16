@@ -73,7 +73,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
         //error
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
-        return ERR_TIMEOUT;
+        return err;
     }
 
     //print the content downloaded from the server
@@ -91,7 +91,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     if (err != 1) {
         //error
         ckvs_rpc_close(&conn);
-        return err;
+        return ERR_TIMEOUT;
     }
 
     //close the connection
