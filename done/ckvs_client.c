@@ -284,7 +284,6 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return ERR_OUT_OF_MEMORY;
     }
 
-    pps_printf("6-");
 
     err = hex_decode(data,encrypted);
     if (err == -1) {
