@@ -64,7 +64,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
         //error
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
         ckvs_rpc_close(&conn);
-        return ERR_TIMEOUT;
+        return ERR_IO;
     }
 
 
