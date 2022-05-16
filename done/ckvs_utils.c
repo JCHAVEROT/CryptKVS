@@ -89,15 +89,23 @@ int hex_decode(const char *in, uint8_t *buf) {
     char* endptr=NULL;
     size_t half_size=strlen(in)/2;
 
+    size_t j=0;
+    if (strlen(in)%2==1){
+        strncpy(temp,&in[0],1);
+        uint64_t result = strtoul(temp, &endptr, 16);
+        buf[0]=(uint8_t)result;
+        j=1;
+    }
+
         for (size_t i = 0;i<half_size;i++ ){
-            strncpy(temp,&in[2*i],2);
+            strncpy(temp,&in[2*i+j],2);
             uint64_t result = strtoul(temp, &endptr, 16);
-            buf[i]=(uint8_t)result;
+            buf[i+j]=(uint8_t)result;
         }
 
 
 
-    return half_size;
+    return half_size+j;
 }
 
 // ----------------------------------------------------------------------
