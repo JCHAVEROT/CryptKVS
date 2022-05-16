@@ -56,6 +56,8 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     err = ckvs_rpc(&conn, "stats");
     if (err != ERR_NONE) {
         //error
+        ckvs_rpc_close(&conn);
+
         return err;
     }
 
