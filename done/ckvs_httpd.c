@@ -29,11 +29,23 @@ static int s_signo;
 #define BUFFER_SIZE 1024
 
 static int add_string(const struct json_object *obj, const char *key, char *val) {
-    return json_object_object_add(obj, key, json_object_new_string(val));;
+    return json_object_object_add(obj, key, json_object_new_string(val));
+}
+
+static int add_array(const struct json_object *obj, const char *key, char* array[],size_t size) {
+
+    struct json_object*  arr=  json_object_new_array();
+
+    for(size_t i=0;i<size;i++){
+        json_object_array_add(arr, json_object_new_string(array[i]));
+        pps_printf("%s",array[i]);
+    }
+
+    return json_object_object_add(obj, key, arr);
 }
 
 static int add_int(const struct json_object *obj, const char *key, char *val) {
-    return json_object_object_add(obj, key, json_object_new_int(val));;
+    return json_object_object_add(obj, key, json_object_new_int(val));
 }
 
 static char* get_urldecoded_argument(struct mg_http_message *hm, const char *arg)
@@ -102,16 +114,19 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
 
     //create the new json object
     json_object* object = json_object_new_object();
-    int err = json_object_put(object);
-    if (err != 1) {
+    //int err = json_object_put(object);
+    /*if (err != 1) {
         //error
         mg_error_msg(nc, ERR_IO);
     }
+    pps_printf("TEST \n");*/
+
 
     //add the header string of ckvs
-    err = add_string(object, "header_string", ckvs->header.header_string);
+    int err = add_string(object, "header_string", ckvs->header.header_string);
     if (err != ERR_NONE) {
         //error
+        json_object_put(object);
         mg_error_msg(nc, ERR_IO);
     }
 
@@ -119,6 +134,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     err = add_int(object, "version", ckvs->header.version);
     if (err != ERR_NONE) {
         //error
+        json_object_put(object);
         mg_error_msg(nc, ERR_IO);
     }
 
@@ -126,6 +142,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     err = add_int(object, "table_size", ckvs->header.table_size);
     if (err != ERR_NONE) {
         //error
+        json_object_put(object);
         mg_error_msg(nc, ERR_IO);
     }
 
@@ -133,6 +150,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     err = add_int(object, "threshold_entries", ckvs->header.threshold_entries);
     if (err != ERR_NONE) {
         //error
+        json_object_put(object);
         mg_error_msg(nc, ERR_IO);
     }
 
@@ -140,14 +158,18 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     err = add_int(object, "num_entries", ckvs->header.num_entries);
     if (err != ERR_NONE) {
         //error
+        json_object_put(object);
         mg_error_msg(nc, ERR_IO);
     }
 
+
     //create the array to store the keys of ckvs
     json_object* array = json_object_new_array();
-    for (size_t i = 0; i < ckvs->header.num_entries; ++i) {
-        const char* key = ckvs->entries[i].key;
-        if (key[0] != '\0') { //verify the key is not empty
+    for (size_t i = 0; i < ckvs->header.table_size; ++i) {
+        const char key[33]={0};
+             strncpy(&key, ckvs->entries[i].key,32);
+
+        if (strcmp(key,"\0")!=0) { //verify the key is not empty
             json_object_array_add(array, json_object_new_string(key));
         }
     }
@@ -156,6 +178,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     err = json_object_object_add(object, "keys", array);
     if (err != ERR_NONE) {
         //error
+        json_object_put(object);
         mg_error_msg(nc, ERR_IO);
     }
 
@@ -163,15 +186,17 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     size_t length = 0;
     const char* json_string = json_object_to_json_string_length(object, JSON_C_TO_STRING_PRETTY, &length);
 
+
+
+    //submit the response
+    mg_http_reply(nc, HTTP_OK_CODE, "Content-Type: application/json\r\n", "%s\n", json_string);
+
     //free the json object
     err = json_object_put(object);
     if (err != 1) {
         //error
         mg_error_msg(nc, ERR_IO);
     }
-
-    //submit the response
-    mg_http_reply(nc, HTTP_OK_CODE, "Content-Type: application/json\r\n", "%s\n", json_string);
 }
 
 static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct mg_http_message *hm) {
