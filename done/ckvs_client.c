@@ -349,7 +349,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         return ERR_OUT_OF_MEMORY;
     }
 
-    //decrypts the string with the secret with in particular the master_key stored in ckvs_mem
+    //decrypt the string with the secret with in particular the master_key stored in ckvs_mem
     err = ckvs_client_crypt_value(&ckvs_mem, DECRYPTION, encrypted, strlen(data) / 2, decrypted,
                                   &decrypted_len);
     if (err != ERR_NONE) {
@@ -392,6 +392,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     char header_str[CKVS_HEADERSTRINGLEN];
     uint32_t infos[CKVS_UINT32_T_ELEMENTS] = {0};
 
+    //retrieve the header string
     int err = get_string(obj, "header_string", header_str);
     if (err != ERR_NONE) {
         //error
@@ -404,6 +405,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
         return ERR_CORRUPT_STORE;
     }
 
+    //retrieve the version
     err = get_int(obj, "version", &infos[0]);
     if (err != ERR_NONE) {
         //error
@@ -415,6 +417,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
         return ERR_CORRUPT_STORE;
     }
 
+    //retrieve the table size
     err = get_int(obj, "table_size", &infos[1]);
     if (err != ERR_NONE) {
         //error
@@ -427,12 +430,14 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
         return err;
     }
 
+    //retrieve the number of threshold entries
     err = get_int(obj, "threshold_entries", &infos[2]);
     if (err != ERR_NONE) {
         //error
         return err;
     }
 
+    //retrieve the number of entries
     err = get_int(obj, "num_entries", &infos[3]);
     if (err != ERR_NONE) {
         //error

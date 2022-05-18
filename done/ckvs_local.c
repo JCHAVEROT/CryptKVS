@@ -104,8 +104,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
         }
     }
 
-
-
     //now we have the entry and hence c2, to compute the masterkey
     err = ckvs_client_compute_masterkey(&ckvs_mem, &(ckvs_out->c2));
     if (err != ERR_NONE) {
@@ -156,7 +154,6 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
         if (encrypted == NULL) {
             return ERR_OUT_OF_MEMORY;
         }
-
 
         //read the encrypted secret
         size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs->file);
