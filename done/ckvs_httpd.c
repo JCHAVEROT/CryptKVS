@@ -260,6 +260,8 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     if (err != ERR_NONE) {
         //error
+        curl_free(key);
+        free(auth_key_buffer); auth_key_buffer = NULL;
         ckvs_close(ckvs);
         mg_error_msg(nc, err);
         return;
