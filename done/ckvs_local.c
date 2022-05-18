@@ -16,10 +16,6 @@
 #include <ctype.h>
 #include "ckvs_local.h"
 
-#define C2_SIZE  32
-// ----------------------------------------------------------------------
-
-
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename, int optargc, _unused char *optargv[]) {
 
@@ -100,7 +96,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
     //if in set mode, to generate randomly SHA256 of c2 so not to decrease entropy
     if (set_value != NULL) {
-        err = RAND_bytes((unsigned char *) &(ckvs_out->c2.sha), C2_SIZE);
+        err = RAND_bytes((unsigned char *) &(ckvs_out->c2.sha), SHA256_DIGEST_LENGTH);
         if (err != 1) {
             //error
             ckvs_close(&ckvs);
@@ -190,15 +186,6 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
             free_uc(&decrypted);
             return err;
         }
-
-
-        /*print_SHA("auth :",&ckvs_mem->auth_key);
-        print_SHA("master :",&ckvs_mem->master_key);
-        print_SHA("streched :",&ckvs_mem->stretched_key);
-        print_SHA("c1 :",&ckvs_mem->c1);
-        pps_printf("%d , %s \n ", strlen(encrypted),encrypted);*/
-        //pps_printf("%d",decrypted_len);
-
 
         //check if we have to end the lecture
         for (size_t i = 0; i < decrypted_len; ++i) {
@@ -367,7 +354,6 @@ int ckvs_local_new(const char *filename, int optargc, char *optargv[]) {
 
     //close the file and finish
     ckvs_close(&ckvs);
-
 
     return ERR_NONE;
 }

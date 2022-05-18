@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include "ckvs.h"
 
-
+// ----------------------------------------------------------------------
 /**
  * ckvs_curl_WriteMemoryCallback -- lifted from https://curl.se/libcurl/c/getinmemory.html
  *
@@ -51,7 +51,7 @@ static size_t ckvs_curl_WriteMemoryCallback(void *contents, size_t size, size_t 
     return realsize;
 }
 
-
+// ----------------------------------------------------------------------
 int ckvs_rpc_init(struct ckvs_connection *conn, const char *url)
 {
     if (conn==NULL||url==NULL){
@@ -70,6 +70,7 @@ int ckvs_rpc_init(struct ckvs_connection *conn, const char *url)
     return ERR_NONE;
 }
 
+// ----------------------------------------------------------------------
 void ckvs_rpc_close(struct ckvs_connection *conn)
 {
     if (conn == NULL)
@@ -84,14 +85,16 @@ void ckvs_rpc_close(struct ckvs_connection *conn)
     bzero(conn, sizeof(*conn));
 }
 
+// ----------------------------------------------------------------------
 int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     //check pointers
-    if (conn==NULL||GET==NULL){
+    if (conn == NULL || GET == NULL) {
+        //error
         return ERR_INVALID_ARGUMENT;
     }
 
-    //specify the URL
-     char *url = calloc(strlen(conn->url)+ strlen(GET) + 2, sizeof(char));
+    //compute the URL
+    char *url = calloc(strlen(conn->url)+ strlen(GET) + 2, sizeof(char));
     if (url == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
@@ -99,8 +102,7 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     strcat(url, "/");
     strcat(url, GET);
 
-    //pps_printf("%s \n",url);
-
+    //pps_printf("%s \n",url); //uncomment to get the URL
 
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
     free(url);
@@ -112,12 +114,10 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     ret = curl_easy_perform(conn->curl);
     if (ret != CURLE_OK) {
         //error
-
         return ERR_TIMEOUT;
     }
 
     return ERR_NONE;
-
 }
 
 
