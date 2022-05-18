@@ -411,7 +411,7 @@ static void ckvs_event_handler(struct mg_connection *nc, int ev, void *ev_data, 
         else if (mg_http_match_uri(hm,"/get")) {
             handle_get_call(nc, ckvs, hm);
         } else {
-            mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+            mg_error_msg(nc, NOT_IMPLEMENTED);
         }
 
         break;
