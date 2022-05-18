@@ -257,7 +257,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         }
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
         ckvs_rpc_close(&conn);
-        free(c2);
+        free(c2); c2 = NULL;
         return err == ERR_NONE ? ERR_IO : err;
     }
 
@@ -271,7 +271,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
             err = get_err(error);
         }
         ckvs_rpc_close(&conn);
-        free(c2);
+        free(c2); c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
@@ -281,7 +281,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     if (err != ERR_NONE) {
         //error
         ckvs_rpc_close(&conn);
-        free(c2);
+        free(c2); c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
@@ -291,7 +291,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     if (data == NULL) {
         //error
         ckvs_rpc_close(&conn);
-        free(c2);
+        free(c2); c2 = NULL;
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
@@ -300,8 +300,8 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     err = get_string(root_obj,"data",data);
     if (err != ERR_NONE) {
         //error
-        free(data);
-        free(c2);
+        free(data); data = NULL;
+        free(c2); c2 = NULL;
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
         return err;
@@ -311,8 +311,8 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     err = ckvs_client_compute_masterkey(&ckvs_mem, c2);
     if (err != ERR_NONE) {
         //error
-        free(data);
-        free(c2);
+        free(data); data = NULL;
+        free(c2); c2 = NULL;
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
         return err;
@@ -322,8 +322,8 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     unsigned char *encrypted = calloc(strlen(data) / 2, sizeof(unsigned char));
     if (encrypted == NULL) {
         //error
-        free(data);
-        free(c2);
+        free(data); data = NULL;
+        free(c2); c2 = NULL;
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
@@ -341,9 +341,9 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
     if (decrypted == NULL) {
         //error
-        free(data);
-        free(c2);
-        free(encrypted);
+        free(data); data = NULL;
+        free(c2) c2 = NULL;
+        free(encrypted); encrypted = NULL;
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
@@ -354,9 +354,9 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
                                   &decrypted_len);
     if (err != ERR_NONE) {
         //error
-        free(encrypted);
-        free(data);
-        free(c2);
+        free(encrypted); encrypted = NULL;
+        free(data); data = NULL;
+        free(c2); c2 = NULL;
         curl_free(ready_key);
         free_uc(&decrypted);
         json_object_put(root_obj);
@@ -371,9 +371,9 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     }
 
     //free all objects
-    free(encrypted);
-    free(c2);
-    free(data);
+    free(encrypted); encrypted = NULL;
+    free(c2); c2 = NULL;
+    free(data); data = NULL;
     json_object_put(root_obj);
     free_uc(&decrypted);
     ckvs_rpc_close(&conn);
