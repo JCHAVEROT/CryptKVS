@@ -342,7 +342,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     if (decrypted == NULL) {
         //error
         free(data); data = NULL;
-        free(c2) c2 = NULL;
+        free(c2); c2 = NULL;
         free(encrypted); encrypted = NULL;
         ckvs_rpc_close(&conn);
         json_object_put(root_obj);
