@@ -272,8 +272,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     free(auth_key_buffer); auth_key_buffer = NULL;
 
     if (ckvs_out->value_len==0){
-        curl_free(key);
-        ckvs_close(&ckvs);
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_NO_VALUE);
         return;
     }
