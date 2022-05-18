@@ -148,10 +148,12 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (nc == NULL) {
         //error
         return;
+        ckvs_close(ckvs);
     }
 
     if (ckvs == NULL || hm == NULL) {
         //error
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_INVALID_ARGUMENT);
         return;
     }
@@ -164,6 +166,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -173,6 +176,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -182,6 +186,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -191,6 +196,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -200,6 +206,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -207,7 +214,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     //create the array to store the keys of ckvs
     json_object *array = json_object_new_array();
     for (size_t i = 0; i < ckvs->header.table_size; ++i) {
-        char key[CKVS_MAXKEYLEN + 1];
+        char key[CKVS_MAXKEYLEN + 1] = {0};
         strncpy(key, ckvs->entries[i].key, 32);
 
         if (strcmp(key, "\0") != 0) { //verify the key is not empty
@@ -220,6 +227,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -238,6 +246,9 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         mg_error_msg(nc, ERR_IO);
         return;
     }
+
+    //close the ckvs
+    ckvs_close(ckvs);
 
     mg_error_msg(nc, ERR_NONE);
 }
@@ -408,6 +419,9 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         mg_error_msg(nc, ERR_IO);
         return;
     }
+
+    //close the ckvs
+    ckvs_close(ckvs);
 
     mg_error_msg(nc, ERR_NONE);
 }
