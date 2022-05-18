@@ -61,6 +61,7 @@ static char* get_urldecoded_argument(struct mg_http_message *hm, const char *arg
     int err = mg_http_get_var(&hm->query, arg, buf, BUFFER_SIZE);
     if (err < 1) {
         //error
+        free(buf); buf = NULL;
         return NULL;
     }
 
@@ -68,6 +69,7 @@ static char* get_urldecoded_argument(struct mg_http_message *hm, const char *arg
     CURL* curl = curl_easy_init();
     if (curl == NULL) {
         //error
+        free(buf); buf = NULL;
         return NULL;
     }
     //get the unescaped version of the argument
