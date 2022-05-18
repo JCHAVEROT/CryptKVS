@@ -15,6 +15,37 @@
 #include <openssl/sha.h>
 
 // ----------------------------------------------------------------------
+/**
+ * @brief Computes the hashkey of a the given key in ckvs.
+ *
+ * @param ckvs (struct CKVS*) the ckvs database to search
+ * @param key (const char*) the key we want to compute the hash
+ * @return uint32_t, the hashkey
+ */
+static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
+    //check pointers
+    if (ckvs == NULL || key == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    ckvs_sha_t key_sha;
+    uint32_t hashkey;
+
+    //compute SHA256 of key
+    SHA256((const unsigned char *) key, strlen(key), key_sha.sha);
+
+    //copy the 4 first bytes
+    memcpy(&hashkey, key_sha.sha, sizeof(uint32_t));
+
+    //initialize the mask
+    uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
+
+    //apply the mask and return the value
+    return hashkey & mask;
+}
+
+// ----------------------------------------------------------------------
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
     //check pointers
     if (ckvs == NULL || filename == NULL) {
@@ -347,30 +378,6 @@ int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs) {
 
     return ckvs_write_entry_to_disk(ckvs, idx);
 
-}
-
-// ----------------------------------------------------------------------
-static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
-    //check pointers
-    if (ckvs == NULL || key == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    ckvs_sha_t key_sha;
-    uint32_t hashkey;
-
-    //compute SHA256 of key
-    SHA256((const unsigned char *) key, strlen(key), key_sha.sha);
-
-    //copy the 4 first bytes
-    memcpy(&hashkey, key_sha.sha, sizeof(uint32_t));
-
-    //initialize the mask
-    uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
-
-    //apply the mask and return the value
-    return hashkey & mask;
 }
 
 //----------------------------------------------------------------------

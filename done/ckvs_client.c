@@ -16,7 +16,7 @@
 #include "ckvs_local.h"
 #include <openssl/hmac.h>
 
-// ----------------------------------------------------------------------
+// ======================================================================
 /**
  * @brief To get the usable string associated to the key from a json object.
  *
@@ -52,7 +52,7 @@ static int get_string(const struct json_object *obj, const char *key, char *buf)
     return ERR_NONE;
 }
 
-// ----------------------------------------------------------------------
+// ======================================================================
 /**
  * @brief To get the integer associated to the key from a json object.
  *
@@ -80,7 +80,7 @@ static int get_int(const struct json_object *obj, const char *key, int *buf) {
     return ERR_NONE;
 }
 
-// ----------------------------------------------------------------------
+// ======================================================================
 int ckvs_client_stats(const char *url, int optargc, _unused char **optargv) {
     if (optargc > 0) {
         //error
@@ -163,7 +163,7 @@ int ckvs_client_stats(const char *url, int optargc, _unused char **optargv) {
     return ERR_NONE;
 }
 
-// ----------------------------------------------------------------------
+// ======================================================================
 int ckvs_client_get(const char *url, int optargc, char **optargv) {
     if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
     if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
@@ -204,7 +204,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     char* ready_key = NULL;
     CURL* curl = curl_easy_init();
     if (curl != NULL) {
-        ready_key = curl_easy_escape(curl, key, strlen(key));
+        ready_key = curl_easy_escape(curl, key, (int) strlen(key));
         if (ready_key == NULL) {
             //error
             ckvs_rpc_close(&conn);
@@ -381,7 +381,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
     return ERR_NONE;
 }
 
-// ----------------------------------------------------------------------
+// ======================================================================
 int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *obj) {
     //check pointers
     if (ckvs == NULL || obj == NULL) {
@@ -406,7 +406,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     }
 
     //retrieve the version
-    err = get_int(obj, "version", &infos[0]);
+    err = get_int(obj, "version", (int *) &infos[0]);
     if (err != ERR_NONE) {
         //error
         return err;
@@ -418,7 +418,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     }
 
     //retrieve the table size
-    err = get_int(obj, "table_size", &infos[1]);
+    err = get_int(obj, "table_size", (int *) &infos[1]);
     if (err != ERR_NONE) {
         //error
         return err;
@@ -431,14 +431,14 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     }
 
     //retrieve the number of threshold entries
-    err = get_int(obj, "threshold_entries", &infos[2]);
+    err = get_int(obj, "threshold_entries", (int *) &infos[2]);
     if (err != ERR_NONE) {
         //error
         return err;
     }
 
     //retrieve the number of entries
-    err = get_int(obj, "num_entries", &infos[3]);
+    err = get_int(obj, "num_entries", (int *) &infos[3]);
     if (err != ERR_NONE) {
         //error
         return err;
@@ -457,7 +457,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     return ERR_NONE;
 }
 
-// ----------------------------------------------------------------------
+// ======================================================================
 int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj){
 
     //check pointers
@@ -496,10 +496,10 @@ int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj){
 /* *************************************************** *
  * TODO WEEK 13                                        *
  * *************************************************** */
-int ckvs_client_set(const char *url, int optargc, char **optargv) {
+int ckvs_client_set(_unused const char *url,_unused int optargc,_unused char **optargv) {
     return NOT_IMPLEMENTED;
 }
 
-int ckvs_client_new(const char *url, int optargc, char **optargv) {
+int ckvs_client_new(_unused const char *url,_unused int optargc,_unused char **optargv) {
     return NOT_IMPLEMENTED;
 }

@@ -28,8 +28,16 @@ static int s_signo;
 #define HTTP_NOTFOUND_CODE 404
 #define BUFFER_SIZE 1024
 
-//-----------------------------------------------------------------------
-static int add_string(const struct json_object *obj, const char *key, const char *val) {
+// ======================================================================
+/**
+ * @brief To add an inner json object associated to the key with value the given string.
+ *
+ * @param obj (struct json_object*) the parent json object
+ * @param key (const char*) the key associated to the string we add
+ * @param val (char*) the string we add to the json object
+ * @return int, error code
+ */
+static int add_string(struct json_object *obj, const char *key, const char *val) {
     //check pointers
     if (obj == NULL || key == NULL || val == NULL) {
         //error
@@ -39,7 +47,8 @@ static int add_string(const struct json_object *obj, const char *key, const char
     return json_object_object_add(obj, key, json_object_new_string(val));
 }
 
-//-----------------------------------------------------------------------
+// ======================================================================
+/*
 static int add_array(const struct json_object *obj, const char *key, const char *array[], size_t size) {
     //check pointers
     if (obj == NULL || key == NULL || array == NULL) {
@@ -54,13 +63,22 @@ static int add_array(const struct json_object *obj, const char *key, const char 
         pps_printf("%s", array[i]);
     }
 
-    return json_object_object_add(obj, key, arr);
+    return json_object_object_add((struct json_object *) obj, key, arr);
 }
+*/
 
-//-----------------------------------------------------------------------
-static int add_int(const struct json_object *obj, const char *key, const int *val) {
+// ======================================================================
+/**
+ * @brief To add an inner json object associated to the key with value the given integer.
+ *
+ * @param obj (struct json_object*) the parent json object
+ * @param key (const char*) the key associated to the integer we add
+ * @param val (int) the integer we add to the json object
+ * @return int, error code
+ */
+static int add_int(struct json_object *obj, const char *key, int val) {
     //check pointers
-    if (obj == NULL || key == NULL || val == NULL) {
+    if (obj == NULL || key == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
     }
@@ -68,7 +86,7 @@ static int add_int(const struct json_object *obj, const char *key, const int *va
     return json_object_object_add(obj, key, json_object_new_int(val));
 }
 
-//-----------------------------------------------------------------------
+// ======================================================================
 static char *get_urldecoded_argument(struct mg_http_message *hm, const char *arg) {
     //check pointers
     if (hm == NULL || arg == NULL) {
@@ -104,7 +122,7 @@ static char *get_urldecoded_argument(struct mg_http_message *hm, const char *arg
     return result;
 }
 
-//-----------------------------------------------------------------------
+// ======================================================================
 /**
  * @brief Sends an http error message
  * @param nc the http connection
@@ -115,7 +133,7 @@ void mg_error_msg(struct mg_connection *nc, int err) {
     mg_http_reply(nc, HTTP_ERROR_CODE, NULL, "Error: %s", ERR_MESSAGES[err]);
 }
 
-//-----------------------------------------------------------------------
+// ======================================================================
 /**
  * @brief Handles signal sent to program, eg. Ctrl+C
  */
@@ -123,7 +141,7 @@ static void signal_handler(int signo) {
     s_signo = signo;
 }
 
-//-----------------------------------------------------------------------
+// ======================================================================
 static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
                               _unused struct mg_http_message *hm) {
     //check pointers
@@ -151,7 +169,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     }
 
     //add the version of ckvs
-    err = add_int(object, "version", ckvs->header.version);
+    err = add_int(object, "version", (int) ckvs->header.version);
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
@@ -160,7 +178,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     }
 
     //add the table size of ckvs
-    err = add_int(object, "table_size", ckvs->header.table_size);
+    err = add_int(object, "table_size", (int) ckvs->header.table_size);
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
@@ -169,7 +187,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     }
 
     //add the threshold entries of ckvs
-    err = add_int(object, "threshold_entries", ckvs->header.threshold_entries);
+    err = add_int(object, "threshold_entries", (int) ckvs->header.threshold_entries);
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
@@ -178,7 +196,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     }
 
     //add the number of entries of ckvs
-    err = add_int(object, "num_entries", ckvs->header.num_entries);
+    err = add_int(object, "num_entries", (int) ckvs->header.num_entries);
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
@@ -189,13 +207,12 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     //create the array to store the keys of ckvs
     json_object *array = json_object_new_array();
     for (size_t i = 0; i < ckvs->header.table_size; ++i) {
-        const char key[33] = {0};
-        strncpy(&key, ckvs->entries[i].key, 32);
+        char key[CKVS_MAXKEYLEN + 1];
+        strncpy(key, ckvs->entries[i].key, 32);
 
         if (strcmp(key, "\0") != 0) { //verify the key is not empty
             json_object_array_add(array, json_object_new_string(key));
         }
-
     }
 
     //add the array to the json object
@@ -225,7 +242,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     mg_error_msg(nc, ERR_NONE);
 }
 
-//-----------------------------------------------------------------------
+// ======================================================================
 static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct mg_http_message *hm) {
     //check pointers
     if (nc == NULL) {
@@ -320,6 +337,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         return;
     }
 
+    //place the pointer in the right position in the file, corresponding to the beginnning of the data
     err = fseek(ckvs->file, (long int) ckvs_out->value_off, SEEK_SET);
     if (err != ERR_NONE) {
         //error
