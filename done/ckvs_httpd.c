@@ -62,6 +62,7 @@ static char* get_urldecoded_argument(struct mg_http_message *hm, const char *arg
     if (err < 1) {
         //error
         free(buf); buf = NULL;
+
         return NULL;
     }
 
@@ -227,7 +228,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     //get the url escaped key
     char* key = get_urldecoded_argument(hm, "key");
     if (key == NULL) {
-        mg_error_msg(nc, ERR_IO);
+        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
         return;
 
     }
