@@ -89,7 +89,7 @@ int ckvs_client_stats(const char *url, int optargc, char **optargv) {
     }
 
     //free the struct JSON
-    err = json_object_put(root_obj); 
+    err = json_object_put(root_obj);
     if (err != 1) {
         //error
         ckvs_rpc_close(&conn);
