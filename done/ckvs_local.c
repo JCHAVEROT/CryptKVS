@@ -107,7 +107,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
             return ERR_IO;
         }
     }
-    //print_SHA("c2",&ckvs_out->c2);
+
 
 
     //now we have the entry and hence c2, to compute the masterkey

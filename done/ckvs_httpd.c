@@ -57,7 +57,7 @@ static char* get_urldecoded_argument(struct mg_http_message *hm, const char *arg
     }
 
     //retrieve the the argument called arg from hm
-    char* buf = calloc(BUFFER_SIZE, sizeof(char));
+    char* buf = calloc(CKVS_MAXKEYLEN+1, sizeof(char));
     int err = mg_http_get_var(&hm->query, arg, buf, BUFFER_SIZE);
     if (err < 1) {
         //error
@@ -72,7 +72,7 @@ static char* get_urldecoded_argument(struct mg_http_message *hm, const char *arg
     }
     //get the unescaped version of the argument
     int size = CKVS_MAXKEYLEN;
-    char* result = curl_easy_unescape(curl, buf, sizeof(buf), &size);
+    char* result = curl_easy_unescape(curl, buf, CKVS_MAXKEYLEN+1, &size);
     curl_easy_cleanup(curl);
     free(buf); buf = NULL;
     return result;
@@ -110,16 +110,13 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (ckvs == NULL || hm == NULL) {
         //error
         mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+        return;
+
     }
 
     //create the new json object
     json_object* object = json_object_new_object();
     //int err = json_object_put(object);
-    /*if (err != 1) {
-        //error
-        mg_error_msg(nc, ERR_IO);
-    }
-    pps_printf("TEST \n");*/
 
 
     //add the header string of ckvs
@@ -128,6 +125,8 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         //error
         json_object_put(object);
         mg_error_msg(nc, ERR_IO);
+        return;
+
     }
 
     //add the version of ckvs
@@ -136,6 +135,8 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         //error
         json_object_put(object);
         mg_error_msg(nc, ERR_IO);
+        return;
+
     }
 
     //add the table size of ckvs
@@ -144,6 +145,8 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         //error
         json_object_put(object);
         mg_error_msg(nc, ERR_IO);
+        return;
+
     }
 
     //add the threshold entries of ckvs
@@ -152,6 +155,8 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         //error
         json_object_put(object);
         mg_error_msg(nc, ERR_IO);
+        return;
+
     }
 
     //add the number of entries of ckvs
@@ -160,6 +165,8 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         //error
         json_object_put(object);
         mg_error_msg(nc, ERR_IO);
+        return;
+
     }
 
 
@@ -180,6 +187,8 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         //error
         json_object_put(object);
         mg_error_msg(nc, ERR_IO);
+        return;
+
     }
 
     //serialize the json onject
@@ -196,6 +205,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     if (err != 1) {
         //error
         mg_error_msg(nc, ERR_IO);
+        return;
     }
 }
 
@@ -209,25 +219,154 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     if (ckvs == NULL || hm == NULL) {
         //error
         mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+        return;
     }
 
     //get the url escaped key
     char* key = get_urldecoded_argument(hm, "key");
     if (key == NULL) {
         mg_error_msg(nc, ERR_IO);
+        return;
+
     }
+
 
     //get the encoded auth key
     char* auth_key_buffer = calloc(SHA256_PRINTED_STRLEN, sizeof(char));
+    if (auth_key_buffer==NULL){
+        curl_free(key);
+        mg_error_msg(nc, ERR_IO);
+        return;
+
+    }
+
     int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, 1024);
     if (err < 1) {
         //error
+        curl_free(key);
+        free(auth_key_buffer); auth_key_buffer = NULL;
         mg_error_msg(nc, ERR_IO);
+        return;
+
+    }
+
+    ckvs_sha_t auth_key={0};
+    SHA256_from_string(auth_key_buffer,&auth_key);
+    ckvs_entry_t* ckvs_out;
+    memset(&ckvs_out,0, sizeof(ckvs_entry_t*));
+
+
+    err = ckvs_find_entry(ckvs, key, &auth_key, &ckvs_out);
+
+    if (err != ERR_NONE) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, err);
+        return;
     }
 
     //free pointers
     curl_free(key);
     free(auth_key_buffer); auth_key_buffer = NULL;
+
+    if (ckvs_out->value_len==0){
+        ckvs_close(&ckvs);
+        mg_error_msg(nc, ERR_NO_VALUE);
+        return;
+    }
+
+    json_object* object = json_object_new_object();
+
+    char c2[SHA256_PRINTED_STRLEN]={0};
+    SHA256_to_string(&ckvs_out->c2,&c2);
+
+    err = add_string(object, "c2", &c2);
+    if (err != ERR_NONE) {
+        //error
+        json_object_put(object);
+        mg_error_msg(nc, ERR_IO);
+        ckvs_close(ckvs);
+        return;
+
+    }
+
+    err = fseek(ckvs->file,(long int) ckvs_out->value_off,SEEK_SET);
+    if (err != ERR_NONE) {
+        //error
+        ckvs_close(ckvs);
+        json_object_put(object);
+
+        mg_error_msg(nc, ERR_IO);
+        return ;
+    }
+
+    //initialize the string where the encrypted secret will be stored
+    unsigned char *encrypted = calloc(ckvs_out->value_len, sizeof(unsigned char));
+    if (encrypted == NULL) {
+        json_object_put(object);
+        mg_error_msg(nc, ERR_OUT_OF_MEMORY);
+        return;
+    }
+
+
+    //read the encrypted secret
+    size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs->file);
+    if (nb_ok != ckvs_out->value_len) {
+        //error
+        json_object_put(object);
+        ckvs_close(ckvs);
+        free(encrypted);
+        return ;
+    }
+     char *data  = calloc(ckvs_out->value_len*2+1, sizeof(unsigned char));
+    if (data == NULL) {
+        json_object_put(object);
+        mg_error_msg(nc, ERR_OUT_OF_MEMORY);
+        ckvs_close(ckvs);
+        free(encrypted);
+        return;
+    }
+
+
+    hex_encode(encrypted,ckvs_out->value_len,data);
+    free(encrypted);
+    encrypted=NULL;
+
+    err = add_string(object, "data", data);
+    free(data);
+    if (err != ERR_NONE) {
+        //error
+        json_object_put(object);
+        mg_error_msg(nc, ERR_IO);
+        ckvs_close(ckvs);
+        return;
+
+    }
+
+    //serialize the json onject
+    size_t length = 0;
+    const char* json_string = json_object_to_json_string_length(object, JSON_C_TO_STRING_PRETTY, &length);
+
+
+
+    //submit the response
+    mg_http_reply(nc, HTTP_OK_CODE, "Content-Type: application/json\r\n", "%s\n", json_string);
+
+    //free the json object
+    err = json_object_put(object);
+    if (err != 1) {
+        //error
+        mg_error_msg(nc, ERR_IO);
+        return;
+    }
+
+
+
+
+
+
+
+
 
 }
 
@@ -236,8 +375,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
  * @brief Handles server events (eg HTTP requests).
  * For more check https://cesanta.com/docs/#event-handler-function
  */
-static void ckvs_event_handler(
-struct mg_connection *nc, int ev, void *ev_data, void *fn_data)
+static void ckvs_event_handler(struct mg_connection *nc, int ev, void *ev_data, void *fn_data)
 {
     struct mg_http_message *hm = (struct mg_http_message *) ev_data;
     struct CKVS *ckvs = (struct CKVS*) fn_data;

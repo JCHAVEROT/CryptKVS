@@ -122,6 +122,8 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     }
     if (!authKeyIsCorrect) {
         //error
+        pps_printf("ERR_ID \n");
+
         return ERR_DUPLICATE_ID;
     }
 

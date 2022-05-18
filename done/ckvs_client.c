@@ -414,7 +414,6 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
     int err = get_string(obj, "header_string", header_str);
     if (err != ERR_NONE) {
         //error
-        pps_printf("%s\n", "azafafafa");
         return err;
     }
     //check that the header starts with the good prefix
