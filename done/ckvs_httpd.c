@@ -294,6 +294,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //hex-decode the string of the auth key into SHA256
     SHA256_from_string(auth_key_buffer, &auth_key);
+    free(auth_key_buffer); auth_key_buffer = NULL;
 
     //initialize a pointer on a ckvs_entry to store the entry to be found
     ckvs_entry_t *ckvs_out;
@@ -304,7 +305,6 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     if (err != ERR_NONE) {
         //error
         curl_free(key);
-        free(auth_key_buffer); auth_key_buffer = NULL;
         ckvs_close(ckvs);
         mg_error_msg(nc, err);
         return;
@@ -312,7 +312,6 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //free pointers
     curl_free(key);
-    free(auth_key_buffer); auth_key_buffer = NULL;
 
     if (ckvs_out->value_len == 0) {
         //error
@@ -409,9 +408,6 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         mg_error_msg(nc, ERR_IO);
         return;
     }
-
-    //free the ckvs
-    ckvs_close(ckvs);
 
     mg_error_msg(nc, ERR_NONE);
 }
