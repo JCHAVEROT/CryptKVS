@@ -147,8 +147,8 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     //check pointers
     if (nc == NULL) {
         //error
-        return;
         ckvs_close(ckvs);
+        return;
     }
 
     if (ckvs == NULL || hm == NULL) {
@@ -243,6 +243,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     err = json_object_put(object);
     if (err != 1) {
         //error
+        ckvs_close(ckvs);
         mg_error_msg(nc, ERR_IO);
         return;
     }
