@@ -1,4 +1,4 @@
- - ckvs_io.h:   4  # max 4,
+- ckvs_io.h:   4  # max 4,
 - ckvs_io.c: # NE PAS REMPLIR CETTE LIGNE
   - ckvs_write_entry_to_disk: # NE PAS REMPLIR CETTE LIGNE
       offset:         2             # max 2,
@@ -20,7 +20,7 @@
       boucle:           1               # max 1,
       key:               3              # max 3,
       SHA:                3             # max 3,
-     retours:             3            # max 3,
+      retours:             3            # max 3,
   - ckvs_write_encrypted_value: # NE PAS REMPLIR CETTE LIGNE
       tests arguments:        1.5            # max 1.5,
       fseek + test erreur:    2            # max 2,
@@ -34,16 +34,16 @@
       lecture de la valeur:     9       # max 12, free en cas d'erreur
       close:                    1       # max 1,
 - ckvs_utils.c: # NE PAS REMPLIR CETTE LIGNE
-   - hex_encode:       3         # max 3,
-   - SHA256_to_string:   1       # max 1,
-   - ckvs_cmp_sha:        2      # max 2,
+  - hex_encode:       3         # max 3,
+  - SHA256_to_string:   1       # max 1,
+  - ckvs_cmp_sha:        2      # max 2,
   - print_X: # NE PAS REMPLIR CETTE LIGNE
       print_SHA:        5     # max 5,
       print_header:    2      # max 2,
       print_entry:       2    # max 2,
 - ckvs_crypto.c: # NE PAS REMPLIR CETTE LIGNE
       tests arguments:          1.5     # max 1.5,
-      concaténation:            5     # max 10, pas de check sur les longueurs 
+      concaténation:            5     # max 10, pas de check sur les longueurs
       SHA:             2              # max 2,
       HMAC key:            3          # max 3,
       HMAC C1:              3         # max 3,
@@ -63,15 +63,12 @@
       generate C2 + test erreur:      3     # max 3,
       compute masterkey + test erreur: 3    # max 3,
   - do_get: # NE PAS REMPLIR CETTE LIGNE
-      modularisation:        0        # max 2, pas fait
       read encrypted value:   2       # max 4, VLA
       decrypt:                  1     # max 3, VLA
       print:                 1        # max 1,
       close:                  1       # max 1,
   - do_set: # NE PAS REMPLIR CETTE LIGNE
-      modularisation:         0       # max 2, pas fait
       encrypt:               4        # max 4,
-      debug:                 0        # max 5, pas fait 
       write:                 1.5        # max 1.5,
       close:                1         # max 1,
   - ckvs_local_get:        2      # max 2,
