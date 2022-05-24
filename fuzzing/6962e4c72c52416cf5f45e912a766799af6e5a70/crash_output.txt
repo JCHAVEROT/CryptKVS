@@ -1,0 +1,27 @@
+/mnt/d/Programming/POS/pps22-dev/working-rendu02-1M/dedup-crashes/6962e4c72c52416cf5f45e912a766799af6e5a70
+==11664==WARNING: AddressSanitizer failed to allocate 0x2a0000000000 bytes
+==11664==WARNING: AddressSanitizer failed to allocate 0x2a0000000000 bytes
+
+=================================================================
+==11664==ERROR: LeakSanitizer: detected memory leaks
+
+Direct leak of 1792 byte(s) in 1 object(s) allocated from:
+    #0 0x7fd7ffeede18 in __interceptor_calloc (/mnt/d/Programming/POS/pps22-dev/working-rendu02-1M/build/group_6db82f/fuzz-target+0xe9e18) (BuildId: e849cf47e4de147558be82603403f88e47f5de4f)
+    #1 0x7fd7fff32a37 in ckvs_open /mnt/d/Programming/POS/pps22-dev/projects-rendu02/group_6db82f/./done/ckvs_io.c:43:21
+    #2 0x7fd7fff3d5d2 in ckvs_local_getset /mnt/d/Programming/POS/pps22-dev/projects-rendu02/group_6db82f/./done/ckvs_local.c:78:15
+    #3 0x7fd7fff40969 in ckvs_local_get /mnt/d/Programming/POS/pps22-dev/projects-rendu02/group_6db82f/./done/ckvs_local.c:267:12
+    #4 0x7fd7fff3237e in ckvs_do_one_cmd /mnt/d/Programming/POS/pps22-dev/projects-rendu02/group_6db82f/./done/cryptkvs.c:75:20
+    #5 0x7fd7fff2fb89 in LLVMFuzzerTestOneInput /mnt/d/Programming/POS/pps22-dev/resources/cs212-2022/fuzz-target.c:59:13
+    #6 0x7fd7ffe51ee3 in fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long) (/mnt/d/Programming/POS/pps22-dev/working-rendu02-1M/build/group_6db82f/fuzz-target+0x4dee3) (BuildId: e849cf47e4de147558be82603403f88e47f5de4f)
+    #7 0x7fd7ffe3c2af in fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long) (/mnt/d/Programming/POS/pps22-dev/working-rendu02-1M/build/group_6db82f/fuzz-target+0x382af) (BuildId: e849cf47e4de147558be82603403f88e47f5de4f)
+    #8 0x7fd7ffe41fb6 in fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long)) (/mnt/d/Programming/POS/pps22-dev/working-rendu02-1M/build/group_6db82f/fuzz-target+0x3dfb6) (BuildId: e849cf47e4de147558be82603403f88e47f5de4f)
+    #9 0x7fd7ffe6b5d2 in main (/mnt/d/Programming/POS/pps22-dev/working-rendu02-1M/build/group_6db82f/fuzz-target+0x675d2) (BuildId: e849cf47e4de147558be82603403f88e47f5de4f)
+    #10 0x7fd7ff3e4082 in __libc_start_main (/lib/x86_64-linux-gnu/libc.so.6+0x24082) (BuildId: 1878e6b475720c7c51969e69ab2d276fae6d1dee)
+
+DEDUP_TOKEN: __interceptor_calloc--ckvs_open--ckvs_local_getset--ckvs_local_get--ckvs_do_one_cmd--LLVMFuzzerTestOneInput--fuzzer::Fuzzer::ExecuteCallback(unsigned char const*, unsigned long)--fuzzer::RunOneTest(fuzzer::Fuzzer*, char const*, unsigned long)--fuzzer::FuzzerDriver(int*, char***, int (*)(unsigned char const*, unsigned long))--main--__libc_start_main
+SUMMARY: AddressSanitizer: 1792 byte(s) leaked in 1 allocation(s).
+
+INFO: a leak has been found in the initial corpus.
+
+INFO: to ignore leaks on libFuzzer side use -detect_leaks=0.
+
