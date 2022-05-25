@@ -16,6 +16,16 @@
 #include <ctype.h>
 #include "ckvs_local.h"
 
+#define C2_SIZE  32
+// ----------------------------------------------------------------------
+/**
+ * @brief enum crypt_type with two modes decryption and encryption
+ */
+enum crypt_type {
+    DECRYPTION,
+    ENCRYPTION
+};
+
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename, int optargc, _unused char *optargv[]) {
 
@@ -96,7 +106,7 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 
     //if in set mode, to generate randomly SHA256 of c2 so not to decrease entropy
     if (set_value != NULL) {
-        err = RAND_bytes((unsigned char *) &(ckvs_out->c2.sha), SHA256_DIGEST_LENGTH);
+        err = RAND_bytes((unsigned char *) &(ckvs_out->c2.sha), C2_SIZE);
         if (err != 1) {
             //error
             ckvs_close(&ckvs);
@@ -132,6 +142,7 @@ void free_sve(unsigned char **sve, size_t *sve_length) {
 
 void free_uc(unsigned char **a) {
     if (a != NULL) {
+        // correcteur : pas strictement nécessaire, free(NULL) est ok
         if (*a != NULL) {
             free(*a);
             *a = NULL;
@@ -145,6 +156,8 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
         int err = fseek(ckvs->file, (long int) ckvs_out->value_off, SEEK_SET);
         if (err != ERR_NONE) {
             //error
+            // correcteur : getset devrait plutôt appeler close, comme elle l'a opened
+            // correcteur : ça évite les problèmes comme le prochain if qui n'appelle pas close
             ckvs_close(ckvs);
             return ERR_IO;
         }
@@ -154,6 +167,7 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
         if (encrypted == NULL) {
             return ERR_OUT_OF_MEMORY;
         }
+
 
         //read the encrypted secret
         size_t nb_ok = fread(encrypted, sizeof(unsigned char), ckvs_out->value_len, ckvs->file);
@@ -169,6 +183,7 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
         unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
 
         if (decrypted == NULL) {
+            // correcteur : ckvs_close
             free_uc(&encrypted);
             return ERR_OUT_OF_MEMORY;
         }
@@ -351,6 +366,7 @@ int ckvs_local_new(const char *filename, int optargc, char *optargv[]) {
 
     //close the file and finish
     ckvs_close(&ckvs);
+
 
     return ERR_NONE;
 }

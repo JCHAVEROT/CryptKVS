@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include "ckvs.h"
 
-
+// ----------------------------------------------------------------------
 /**
  * ckvs_curl_WriteMemoryCallback -- lifted from https://curl.se/libcurl/c/getinmemory.html
  *
@@ -31,13 +31,12 @@
  * @param userp (void*) points to a ckvs_connection (set with the CURLOPT_WRITEDATA option)
  * @return (size_t) the number of written bytes, or 0 if an error occured
  */
-static size_t ckvs_curl_WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp)
-{
+static size_t ckvs_curl_WriteMemoryCallback(void *contents, size_t size, size_t nmemb, void *userp) {
     size_t realsize = size * nmemb;
-    struct ckvs_connection *conn = (struct ckvs_connection *)userp;
+    struct ckvs_connection *conn = (struct ckvs_connection *) userp;
 
     char *ptr = realloc(conn->resp_buf, conn->resp_size + realsize + 1);
-    if(!ptr) {
+    if (!ptr) {
         /* out of memory! */
         debug_printf("not enough memory (realloc returned NULL)\n");
         return 0;
@@ -51,27 +50,49 @@ static size_t ckvs_curl_WriteMemoryCallback(void *contents, size_t size, size_t 
     return realsize;
 }
 
+// ----------------------------------------------------------------------
+/**
+ * @brief Compute an URL
+ *
+ * @param url (const char*) the url that needs to be augmented
+ * @param args (const char*) the arguments to add to the url
+ * @param buffer (char*) the buffer in which the new url is stored
+ * @return int, error code
+ */
+static int compute_url(const char *url, const char *args, char *buffer) {
+    //check pointers
+    if (url == NULL || args == NULL || buffer == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
 
-int ckvs_rpc_init(struct ckvs_connection *conn, const char *url)
-{
-    if (conn==NULL||url==NULL){
+    strncpy(buffer, url, strlen(url));
+    strcat(buffer, "/");
+    strcat(buffer, args);
+
+    return ERR_NONE;
+}
+
+// ----------------------------------------------------------------------
+int ckvs_rpc_init(struct ckvs_connection *conn, const char *url) {
+    if (conn == NULL || url == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
     bzero(conn, sizeof(*conn));
 
-    conn->url  = url;
+    conn->url = url;
     conn->curl = curl_easy_init();
     if (conn->curl == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
     curl_easy_setopt(conn->curl, CURLOPT_WRITEFUNCTION, ckvs_curl_WriteMemoryCallback);
-    curl_easy_setopt(conn->curl, CURLOPT_WRITEDATA, (void *)conn);
+    curl_easy_setopt(conn->curl, CURLOPT_WRITEDATA, (void *) conn);
 
     return ERR_NONE;
 }
 
-void ckvs_rpc_close(struct ckvs_connection *conn)
-{
+// ----------------------------------------------------------------------
+void ckvs_rpc_close(struct ckvs_connection *conn) {
     if (conn == NULL)
         return;
 
@@ -84,26 +105,29 @@ void ckvs_rpc_close(struct ckvs_connection *conn)
     bzero(conn, sizeof(*conn));
 }
 
-int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
+// ----------------------------------------------------------------------
+int ckvs_rpc(struct ckvs_connection *conn, const char *GET) {
     //check pointers
-    if (conn==NULL||GET==NULL){
+    if (conn == NULL || GET == NULL) {
+        //error
         return ERR_INVALID_ARGUMENT;
     }
 
-    //specify the URL
-     char *url = calloc(strlen(conn->url)+ strlen(GET) + 2, sizeof(char));
+    //compute the URL
+    char *url = calloc(strlen(conn->url) + strlen(GET) + 2, sizeof(char));
     if (url == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
-    strncpy(url, conn->url, strlen(conn->url));
-    strcat(url, "/");
-    strcat(url, GET);
+    int err = compute_url(conn->url, GET, url);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
 
-    //pps_printf("%s \n",url);
-
+    //pps_printf("%s \n",url); //uncomment to get the URL
 
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
-    free(url);
+    free(url); url = NULL;
     if (ret != CURLE_OK) {
         //error
         return ERR_OUT_OF_MEMORY;
@@ -112,12 +136,91 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET){
     ret = curl_easy_perform(conn->curl);
     if (ret != CURLE_OK) {
         //error
-
         return ERR_TIMEOUT;
     }
 
     return ERR_NONE;
+}
 
+// ----------------------------------------------------------------------
+/**
+ * @brief Sends an HTTP POST request to the connected server,
+ * using its url, and the GET and POST payloads.
+ *
+ * @param conn (struct ckvs_connection*) the connection to the server
+ * @param GET (const char*) the GET payload. Should already contain the fields "name" and "offset".
+ * @param POST (const char*) the POST payload
+ * @return int, error code
+ */
+int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
+    //check pointers
+    if (conn == NULL || GET == NULL || POST == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //compute the URL and set it in the curl
+    char *url = calloc(strlen(conn->url) + strlen(GET) + 2, sizeof(char));
+    if (url == NULL) {
+        return ERR_OUT_OF_MEMORY;
+    }
+    int err = compute_url(conn->url, GET, url);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+    CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
+    free(url); url = NULL;
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    //add json as a content type the list of headers
+    struct curl_slist* list = curl_slist_append(NULL, const char *string);
+    if (list == NULL) {
+        //error
+        return ERR_IO;
+    }
+    CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, list);
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_IO; //TODO: check if err_io
+    }
+
+    //add the HTTP POST content
+    ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, POST);
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_IO; //TODO: check if err_io
+    }
+
+    //send the request to the server
+    ret = curl_easy_perform(conn->curl);
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_TIMEOUT;
+    }
+
+    //send an empty request to tell the server the data was sent entirely
+    ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, "");
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_IO; //TODO: check if err_io
+    }
+    ret = curl_easy_perform(conn->curl);
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_TIMEOUT;
+    }
+
+    if (strlen(conn->resp_buf) > 0) {
+        //error
+        pps_printf("%s", conn->resp_buf);
+        return ERR_IO;
+    }
+
+    return ERR_NONE;
 }
 
 

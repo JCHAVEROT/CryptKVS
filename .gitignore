@@ -3,3 +3,5 @@
 *.depend
 *.idea
 *.DS_Store
+/CMakeLists.txt
+/done/cryptkvs

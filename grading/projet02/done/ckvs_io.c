@@ -15,39 +15,9 @@
 #include <openssl/sha.h>
 
 // ----------------------------------------------------------------------
-/**
- * @brief Computes the hashkey of a the given key in ckvs.
- *
- * @param ckvs (struct CKVS*) the ckvs database to search
- * @param key (const char*) the key we want to compute the hash
- * @return uint32_t, the hashkey
- */
-static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
-    //check pointers
-    if (ckvs == NULL || key == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    ckvs_sha_t key_sha;
-    uint32_t hashkey;
-
-    //compute SHA256 of key
-    SHA256((const unsigned char *) key, strlen(key), key_sha.sha);
-
-    //copy the 4 first bytes
-    memcpy(&hashkey, key_sha.sha, sizeof(uint32_t));
-
-    //initialize the mask
-    uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
-
-    //apply the mask and return the value
-    return hashkey & mask;
-}
-
-// ----------------------------------------------------------------------
 int ckvs_open(const char *filename, struct CKVS *ckvs) {
     //check pointers
+    // correcteur : M_REQUIRE_NON_NULL
     if (ckvs == NULL || filename == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
@@ -67,6 +37,7 @@ int ckvs_open(const char *filename, struct CKVS *ckvs) {
 
     int a = read_header(ckvs);
     if (a != ERR_NONE) {
+        // correcteur : ça marche avec le memset, mais comme les entries ne sont pas initialisées un fclose serait plus clair
         ckvs_close(ckvs);
         return a;
     }
@@ -127,6 +98,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
     uint32_t max_it = idx + ckvs->header.table_size;
     for (uint32_t i = idx; i < max_it; ++i) {
         // compute the index
+        // correcteur : & (size - 1), c'est une puissance de deux
         uint32_t j = i % ckvs->header.table_size;
         //check the key
         if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
@@ -160,7 +132,8 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 }
 
 // ----------------------------------------------------------------------
-int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
+int
+read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
     //check pointers
     if (filename == NULL || buffer_ptr == NULL || buffer_size == NULL) {
         //error
@@ -236,6 +209,8 @@ void close_RVFC(FILE **file, char **buffer_ptr) {
     if (buffer_ptr != NULL) {
         //check if the buffer hasn't been free previously
         if (*buffer_ptr != NULL) {
+            // correcteur : *buffer_ptr pourrait ne pas être NULL mais quand même invalide,
+            // correcteur : comme il est initialisé (ou non) par le caller de RVFC
             //free it
             free(*buffer_ptr);
             *buffer_ptr = NULL;
@@ -247,6 +222,7 @@ void close_RVFC(FILE **file, char **buffer_ptr) {
 // ----------------------------------------------------------------------
 int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) { //TODO : add a fflush(entry) after the fwrite ?
     //check ckvs pointer and validity of idx value
+    // correcteur : M_REQUIRE_NON_NULL
     if (ckvs == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
@@ -307,6 +283,7 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
 
     //to assign the new values of c2, value_off and value_len
     e->value_len = buflen;
+    // correcteur : pas de check d'erreur pour ftell
     e->value_off = (size_t) ftell(ckvs->file);
 
     //write at the end of the ckvs file the encrypted value
@@ -317,7 +294,7 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
     }
     //flush to be sure
     err = fflush(ckvs->file);
-    if (err != ERR_NONE) {
+    if (err != ERR_NONE) { // correcteur : pas ERR_NONE!
         //error
         return ERR_IO;
     }
@@ -380,13 +357,37 @@ int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs) {
 
 }
 
+// ----------------------------------------------------------------------
+static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key) {
+    //check pointers
+    if (ckvs == NULL || key == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    ckvs_sha_t key_sha;
+    uint32_t hashkey;
+
+    //compute SHA256 of key
+    SHA256((const unsigned char *) key, strlen(key), key_sha.sha);
+
+    //copy the 4 first bytes
+    memcpy(&hashkey, key_sha.sha, sizeof(uint32_t));
+
+    //initialize the mask
+    uint32_t mask = (uint32_t) ckvs->header.table_size - 1;
+
+    //apply the mask and return the value
+    return hashkey & mask;
+}
+
 //----------------------------------------------------------------------
 int read_header(CKVS_t *ckvs) {
     //check pointers
     if (ckvs == NULL || ckvs->file == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
-
+    // correcteur : plus simple de fread le header directement
 
     //read the header and that it was well-read
     char header_str[CKVS_HEADERSTRINGLEN];
@@ -435,6 +436,7 @@ int read_header(CKVS_t *ckvs) {
 
 //----------------------------------------------------------------------
 int check_pow_2(uint32_t table_size) {
+    // correcteur : ça marche, mais il y a plus simple
     while (table_size >= 2) {
         if (table_size % 2 != 0) break;
         table_size = table_size / 2;

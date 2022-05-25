@@ -18,7 +18,6 @@ struct CKVS {
     struct ckvs_header header;
     ckvs_entry_t *entries;
     FILE *file;
-    const char* listening_addr;
 };
 typedef struct CKVS CKVS_t;
 
@@ -116,6 +115,16 @@ void close_RVFC(FILE **file, char **buffer_ptr);
  * @return int, error code
  */
 int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out);
+
+/**
+ * @brief Computes the hashkey of a the given key in ckvs.
+ *
+ * @param ckvs (struct CKVS*) the ckvs database to search
+ * @param key (const char*) the key we want to compute the hash
+ * @return uint32_t, the hashkey
+ */
+static uint32_t ckvs_hashkey(struct CKVS *ckvs, const char *key);
+
 
 /**
  *@brief compute the index of the given entry in ckvs->entries and write to the disk
