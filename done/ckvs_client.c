@@ -179,6 +179,7 @@ int ckvs_client_get(const char *url, int optargc, char **optargv) {
         curl_free(ready_key);
         return ERR_OUT_OF_MEMORY;
     }
+
     strcpy(page, "get?key=");
     strcat(page, ready_key);
     strcat(page, "&auth_key=");
