@@ -148,15 +148,6 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET) {
 }
 
 // ----------------------------------------------------------------------
-/**
- * @brief Sends an HTTP POST request to the connected server,
- * using its url, and the GET and POST payloads.
- *
- * @param conn (struct ckvs_connection*) the connection to the server
- * @param GET (const char*) the GET payload. Should already contain the fields "name" and "offset".
- * @param POST (const char*) the POST payload
- * @return int, error code
- */
 int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     //check pointers
     if (conn == NULL || GET == NULL || POST == NULL) {
@@ -182,18 +173,27 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     }
 
     //add json as a content type the list of headers
-    struct curl_slist* list = curl_slist_append(NULL, HTTPHEADER_1);
-    if (list == NULL) {
+    struct curl_slist* slist=NULL;
+    slist = curl_slist_append(slist, HTTPHEADER_1);
+    if (slist == NULL) {
         //error
         return ERR_IO;
     }
-    ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, list);
+    ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, slist);
+    curl_slist_free_all(slist);
     if (ret != CURLE_OK) {
         //error
         return ERR_IO; //TODO: check if err_io
     }
 
-    //add the HTTP POST content
+    //Add the HTTP POST content
+    //set the size of the POST data
+    ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDSIZE, strlen(POST));
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_IO; //TODO: check if err_io
+    }
+    //pass in a pointer to the data
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, POST);
     if (ret != CURLE_OK) {
         //error
@@ -208,11 +208,17 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     }
 
     //send an empty request to tell the server the data was sent entirely
+    ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDSIZE, 0);
+    if (ret != CURLE_OK) {
+        //error
+        return ERR_IO; //TODO: check if err_io
+    }
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, "");
     if (ret != CURLE_OK) {
         //error
         return ERR_IO; //TODO: check if err_io
     }
+
     ret = curl_easy_perform(conn->curl);
     if (ret != CURLE_OK) {
         //error
@@ -221,7 +227,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
 
     if (strlen(conn->resp_buf) > 0) {
         //error
-        pps_printf("%s", conn->resp_buf);
+        pps_printf("%s", conn->resp_buf); //prints the response
         return ERR_IO;
     }
 
