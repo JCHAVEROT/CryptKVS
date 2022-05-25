@@ -30,9 +30,9 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     if (str == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
-    strncpy(str, key, strlen(key));
+    strncpy(str, key, CKVS_MAXKEYLEN);
     strcat(str, "|");
-    strncat(str, pwd, strlen(pwd));
+    strncat(str, pwd, CKVS_MAXKEYLEN);
 
     //convertion of the stretched_key in SHA256, stored in the memrecord
     SHA256((unsigned char *) str, strlen(str), mr->stretched_key.sha);

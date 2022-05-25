@@ -177,7 +177,13 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //place the pointer at the end of the file and check errors
     int err = fseek(file, 0, SEEK_END);
     if (err != ERR_NONE) {
-        close_RVFC(&file, buffer_ptr);
+        if (file != NULL) {
+                //close it
+                fclose(file);
+                file = NULL;
+            }
+
+        //close_RVFC(&file, buffer_ptr);
         return ERR_IO;
     }
 
@@ -185,7 +191,11 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     long int size_temp = ftell(file);
     if (size_temp == -1) {
         //error
-        close_RVFC(&file, buffer_ptr);
+        if (file != NULL) {
+            //close it
+            fclose(file);
+            file = NULL;
+        }
         return ERR_IO;
     }
     size_t size = (size_t) size_temp;
@@ -193,7 +203,11 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //place the pointer at the beginning of the file back
     err = fseek(file, 0, SEEK_SET);
     if (err != ERR_NONE) {
-        close_RVFC(&file, buffer_ptr);
+        if (file != NULL) {
+            //close it
+            fclose(file);
+            file = NULL;
+        }
         return ERR_IO;
     }
 
@@ -201,7 +215,12 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     *buffer_ptr = calloc(size + 1, sizeof(char)); //so the '\0' char fits
     if (*buffer_ptr == NULL) {
         //error
-        close_RVFC(&file, buffer_ptr);
+        if (file != NULL) {
+            //close it
+            fclose(file);
+            file = NULL;
+        }
+
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -209,7 +228,13 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     size_t nb = fread(*buffer_ptr, sizeof(char), size, file);
     if (nb != size) {
         //error
-        close_RVFC(&file, buffer_ptr);
+        if (file != NULL) {
+            //close it
+            fclose(file);
+            file = NULL;
+        }
+        free(*buffer_ptr);
+        *buffer_ptr=NULL;
         return ERR_IO;
     }
     *buffer_size = size + 1; //update the buffer size to have the place for the final '\0'

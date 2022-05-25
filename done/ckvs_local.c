@@ -169,6 +169,7 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
         unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
 
         if (decrypted == NULL) {
+            ckvs_close(ckvs);
             free_uc(&encrypted);
             return ERR_OUT_OF_MEMORY;
         }
@@ -192,7 +193,6 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
 
         //close the CKVS database at filename since done decrypting
         ckvs_close(ckvs);
-
         free_uc(&encrypted);
         free_uc(&decrypted);
         decrypted = NULL;
