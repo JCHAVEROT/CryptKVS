@@ -17,6 +17,11 @@
 #include <stdbool.h>
 #include "ckvs.h"
 
+/**
+ * @brief Header for connection, assign the content to json.
+ */
+#define HTTPHEADER_1 "Content-Type: application/json"
+
 // ----------------------------------------------------------------------
 /**
  * ckvs_curl_WriteMemoryCallback -- lifted from https://curl.se/libcurl/c/getinmemory.html
@@ -177,12 +182,12 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     }
 
     //add json as a content type the list of headers
-    struct curl_slist* list = curl_slist_append(NULL, const char *string);
+    struct curl_slist* list = curl_slist_append(NULL, HTTPHEADER_1);
     if (list == NULL) {
         //error
         return ERR_IO;
     }
-    CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, list);
+    ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, list);
     if (ret != CURLE_OK) {
         //error
         return ERR_IO; //TODO: check if err_io
