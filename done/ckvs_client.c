@@ -349,7 +349,7 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
     memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
 
     //initialize the connection and check errors
-    int err = ckvs_rpc_init(&conn, (const char *) url);
+    int err = ckvs_rpc_init(&conn, url);
     if (err != ERR_NONE) {
         //error
         return err;
@@ -392,12 +392,12 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
         return ERR_OUT_OF_MEMORY;
     }
     (set_value == NULL)
-        ? strcpy(page, "s")
-        : strcpy(page, "g"); //the best modularization
+        ? strcpy(page, "g")
+        : strcpy(page, "s"); //the best modularization
     strcpy(page, "et?key=");
     strcat(page, ready_key);
     strcat(page, "&auth_key=");
-    strncat(page, &buffer, SHA256_PRINTED_STRLEN);
+    strncat(page, buffer, SHA256_PRINTED_STRLEN);
 
     curl_free(ready_key);
 
