@@ -392,9 +392,9 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
         return ERR_OUT_OF_MEMORY;
     }
     (set_value == NULL)
-        ? strcpy(page, "g")
-        : strcpy(page, "s"); //the best modularization
-    strcpy(page, "et?key=");
+        ? strcat(page, "g")
+        : strcat(page, "s"); //the best modularization
+    strcat(page, "et?key=");
     strcat(page, ready_key);
     strcat(page, "&auth_key=");
     strncat(page, buffer, SHA256_PRINTED_STRLEN);
