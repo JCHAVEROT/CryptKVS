@@ -403,7 +403,6 @@ int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs) {
     uint32_t idx = (uint32_t)(e - &ckvs->entries[0]);
 
     return ckvs_write_entry_to_disk(ckvs, idx);
-
 }
 
 //----------------------------------------------------------------------
@@ -473,6 +472,11 @@ int check_pow_2(uint32_t table_size) {
 
 //----------------------------------------------------------------------
 int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **buffer) {
+    //check pointers
+    if (ckvs_mem == NULL || set_value == NULL || buffer == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
 
     //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
     size_t encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
