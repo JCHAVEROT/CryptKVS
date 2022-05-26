@@ -213,7 +213,8 @@ int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, con
 
     //encrypt set_value content
     unsigned char* set_value_encrypted = NULL;
-    int err = encrypt_secret(ckvs_mem, set_value, &set_value_encrypted);
+    size_t set_value_encrypted_length = 0;
+    int err = encrypt_secret(ckvs_mem, set_value, &set_value_encrypted, &set_value_encrypted_length);
     if (err != ERR_NONE) {
         //error
         ckvs_close(ckvs);
@@ -221,7 +222,7 @@ int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, con
     }
 
     err = ckvs_write_encrypted_value(ckvs, ckvs_out, (const unsigned char *) set_value_encrypted,
-                                     (uint64_t) strlen((const char*) set_value_encrypted));
+                                     (uint64_t) set_value_encrypted_length);
     if (err != ERR_NONE) {
         //error
         ckvs_close(ckvs);
@@ -231,8 +232,8 @@ int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, con
 
     //close the file, free the pointer and finish
     ckvs_close(ckvs);
-    //free_sve(&set_value_encrypted, &set_value_encrypted_length);
-    free(set_value_encrypted);
+    free_sve(&set_value_encrypted, &set_value_encrypted_length);
+
     return ERR_NONE;
 }
 
