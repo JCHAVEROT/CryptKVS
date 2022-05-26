@@ -105,7 +105,7 @@ int hex_decode(const char *in, uint8_t *buf) {
 
 
 
-    return half_size+j;
+    return (int) half_size+j;
 }
 
 // ----------------------------------------------------------------------
@@ -131,7 +131,7 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
 int get_err(char* error){
     for (size_t i = 1; i < 18; ++i) {
         if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i]))==0 ){
-            return i;
+            return (int) i;
         }
 
 

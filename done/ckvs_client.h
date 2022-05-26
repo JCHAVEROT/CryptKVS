@@ -4,6 +4,7 @@
  * @author E Bugnion, A. Clergeot
  */
 #pragma once
+#include <json-c/json.h>
 
 /* *************************************************** *
  * TODO WEEK 10                                        *

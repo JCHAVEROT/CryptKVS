@@ -255,6 +255,140 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
 }
 
 // ======================================================================
+static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct mg_http_message *hm) {
+    //check pointers
+    if (nc == NULL) {
+        //error
+        ckvs_close(ckvs);
+        return;
+    }
+
+    if (ckvs == NULL || hm == NULL) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+        return;
+    }
+
+ if (hm->body.len>0) {
+     int e = mg_http_upload(nc, hm, "/tmp");
+     if (e != 0) {
+         return;
+     }
+ }
+
+    //TODO modulariser HANDLE get/set
+
+    //get the url escaped key
+    char *key = get_urldecoded_argument(hm, "key");
+    if (key == NULL) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+        return;
+    }
+
+    //get the encoded auth key
+    char *auth_key_buffer = calloc(SHA256_PRINTED_STRLEN, sizeof(char));
+    if (auth_key_buffer == NULL) {
+        //error
+        curl_free(key);
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_IO);
+        return;
+    }
+
+    //retrieve the auth key and convert it in SHA256
+    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, 1024);
+    if (err < 1) {
+        //error
+        curl_free(key);
+        ckvs_close(ckvs);
+        free(auth_key_buffer); auth_key_buffer = NULL;
+        mg_error_msg(nc, ERR_IO);
+        return;
+    }
+    //initialize the ckvs_sha for the auth key
+    ckvs_sha_t auth_key;
+    memset(&auth_key, 0, sizeof(ckvs_sha_t));
+
+    //hex-decode the string of the auth key into SHA256
+    SHA256_from_string(auth_key_buffer, &auth_key);
+    free(auth_key_buffer); auth_key_buffer = NULL;
+
+    //initialize a pointer on a ckvs_entry to store the entry to be found
+    ckvs_entry_t *ckvs_out;
+    memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
+
+    //with the newly computed key and auth key, find the right entry in the table
+    err = ckvs_find_entry(ckvs, key, &auth_key, &ckvs_out);
+    if (err != ERR_NONE) {
+        //error
+        curl_free(key);
+        ckvs_close(ckvs);
+        mg_error_msg(nc, err);
+        return;
+    }
+
+    //free pointers
+    curl_free(key);
+
+
+    //TODO recuperer nom fichier
+    char *name = get_urldecoded_argument(hm, "name");
+    if (name == NULL) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+        return;
+    }
+    char* path = calloc(7+strlen(name),sizeof(char) );
+    if (path==NULL){
+        ckvs_close(ckvs);
+        curl_free(key);
+        mg_error_msg(nc, ERR_MAX_FILES);
+        return;
+    }
+    strcat(path, "/temp/");
+    strcat(path,name);
+
+    FILE* file =fopen(path,"rb");
+    if (file==NULL){
+        ckvs_close(ckvs);
+        curl_free(key);
+        mg_error_msg(nc, ERR_MAX_FILES);
+        free(path);
+        path=NULL;
+        return;
+    }
+
+    free(path);
+    path=NULL;
+
+    char mot[TAILLE_MAX+1] = "";
+    while ( !feof(entree) && !ferror(entree) ) {
+
+       }
+
+    fclose(entree) ;
+}
+
+
+
+
+
+curl_free(key);
+    ckvs_close(ckvs);
+    mg_http_reply(nc, HTTP_OK_CODE, "", "");
+
+
+
+
+
+}
+
+
+
 static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct mg_http_message *hm) {
     //check pointers
     if (nc == NULL) {
@@ -426,7 +560,6 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     mg_error_msg(nc, ERR_NONE);
 }
-
 // ======================================================================
 /**
  * @brief Handles server events (eg HTTP requests).
@@ -463,7 +596,9 @@ static void ckvs_event_handler(struct mg_connection *nc, int ev, void *ev_data, 
                 handle_stats_call(nc, ckvs, hm);
             } else if (mg_http_match_uri(hm, "/get")) {
                 handle_get_call(nc, ckvs, hm);
-            } else {
+            } else if (mg_http_match_uri(hm, "/set")) {
+                handle_set_call(nc, ckvs, hm);
+            }else {
                 mg_error_msg(nc, NOT_IMPLEMENTED);
             }
 
@@ -474,6 +609,9 @@ static void ckvs_event_handler(struct mg_connection *nc, int ev, void *ev_data, 
             assert(0);
     }
 }
+
+
+
 
 // ======================================================================
 int ckvs_httpd_mainloop(const char *filename, int optargc, char **optargv) {

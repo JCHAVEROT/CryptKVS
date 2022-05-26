@@ -246,28 +246,6 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     return ERR_NONE;
 }
 
-//---------------------------
-void close_RVFC(FILE **file, char **buffer_ptr) {
-    //check argument
-    if (file != NULL) {
-        //check if the file hasn't been close previously
-        if (*file != NULL) {
-            //close it
-            fclose(*file);
-            *file = NULL;
-        }
-    }
-    //check argument
-    if (buffer_ptr != NULL) {
-        //check if the buffer hasn't been free previously
-        if (*buffer_ptr != NULL) {
-            //free it
-            free(*buffer_ptr);
-            *buffer_ptr = NULL;
-        }
-    }
-
-}
 
 // ----------------------------------------------------------------------
 int ckvs_write_entry_to_disk(struct CKVS *ckvs, uint32_t idx) { //TODO : add a fflush(entry) after the fwrite ?
