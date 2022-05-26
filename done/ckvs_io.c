@@ -13,6 +13,7 @@
 #include "ckvs_io.h"
 #include <stdlib.h>
 #include <openssl/sha.h>
+#include "openssl/evp.h"
 
 // ----------------------------------------------------------------------
 /**
@@ -160,7 +161,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 }
 
 // ----------------------------------------------------------------------
-int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
+int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) {
     //check pointers
     if (filename == NULL || buffer_ptr == NULL || buffer_size == NULL) {
         //error
@@ -380,7 +381,6 @@ int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs) {
     uint32_t idx = (uint32_t)(e - &ckvs->entries[0]);
 
     return ckvs_write_entry_to_disk(ckvs, idx);
-
 }
 
 //----------------------------------------------------------------------
@@ -389,7 +389,6 @@ int read_header(CKVS_t *ckvs) {
     if (ckvs == NULL || ckvs->file == NULL) {
         return ERR_INVALID_ARGUMENT;
     }
-
 
     //read the header and that it was well-read
     char header_str[CKVS_HEADERSTRINGLEN];
@@ -447,4 +446,51 @@ int check_pow_2(uint32_t table_size) {
         return ERR_CORRUPT_STORE;
     }
     return ERR_NONE;
+}
+
+//----------------------------------------------------------------------
+int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length) {
+    //check pointers
+    if (ckvs_mem == NULL || set_value == NULL || encrypted == NULL || length == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
+    *length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
+    *encrypted = calloc(*length, sizeof(unsigned char));
+    if (*encrypted == NULL) {
+        //error
+        free_sve(encrypted, length);
+        return ERR_OUT_OF_MEMORY;
+    }
+    int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
+                                      *encrypted,
+                                      length);
+    if (err != ERR_NONE) {
+        //error
+        free_sve(encrypted, length);
+        return err;
+    }
+
+    return ERR_NONE;
+}
+
+//----------------------------------------------------------------------
+void free_sve(unsigned char **sve, size_t *sve_length) {
+    if (sve != NULL && *sve != NULL) {
+        free(*sve);
+        *sve = NULL;
+    }
+    if (sve_length != NULL) *sve_length = 0;
+}
+
+//----------------------------------------------------------------------
+void free_uc(unsigned char **a) {
+    if (a != NULL) {
+        if (*a != NULL) {
+            free(*a);
+            *a = NULL;
+        }
+    }
 }

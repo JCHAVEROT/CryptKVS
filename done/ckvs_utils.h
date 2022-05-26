@@ -133,7 +133,12 @@ int hex_decode(const char *in, uint8_t *buf);
  */
 int SHA256_from_string(const char *in, struct ckvs_sha *sha);
 
-
+/**
+ * @brief Method used to retrieve the error code from a string.
+ *
+ * @param error (char*) the string
+ * @return int, error code
+ */
 int get_err(char* error);
 
 

@@ -7,6 +7,15 @@
 
 #include <stdint.h> // for uint64_t
 #include "ckvs.h"
+#include "ckvs_crypto.h"
+
+/**
+ * @brief enum crypt_type with two modes decryption and encryption
+ */
+enum crypt_type {
+    DECRYPTION,
+    ENCRYPTION
+};
 
 /* *************************************************** *
  * TODO WEEK 04: Define struct CKVS here               *
@@ -34,7 +43,6 @@ typedef struct CKVS CKVS_t;
  * @return int, error code
  */
 int ckvs_open(const char *filename, struct CKVS *ckvs);
-
 
 /**
  * @brief helper function to read the header of ckvs
@@ -94,6 +102,16 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
  */
 int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size);
 
+<<<<<<< HEAD
+=======
+/**
+ * @brief Helper function to close the file and free the buffer during the execution of read_value_file_content
+ *
+ * @param file (FILE**) file to close
+ * @param buffer_ptr (char **) buffer to free
+ */
+void close_RVFC(FILE **file, char **buffer_ptr);
+>>>>>>> b338b8c69c1ad830d59bd2ff27155bad5bfeb265
 
 /* *************************************************** *
  * TODO WEEK 07                                        *
@@ -110,10 +128,39 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
 int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out);
 
 /**
- *@brief compute the index of the given entry in ckvs->entries and write to the disk
+ * @brief Compute the index of the given entry in ckvs->entries and write to the disk
  * @param e (struct ckvs_entry*) entry to be writen
  * @param ckvs (struct CKVS*) the ckvs database to search
- * @return
+ * @return int, error code
  */
 int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs);
 
+/* *************************************************** *
+ * MODULARIZATION                                      *
+ * *************************************************** */
+
+/**
+ * @brief Encrypt a secret
+ *
+ * @param ckvs_mem (ckvs_memrecord_t*) holds the necessary variables
+ * @param set_value (const char*) the secret
+ * @param encrypted (char**) the pointer to the buffer in which to put the encrypted secret
+ * @param length (int*) pointer storing the length of the encrypted secret
+ * @return int, error code
+ */
+int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length);
+
+/**
+ * @brief Auxiliary function to easily free set_value_encrypted's dynamic allocation
+ *
+ * @param sve (const char*)
+ * @param sve_length (size_t)
+ */
+void free_sve(unsigned char **sve, size_t *sve_length);
+
+/**
+ * @brief Auxiliary function to easily free an unsigned char*
+ *
+ * @param a (unsigned char**) pointer to the unsigned char* to free
+ */
+void free_uc(unsigned char **a);
