@@ -15,6 +15,7 @@
 #include "openssl/rand.h"
 #include <ctype.h>
 #include "ckvs_local.h"
+#include "openssl/evp.h"
 
 // ----------------------------------------------------------------------
 int ckvs_local_stats(const char *filename, int optargc, _unused char *optargv[]) {
