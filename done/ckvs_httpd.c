@@ -27,64 +27,7 @@ static int s_signo;
 #define HTTP_FOUND_CODE 302
 #define HTTP_NOTFOUND_CODE 404
 #define BUFFER_SIZE 1024
-
-// ======================================================================
-/**
- * @brief To add an inner json object associated to the key with value the given string.
- *
- * @param obj (struct json_object*) the parent json object
- * @param key (const char*) the key associated to the string we add
- * @param val (char*) the string we add to the json object
- * @return int, error code
- */
-static int add_string(struct json_object *obj, const char *key, const char *val) {
-    //check pointers
-    if (obj == NULL || key == NULL || val == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    return json_object_object_add(obj, key, json_object_new_string(val));
-}
-
-// ======================================================================
-/*
-static int add_array(const struct json_object *obj, const char *key, const char *array[], size_t size) {
-    //check pointers
-    if (obj == NULL || key == NULL || array == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    struct json_object *arr = json_object_new_array();
-
-    for (size_t i = 0; i < size; i++) {
-        json_object_array_add(arr, json_object_new_string(array[i]));
-        pps_printf("%s", array[i]);
-    }
-
-    return json_object_object_add((struct json_object *) obj, key, arr);
-}
-*/
-
-// ======================================================================
-/**
- * @brief To add an inner json object associated to the key with value the given integer.
- *
- * @param obj (struct json_object*) the parent json object
- * @param key (const char*) the key associated to the integer we add
- * @param val (int) the integer we add to the json object
- * @return int, error code
- */
-static int add_int(struct json_object *obj, const char *key, int val) {
-    //check pointers
-    if (obj == NULL || key == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    return json_object_object_add(obj, key, json_object_new_int(val));
-}
+#define NAME_SIZE 100
 
 // ======================================================================
 static char *get_urldecoded_argument(struct mg_http_message *hm, const char *arg) {
@@ -159,7 +102,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
     }
 
     //create the new json object
-    json_object *object = json_object_new_object();
+    struct json_object *object = json_object_new_object();
 
     //add the header string of ckvs
     int err = add_string(object, "header_string", ckvs->header.header_string);
@@ -255,6 +198,13 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
 }
 
 // ======================================================================
+/**
+ * @brief Handler for a set call.
+ *
+ * @param nc the http connection
+ * @param ckvs the ckvs table
+ * @param hm the http message
+ */
 static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct mg_http_message *hm) {
     //check pointers
     if (nc == NULL) {
@@ -270,12 +220,14 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         return;
     }
 
- if (hm->body.len>0) {
-     int e = mg_http_upload(nc, hm, "/tmp");
-     if (e != 0) {
-         return;
-     }
- }
+    if (hm->body.len > 0) {
+        int err = mg_http_upload(nc, hm, "/tmp");
+        if (err != ERR_NONE) {
+            //error
+            mg_error_msg(nc, err);
+            return;
+        }
+    }
 
     //TODO modulariser HANDLE get/set
 
@@ -299,7 +251,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     }
 
     //retrieve the auth key and convert it in SHA256
-    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, 1024);
+    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, BUFFER_SIZE);
     if (err < 1) {
         //error
         curl_free(key);
@@ -322,68 +274,102 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //with the newly computed key and auth key, find the right entry in the table
     err = ckvs_find_entry(ckvs, key, &auth_key, &ckvs_out);
+    curl_free(key);
     if (err != ERR_NONE) {
         //error
-        curl_free(key);
         ckvs_close(ckvs);
         mg_error_msg(nc, err);
         return;
     }
 
-    //free pointers
-    curl_free(key);
-
-
-    //TODO recuperer nom fichier
-    char *name = get_urldecoded_argument(hm, "name");
-    if (name == NULL) {
+    //get the file name
+    char *name = calloc(NAME_SIZE, sizeof(char));
+    err = mg_http_get_var(&hm->query, "name", name, BUFFER_SIZE);
+    if (err < 1) {
         //error
         ckvs_close(ckvs);
-        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
+        free(name); name = NULL;
+        mg_error_msg(nc, ERR_IO);
         return;
     }
-    char* path = calloc(7+strlen(name),sizeof(char) );
-    if (path==NULL){
+
+    //compute the path
+    char* path = calloc(5 + strlen(name) + 1, sizeof(char));
+    if (path == NULL) {
+        //error
         ckvs_close(ckvs);
         curl_free(key);
-        mg_error_msg(nc, ERR_MAX_FILES);
+        mg_error_msg(nc, ERR_OUT_OF_MEMORY);
         return;
     }
-    strcat(path, "/temp/");
-    strcat(path,name);
+    strcat(path, "/tmp/");
+    strcat(path, name);
 
-    FILE* file =fopen(path,"rb");
-    if (file==NULL){
+    //initialize buffer and its size
+    char *buffer = NULL; size_t buffer_size = 0;
+
+    //read file called filename and prints it in the buffer and check errors
+    err = read_value_file_content(path, &buffer, &buffer_size);
+    free(path); path = NULL;
+    if (err != ERR_NONE) {
+        //error
         ckvs_close(ckvs);
-        curl_free(key);
-        mg_error_msg(nc, ERR_MAX_FILES);
-        free(path);
-        path=NULL;
+        mg_error_msg(nc, err);
         return;
     }
 
-    free(path);
-    path=NULL;
+    //retrieve the json object
+    struct json_object *root_obj = json_tokener_parse(buffer);
+    free(buffer); buffer = NULL; buffer_size = 0;
+    if (root_obj == NULL) {
+        //error, need to get which one
+        ckvs_close(ckvs);
+        if (strncmp(buffer, "Error:", 6) == 0) {
+            err = get_err(buffer + 7);
+        }
+        pps_printf("%s\n", "An error occured when parsing the string into a json object");
+        (err == ERR_NONE)
+            ? mg_error_msg(nc, ERR_IO)
+            : mg_error_msg(nc, err);
+        return;
+    }
 
-    //char mot[TAILLE_MAX+1] = "";
-    while ( !feof(file) && !ferror(file) ) {
+    //get the hex-encoded c2 string, decode it into SHA256 and put its value in the table
+    char c2_hex[SHA256_PRINTED_STRLEN];
+    err = get_string(root_obj, "c2", c2_hex);
+    if (err != ERR_NONE) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, err);
+        return;
+    }
+    struct ckvs_sha c2;
+    memset(&c2, 0, sizeof(ckvs_sha_t));
+    SHA256_from_string(c2_hex, &c2);
+    ckvs_out->c2 = c2;
 
-       }
+    //TODO
+    //get the hex-encoded data
 
-    fclose(file) ;
+    //get_string()
+    //hex_decode()
+    //ckvs_write_encrypted_value();
+    //ckvs_write_entry_to_disk();
 
-    curl_free(key);
+
     ckvs_close(ckvs);
     mg_http_reply(nc, HTTP_OK_CODE, "", "");
-
-
-
-
-
+    mg_error_msg(nc, ERR_NONE);
 }
 
-
-
+// ======================================================================
+/**
+ * @brief Handler for a get call.
+ *
+ * @param nc the http connection
+ * @param ckvs the ckvs table
+ * @param hm the http message
+ */
 static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct mg_http_message *hm) {
     //check pointers
     if (nc == NULL) {
@@ -419,7 +405,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     }
 
     //retrieve the auth key and convert it in SHA256
-    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, 1024);
+    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, BUFFER_SIZE);
     if (err < 1) {
         //error
         curl_free(key);
@@ -462,7 +448,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     }
 
     //initialize the json_object that will contain c2 and the data
-    json_object *object = json_object_new_object();
+    struct json_object *object = json_object_new_object();
 
     //initialize the hex-encoded string that will contain the SHA256 of c2
     char c2[SHA256_PRINTED_STRLEN];
@@ -555,6 +541,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     mg_error_msg(nc, ERR_NONE);
 }
+
 // ======================================================================
 /**
  * @brief Handles server events (eg HTTP requests).
@@ -604,9 +591,6 @@ static void ckvs_event_handler(struct mg_connection *nc, int ev, void *ev_data, 
             assert(0);
     }
 }
-
-
-
 
 // ======================================================================
 int ckvs_httpd_mainloop(const char *filename, int optargc, char **optargv) {

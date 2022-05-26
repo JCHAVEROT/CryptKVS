@@ -14,7 +14,6 @@
  */
 #define CKVS_MAX_VALUE_LEN_HTTP_QUERY (14*32)
 
-struct json_object;
 
 /**
  * @brief Holds the client state that represents a connection to a remote CKVS server

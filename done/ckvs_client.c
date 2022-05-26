@@ -29,70 +29,6 @@
 #define DEFAULT_OFFSET "0"
 
 // ======================================================================
-/**
- * @brief To get the usable string associated to the key from a json object.
- *
- * @param obj (const json_object*) the json object we retrieve the information from
- * @param key (const char*) the key of the string of interest
- * @param buf (char*) buffer used to store the computed string
- * @return int, error code
- */
-static int get_string(const struct json_object *obj, const char *key, char *buf) {
-    //check pointers
-    if (obj == NULL || key == NULL || buf == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    //get the right json object
-    struct json_object *value = NULL;
-    if (!json_object_object_get_ex(obj, key, &value)) {
-        pps_printf("%s %s\n", "An error occurred : did not find the key", key);
-        return ERR_IO;
-    }
-
-    //get the string from the json object
-    const char *string_from_obj = json_object_get_string(value);
-    if (string_from_obj == NULL) {
-        //error
-        return ERR_IO;
-    }
-
-    //copy in the buffer
-    strcpy(buf, string_from_obj);
-
-    return ERR_NONE;
-}
-
-// ======================================================================
-/**
- * @brief To get the integer associated to the key from a json object.
- *
- * @param obj (const json_object*) the json object we retrieve the information from
- * @param key (const char*) the key of the integer of interest
- * @param buf (char*) buffer used to store the computed integer
- * @return int, error code
- */
-static int get_int(const struct json_object *obj, const char *key, int *buf) {
-    //check pointers
-    if (obj == NULL || key == NULL || buf == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    struct json_object *value = NULL;
-    if (!json_object_object_get_ex(obj, key, &value)) {
-        pps_printf("%s %s", "An error occured : did not find the key", key);
-        return ERR_IO;
-    }
-
-    //assign to the buffer the value found
-    *buf = json_object_get_int(value);
-
-    return ERR_NONE;
-}
-
-// ======================================================================
 int ckvs_client_stats(const char *url, int optargc, _unused char **optargv) {
     if (optargc > 0) {
         //error
@@ -619,7 +555,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     free_sve(&encrypted, &encrypted_length);
 
     //create the new json object
-    json_object *object = json_object_new_object();
+    struct json_object *object = json_object_new_object();
 
     //add the c2 hex-encoded string to the json
     err = json_object_object_add(object, "c2", json_object_new_string(encrypted_hex));
@@ -630,7 +566,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //add the data hex-encoded and encrypted string to the json
-    err = json_object_object_add(object, "data", json_object_new_string(encrypted_hex));
+    err = add_string(object, "data", encrypted_hex);
     if (err != ERR_NONE) {
         //error
         json_object_put(object);
