@@ -7,9 +7,9 @@ ckvs_utils.o: ckvs_utils.c ckvs_utils.h ckvs.h error.h util.h
 ckvs_crypto.o: ckvs_crypto.c ckvs.h ckvs_utils.h error.h ckvs_crypto.h
 ckvs_io.o: ckvs_io.c ckvs_utils.h ckvs.h error.h ckvs_crypto.h ckvs_io.h
 ckvs_rpc.o: ckvs_rpc.c ckvs_rpc.h ckvs_io.h ckvs.h ckvs_utils.h error.h \
- util.h
+ ckvs_crypto.h util.h
 ckvs_client.o: ckvs_client.c ckvs_rpc.h ckvs_io.h ckvs.h ckvs_utils.h \
- error.h util.h ckvs_crypto.h ckvs_local.h
+ error.h ckvs_crypto.h ckvs_client.h util.h ckvs_local.h
 libmongoose/mongoose.o: libmongoose/mongoose.c libmongoose/mongoose.h
 ckvs_httpd.o: ckvs_httpd.c ckvs.h ckvs_utils.h error.h ckvs_io.h \
- ckvs_httpd.h libmongoose/mongoose.h util.h
+ ckvs_crypto.h ckvs_httpd.h libmongoose/mongoose.h util.h

@@ -102,8 +102,7 @@ int ckvs_write_encrypted_value(struct CKVS *ckvs, struct ckvs_entry *e, const un
  */
 int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size);
 
-<<<<<<< HEAD
-=======
+
 /**
  * @brief Helper function to close the file and free the buffer during the execution of read_value_file_content
  *
@@ -111,7 +110,6 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
  * @param buffer_ptr (char **) buffer to free
  */
 void close_RVFC(FILE **file, char **buffer_ptr);
->>>>>>> b338b8c69c1ad830d59bd2ff27155bad5bfeb265
 
 /* *************************************************** *
  * TODO WEEK 07                                        *

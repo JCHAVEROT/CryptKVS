@@ -365,19 +365,14 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     free(path);
     path=NULL;
 
-    char mot[TAILLE_MAX+1] = "";
-    while ( !feof(entree) && !ferror(entree) ) {
+    //char mot[TAILLE_MAX+1] = "";
+    while ( !feof(file) && !ferror(file) ) {
 
        }
 
-    fclose(entree) ;
-}
+    fclose(file) ;
 
-
-
-
-
-curl_free(key);
+    curl_free(key);
     ckvs_close(ckvs);
     mg_http_reply(nc, HTTP_OK_CODE, "", "");
 

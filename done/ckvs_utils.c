@@ -105,13 +105,9 @@ int hex_decode(const char *in, uint8_t *buf) {
             buf[i+j]=(uint8_t)result;
         }
 
-<<<<<<< HEAD
 
 
     return (int) half_size+j;
-=======
-    return half_size + j;
->>>>>>> b338b8c69c1ad830d59bd2ff27155bad5bfeb265
 }
 
 // ----------------------------------------------------------------------
@@ -133,13 +129,8 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
 // ----------------------------------------------------------------------
 int get_err(char* error) {
     for (size_t i = 1; i < 18; ++i) {
-<<<<<<< HEAD
-        if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i]))==0 ){
+        if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i]))==0 ) {
             return (int) i;
-=======
-        if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i])) == 0 ){
-            return i;
->>>>>>> b338b8c69c1ad830d59bd2ff27155bad5bfeb265
         }
     }
 
