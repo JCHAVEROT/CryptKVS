@@ -158,6 +158,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     //compute the URL and set it in the curl
     char *url = calloc(strlen(conn->url) + strlen(GET) + 2, sizeof(char));
     if (url == NULL) {
+        //error
         return ERR_OUT_OF_MEMORY;
     }
     int err = compute_url(conn->url, GET, url);
@@ -173,7 +174,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     }
 
     //add json as a content type the list of headers
-    struct curl_slist* slist=NULL;
+    struct curl_slist* slist = NULL;
     slist = curl_slist_append(slist, HTTPHEADER_1);
     if (slist == NULL) {
         //error

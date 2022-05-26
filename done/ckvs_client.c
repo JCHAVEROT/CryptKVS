@@ -412,11 +412,9 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
 
     curl_free(ready_key);
 
-    if (set_value == NULL) {
-        err = do_client_get(&conn, &ckvs_mem, page); //the get part
-    } else {
-        err = do_client_set(&conn, &ckvs_mem, page, set_value); //the set part
-    }
+    err = (set_value == NULL)
+            ? do_client_get(&conn, &ckvs_mem, page) //the get part
+            : do_client_set(&conn, &ckvs_mem, page, set_value); //the set part
 
     //close the connection
     ckvs_rpc_close(&conn);
@@ -576,6 +574,10 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //initialize and generate randomly SHA256 of c2 so not to decrease entropy
     struct ckvs_sha *c2 = calloc(1, sizeof(ckvs_sha_t));
+    if (c2 == NULL) {
+        //error
+        return ERR_OUT_OF_MEMORY;
+    }
     int err = RAND_bytes((unsigned char *) c2->sha, SHA256_DIGEST_LENGTH);
     if (err != 1) {
         //error
@@ -648,7 +650,6 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     return ERR_NONE;
-
 }
 
 // ======================================================================
