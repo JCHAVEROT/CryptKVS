@@ -13,6 +13,7 @@
 #include "ckvs_io.h"
 #include <stdlib.h>
 #include <openssl/sha.h>
+#include "openssl/evp.h"
 
 // ----------------------------------------------------------------------
 /**
@@ -160,7 +161,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 }
 
 // ----------------------------------------------------------------------
-int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) { //TODO : fclose(file) when error
+int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buffer_size) {
     //check pointers
     if (filename == NULL || buffer_ptr == NULL || buffer_size == NULL) {
         //error
@@ -412,7 +413,6 @@ int read_header(CKVS_t *ckvs) {
         return ERR_INVALID_ARGUMENT;
     }
 
-
     //read the header and that it was well-read
     char header_str[CKVS_HEADERSTRINGLEN];
     size_t nb_ok = fread(header_str, sizeof(char), CKVS_HEADERSTRINGLEN, ckvs->file);
@@ -469,4 +469,51 @@ int check_pow_2(uint32_t table_size) {
         return ERR_CORRUPT_STORE;
     }
     return ERR_NONE;
+}
+
+//----------------------------------------------------------------------
+int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **buffer) {
+    //check pointers
+    if (ckvs_mem == NULL || set_value == NULL || buffer == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
+    size_t encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
+    *buffer = calloc(encrypted_length, sizeof(unsigned char));
+    if (*buffer == NULL) {
+        //error
+        free_sve(buffer, &encrypted_length);
+        return ERR_OUT_OF_MEMORY;
+    }
+    int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
+                                      *buffer,
+                                      &encrypted_length);
+    if (err != ERR_NONE) {
+        //error
+        free_sve(buffer, &encrypted_length);
+        return err;
+    }
+
+    return ERR_NONE;
+}
+
+//----------------------------------------------------------------------
+void free_sve(unsigned char **sve, size_t *sve_length) {
+    if (sve != NULL && *sve != NULL) {
+        free(*sve);
+        *sve = NULL;
+    }
+    if (sve_length != NULL) *sve_length = 0;
+}
+
+//----------------------------------------------------------------------
+void free_uc(unsigned char **a) {
+    if (a != NULL) {
+        if (*a != NULL) {
+            free(*a);
+            *a = NULL;
+        }
+    }
 }

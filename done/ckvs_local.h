@@ -12,13 +12,6 @@
 #include "ckvs_crypto.h"
 #include "ckvs_io.h"
 
-/**
- * @brief enum crypt_type with two modes decryption and encryption
- */
-enum crypt_type {
-    DECRYPTION,
-    ENCRYPTION
-};
 
 /* *************************************************** *
  * TODO WEEK 04                                        *
@@ -64,22 +57,6 @@ int ckvs_local_get(const char *filename, int optargc, char *optargv[]);
  * @return int, an error code
  */
 int ckvs_local_getset(const char *filename, const char *key, const char *pwd, const char *set_value);
-
-
-/**
- * @brief Auxiliary function to easily free set_value_encrypted's dynamic allocation
- *
- * @param sve (const char*)
- * @param sve_length (size_t)
- */
-void free_sve(unsigned char **sve, size_t *sve_length);
-
-/**
- * @brief Auxiliary function to easily free an unsigned char*
- *
- * @param a (unsigned char**) pointer to the unsigned char* to free
- */
-void free_uc(unsigned char **a);
 
 /**
  * @brief do the set part of the getset function

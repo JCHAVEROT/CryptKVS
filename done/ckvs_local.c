@@ -3,6 +3,7 @@
  * @brief c.f. ckvs_local.h
  */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "ckvs_utils.h"
 #include "ckvs.h"
@@ -122,23 +123,6 @@ int ckvs_local_getset(const char *filename, const char *key, const char *pwd, co
 }
 
 //-----------------------------------------------------------------------
-void free_sve(unsigned char **sve, size_t *sve_length) {
-    if (sve != NULL && *sve != NULL) {
-        free(*sve);
-        *sve = NULL;
-    }
-    if (sve_length != NULL) *sve_length = 0;
-}
-
-void free_uc(unsigned char **a) {
-    if (a != NULL) {
-        if (*a != NULL) {
-            free(*a);
-            *a = NULL;
-        }
-    }
-}
-
 int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
     if (ckvs_out->value_len > 0) {
         //make the pointer lead to the beginning of the encrypted secret
@@ -206,36 +190,25 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
 }
 
 int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, const char *set_value) {
-    //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
-    size_t set_value_encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
-    unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
-    if (set_value_encrypted == NULL) {
-        //error
-        ckvs_close(ckvs);
-        free_sve(&set_value_encrypted, &set_value_encrypted_length);
-        return ERR_OUT_OF_MEMORY;
-    }
-    int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
-                                      set_value_encrypted,
-                                      &set_value_encrypted_length);
+
+    //encrypt set_value content
+    unsigned char* set_value_encrypted = NULL;
+    int err = encrypt_secret(ckvs_mem, set_value, &set_value_encrypted);
     if (err != ERR_NONE) {
         //error
         ckvs_close(ckvs);
-        free_sve(&set_value_encrypted, &set_value_encrypted_length);
-        return err;
-    }
-    err = ckvs_write_encrypted_value(ckvs, ckvs_out, (const unsigned char *) set_value_encrypted,
-                                     (uint64_t) set_value_encrypted_length);
-    if (err != ERR_NONE) {
-        //error
-        ckvs_close(ckvs);
-        free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return err;
     }
 
-    //close the file, free the pointer and finish
+    err = ckvs_write_encrypted_value(ckvs, ckvs_out, (const unsigned char *) set_value_encrypted,
+                                     (uint64_t) strlen((const char*) set_value_encrypted));
+    //close the file, free the pointer
+    free(set_value_encrypted); set_value_encrypted = NULL;
     ckvs_close(ckvs);
-    free_sve(&set_value_encrypted, &set_value_encrypted_length);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
 
     return ERR_NONE;
 }

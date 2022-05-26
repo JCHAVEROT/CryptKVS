@@ -16,6 +16,7 @@
 #include "ckvs_crypto.h"
 #include "ckvs_local.h"
 #include <openssl/hmac.h>
+#include "openssl/rand.h"
 
 // ======================================================================
 /**
@@ -557,7 +558,32 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
 // ======================================================================
 int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char *url, const char *set_value) {
+    //check pointers
+    if (conn == NULL || ckvs_mem == NULL || url == NULL || set_value == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
 
+    //initialize and generate randomly SHA256 of c2 so not to decrease entropy
+    struct ckvs_sha *c2 = calloc(1, sizeof(ckvs_sha_t));
+    int err = RAND_bytes((unsigned char *) c2->sha, SHA256_DIGEST_LENGTH);
+    if (err != 1) {
+        //error
+        free(c2); c2 = NULL;
+        return ERR_IO;
+    }
+
+    //now we have the necessary variables, compute the masterkey
+    err = ckvs_client_compute_masterkey(ckvs_mem, c2);
+    if (err != ERR_NONE) {
+        //error
+        free(c2); c2 = NULL;
+        return err;
+    }
+
+    //encode the new value to be set
+
+    free(c2); c2 = NULL;
 }
 
 // ======================================================================
