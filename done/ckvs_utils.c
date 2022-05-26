@@ -56,6 +56,7 @@ void hex_encode(const uint8_t *in, size_t len, char *buf) {
     for (size_t i = 0; i < len; ++i) {
         sprintf(&buf[2 * i], "%02x", in[i]);
     }
+
     return;
 }
 
@@ -68,6 +69,7 @@ void SHA256_to_string(const struct ckvs_sha *sha, char *buf) {
     }
     //call the function that encodes in hexadecimal
     hex_encode(sha->sha, SHA256_DIGEST_LENGTH, buf);
+
     return;
 }
 
@@ -85,27 +87,25 @@ int hex_decode(const char *in, uint8_t *buf) {
         return -1;
     }
 
-    char temp[3]={0};
-    char* endptr=NULL;
-    size_t half_size=strlen(in)/2;
+    char temp[3] = {0};
+    char* endptr = NULL;
+    size_t half_size = strlen(in) / 2;
 
-    size_t j=0;
-    if (strlen(in)%2==1){
-        strncpy(temp,&in[0],1);
+    size_t j = 0;
+    if (strlen(in) % 2 == 1) {
+        strncpy(temp, &in[0], 1);
         uint64_t result = strtoul(temp, &endptr, 16);
-        buf[0]=(uint8_t)result;
-        j=1;
+        buf[0] = (uint8_t) result;
+        j = 1;
     }
 
-        for (size_t i = 0;i<half_size;i++ ){
-            strncpy(temp,&in[2*i+j],2);
+        for (size_t i = 0; i < half_size; i++) {
+            strncpy(temp, &in[2*i+j], 2);
             uint64_t result = strtoul(temp, &endptr, 16);
             buf[i+j]=(uint8_t)result;
         }
 
-
-
-    return half_size+j;
+    return half_size + j;
 }
 
 // ----------------------------------------------------------------------
@@ -116,26 +116,22 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
         return -1;
     }
     //call the function that decodes from hexadecimal
-    //uint8_t buffer[SHA256_DIGEST_LENGTH];
     int err = hex_decode(in, sha->sha);
     if (err == -1) {
         return err;
     }
 
-    //compute the SHA256 and store it in sha
-    //SHA256((unsigned char *) buffer, strlen(buffer), sha);
-
     return ERR_NONE;
 }
 
-int get_err(char* error){
+// ----------------------------------------------------------------------
+int get_err(char* error) {
     for (size_t i = 1; i < 18; ++i) {
-        if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i]))==0 ){
+        if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i])) == 0 ){
             return i;
         }
-
-
     }
+
     return ERR_PROTOCOL;
 }
 

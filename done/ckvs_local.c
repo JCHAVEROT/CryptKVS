@@ -190,27 +190,6 @@ int do_get(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem) {
 }
 
 int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, const char *set_value) {
-
-
-    //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
-    /*size_t set_value_encrypted_length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
-    unsigned char *set_value_encrypted = calloc(set_value_encrypted_length, sizeof(unsigned char));
-    if (set_value_encrypted == NULL) {
-        //error
-        ckvs_close(ckvs);
-        free_sve(&set_value_encrypted, &set_value_encrypted_length);
-        return ERR_OUT_OF_MEMORY;
-    }
-    int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
-                                      set_value_encrypted,
-                                      &set_value_encrypted_length);
-    if (err != ERR_NONE) {
-        //error
-        ckvs_close(ckvs);
-        free_sve(&set_value_encrypted, &set_value_encrypted_length);
-        return err;
-    }*/
-
     //encrypt set_value content
     unsigned char* set_value_encrypted = NULL;
     size_t set_value_encrypted_length = 0;
@@ -226,7 +205,7 @@ int do_set(CKVS_t *ckvs, ckvs_entry_t *ckvs_out, ckvs_memrecord_t *ckvs_mem, con
     if (err != ERR_NONE) {
         //error
         ckvs_close(ckvs);
-        //free_sve(&set_value_encrypted, &set_value_encrypted_length);
+        free_sve(&set_value_encrypted, &set_value_encrypted_length);
         return err;
     }
 

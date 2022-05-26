@@ -18,6 +18,16 @@
 #include <openssl/hmac.h>
 #include "openssl/rand.h"
 
+/**
+ * @brief For the SET command, default name for the file to reconstruct
+ */
+#define DEFAULT_NAME "data.json"
+
+/**
+ * @brief For the SET command, default offset for the file to reconstruct
+ */
+#define DEFAULT_OFFSET "0"
+
 // ======================================================================
 /**
  * @brief To get the usable string associated to the key from a json object.
@@ -582,8 +592,63 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //encode the new value to be set
+    unsigned char* encrypted = NULL;
+    size_t encrypted_length = 0;
+    err = encrypt_secret(ckvs_mem, set_value, &encrypted, &encrypted_length);
+    if (err != ERR_NONE) {
+        //error
+        free(c2); c2 = NULL;
+        return err;
+    }
 
+    //prepare the url for the request: name and offset need to be added
+    strcat(url, "&name="); strcat(url, DEFAULT_NAME);
+    strcat(url, "&offset="); strcat(url, DEFAULT_OFFSET);
+
+    //construction of the POST from the encoded secret
+    //hex-encoding of c2
+    char c2_hex[SHA256_PRINTED_STRLEN];
+    SHA256_to_string(c2, c2_hex);
     free(c2); c2 = NULL;
+
+    //hex-encoding of the encrypted secret
+    char encrypted_hex[encrypted_length * 2 + 1];
+    hex_encode(encrypted, encrypted_length, encrypted_hex);
+    free_sve(&encrypted, &encrypted_length);
+
+    //create the new json object
+    json_object *object = json_object_new_object();
+
+    //add the c2 hex-encoded string to the json
+    err = json_object_object_add(object, "c2", json_object_new_string(encrypted_hex));
+    if (err != ERR_NONE) {
+        //error
+        json_object_put(object);
+        return err;
+    }
+
+    //add the data hex-encoded and encrypted string to the json
+    err = json_object_object_add(object, "data", json_object_new_string(encrypted_hex));
+    if (err != ERR_NONE) {
+        //error
+        json_object_put(object);
+        return err;
+    }
+
+    //serialize the json onject
+    size_t length = 0;
+    const char *json_string = json_object_to_json_string_length(object, JSON_C_TO_STRING_PRETTY, &length);
+    json_object_put(object);
+
+    //call ckvs_post with the latterly computed arguments
+    err = ckvs_post(conn, url, json_string);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+
+    return ERR_NONE;
+
 }
 
 // ======================================================================
