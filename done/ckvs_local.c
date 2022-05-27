@@ -331,4 +331,65 @@ int ckvs_local_new(const char *filename, int optargc, char *optargv[]) {
     return ERR_NONE;
 }
 
+int ckvs_local_delete(const char *filename, int optargc, char *optargv[]) {
+    if (optargc < 2) return ERR_NOT_ENOUGH_ARGUMENTS;
+    if (optargc > 2) return ERR_TOO_MANY_ARGUMENTS;
+
+    const char *key = optargv[0];
+    const char *pwd = optargv[1];
+
+    //check if the pointeurs are valid
+    if (filename == NULL || key == NULL || pwd == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //initialiaze the struct ckvs
+    struct CKVS ckvs;
+    memset(&ckvs, 0, sizeof(struct CKVS));
+
+    //open the filename and check errors
+    int err = ckvs_open(filename, &ckvs);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+
+    //initialize the struct ckvs_memrecord_t
+    ckvs_memrecord_t ckvs_mem;
+    memset(&ckvs_mem, 0, sizeof(ckvs_memrecord_t));
+
+    //initialize the pointer of a struct ckvs_entry_t for the new entry
+    ckvs_entry_t *new_ckvs_entry = NULL;
+
+    //verify is key is not too long
+    if (strlen(key) > CKVS_MAXKEYLEN) {
+        ckvs_close(&ckvs);
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //to generate in particular the auth_key and c1 and store them in ckvs_mem
+    err = ckvs_client_encrypt_pwd(&ckvs_mem, key, pwd);
+    if (err != ERR_NONE) {
+        ckvs_close(&ckvs);
+        // error
+        return err;
+
+    }
+
+    //add the new entry to the table if possible
+    err = ckvs_delete_entry(&ckvs, key, &(ckvs_mem.auth_key), &new_ckvs_entry);
+    if (err != ERR_NONE) {
+        // error
+        ckvs_close(&ckvs);
+        return err;
+    }
+
+    //close the file and finish
+    ckvs_close(&ckvs);
+
+    return ERR_NONE;
+}
+
 

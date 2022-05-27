@@ -126,6 +126,19 @@ void close_RVFC(FILE **file, char **buffer_ptr);
  */
 int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out);
 
+
+/**
+ * @brief Delete the entry with the corresponding key and auth_key
+ *
+ * @param ckvs (struct CKVS*) the ckvs database to search
+ * @param key (const char*) the key of the entry to delete
+ * @param auth_key (const struct ckvs_sha*) the auth_key of the entry to delete
+ * @param e_out (struct ckvs_entry**) points to a pointer to an entry. Used to store the pointer to the created entry, if any.
+ * @return int, error code
+ */
+int ckvs_delete_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out);
+
+
 /**
  * @brief Compute the index of the given entry in ckvs->entries and write to the disk
  * @param e (struct ckvs_entry*) entry to be writen

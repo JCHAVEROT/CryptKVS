@@ -372,6 +372,48 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     return ERR_NONE;
 }
 
+
+
+
+//--------------------------------------------------------------------------------------------
+int ckvs_delete_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out) {
+    //check pointers
+    if (ckvs == NULL || key == NULL || auth_key == NULL || e_out == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //to find the right entry in the database to delete it
+    int err = ckvs_find_entry(ckvs, key, auth_key, e_out);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+    //associate the key to this entry
+    strncpy((char *) &((*e_out)->key), key, CKVS_MAXKEYLEN);
+
+    //associate the auth_key
+    (*e_out)->auth_key = *auth_key;
+
+    memset(*e_out,0, sizeof(ckvs_entry_t));
+    err = compute_idx_and_write(*e_out, ckvs);
+    if (err != ERR_NONE) {
+        return err;
+    }
+
+    //remove one to the number of entries
+    ckvs->header.num_entries -= 1;
+
+    //write the change in the header for the number of entries in the file
+    err=ckvs_write_updated_header_to_disk(ckvs);
+    if (err != ERR_NONE) {
+        return err;
+    }
+
+    return ERR_NONE;
+}
+//-------------------------------------------------------------------------------------
+
 int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs) {
     if (e == NULL || ckvs == NULL) {
         return ERR_INVALID_ARGUMENT;

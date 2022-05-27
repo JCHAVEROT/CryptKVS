@@ -112,3 +112,13 @@ int ckvs_local_new(const char *filename, int optargc, char *optargv[]);
  * TODO WEEK 09: Refactor ckvs_local_*** commands      *
  * *************************************************** */
 
+/**
+ * @brief Opens the CKVS database at the given filename and executes the 'delete' command,
+ * ie. delete the entry with the given key and password.
+ *
+ * @param filename (const char*) the path to the CKVS database to open
+ * @param optargc (int) number of arguments (should be 2)
+ * @param optargv (char*) the arguments : should contain the key and the password of the entry to delete
+ * @return int, an error code
+ */
+int ckvs_local_delete(const char *filename, int optargc, char *optargv[]);
