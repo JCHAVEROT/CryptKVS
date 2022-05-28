@@ -578,8 +578,17 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     const char *json_string = json_object_to_json_string_length(object, JSON_C_TO_STRING_PRETTY, &length);
     json_object_put(object);
 
+    //create the post with the null character at the end
+    char* post = calloc(length + 1, sizeof(char));
+    if (post == NULL) {
+        //error
+        return ERR_OUT_OF_MEMORY;
+    }
+    strncpy(post, json_string, length);
+
     //call ckvs_post with the latterly computed arguments
-    err = ckvs_post(conn, url, json_string);
+    err = ckvs_post(conn, url, post);
+    free(post); post = NULL;
     if (err != ERR_NONE) {
         //error
         return err;
