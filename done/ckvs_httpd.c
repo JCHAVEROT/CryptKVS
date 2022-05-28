@@ -350,14 +350,53 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //TODO
     //get the hex-encoded data
+    struct json_object *data_json_obj = NULL;
+    if (!json_object_object_get_ex(root_obj, "data", &data_json_obj)) {
+        //error
+        pps_printf("%s %s\n", "An error occurred : did not find the key", "data");
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_IO);
+        return;
+    }
 
-    //get_string()
-    //hex_decode()
-    //ckvs_write_encrypted_value();
-    //ckvs_write_entry_to_disk();
+    //get the string from the json object
+    const char *data_hex = json_object_get_string(data_json_obj);
+    if (data_hex == NULL) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_IO);
+        return;
+    }
 
+    unsigned char *data = calloc(strlen(data_hex) / 2 + 1, sizeof(char));
+    if (data == NULL) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_OUT_OF_MEMORY);
+        return;
+    }
 
+    err = hex_decode(data_hex, data);
+    if (err == -1) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_IO);
+        return;
+    }
+
+    //update the length of the encrypted secret in the entry
+    ckvs_out->value_len = strlen((const char*) data);
+
+    //write the new entry
+    err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, ckvs_out->value_len);
     ckvs_close(ckvs);
+    if (err != ERR_NONE) {
+        //error
+        mg_error_msg(nc, err);
+        return;
+    }
+
+    //tell the client everything went well
     mg_http_reply(nc, HTTP_OK_CODE, "", "");
     mg_error_msg(nc, ERR_NONE);
 }

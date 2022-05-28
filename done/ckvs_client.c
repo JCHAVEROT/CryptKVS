@@ -353,6 +353,7 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
             : do_client_set(&conn, &ckvs_mem, page, set_value); //the set part
 
     //close the connection
+    free(page); page = NULL;
     ckvs_rpc_close(&conn);
 
     return err;
@@ -368,7 +369,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //send request to server with ready url
     int err = ckvs_rpc(conn, url);
-    free(url);
     if (err != ERR_NONE) {
         //error
         return err;
@@ -443,7 +443,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //initialize the string where the encrypted secret will be stored
-    unsigned char *encrypted = calloc(strlen(data) / 2, sizeof(unsigned char));
+    unsigned char *encrypted = calloc(strlen(data) / 2, sizeof(unsigned char)); //TODO add +1?
     if (encrypted == NULL) {
         //error
         free(data); data = NULL;
@@ -460,7 +460,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //initialize the string where the decrypted secret will be stored
-    size_t decrypted_len = strlen(data) / 2 + EVP_MAX_BLOCK_LENGTH;
+    size_t decrypted_len = strlen(data) / 2 + EVP_MAX_BLOCK_LENGTH; //TODO add +1 ?
     unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
     if (decrypted == NULL) {
         //error
