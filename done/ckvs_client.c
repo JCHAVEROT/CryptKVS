@@ -332,7 +332,7 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
     SHA256_to_string(&ckvs_mem.auth_key, buffer);
 
     //build the string for url containing the whole information
-    char *page = calloc(SHA256_PRINTED_STRLEN + strlen(ready_key) + 19, sizeof(char));
+    char *page = calloc(SHA256_PRINTED_STRLEN + strlen(ready_key) + 43, sizeof(char));
     if (page == NULL) {
         ckvs_rpc_close(&conn);
         curl_free(ready_key);
