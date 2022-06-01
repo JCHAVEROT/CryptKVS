@@ -578,6 +578,9 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //hex-encoding of the encrypted secret
     char encrypted_hex[encrypted_length * 2 + 1];
+    //TODO : VLA!!
+
+
     hex_encode(encrypted, encrypted_length, encrypted_hex);
     free_sve(&encrypted, &encrypted_length);
 
@@ -585,7 +588,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     struct json_object *object = json_object_new_object();
 
     //add the c2 hex-encoded string to the json
-    err = json_object_object_add(object, "c2", json_object_new_string(encrypted_hex));
+    err = json_object_object_add(object, "c2", json_object_new_string(c2_hex));
     if (err != ERR_NONE) {
         //error
         json_object_put(object);

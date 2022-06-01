@@ -597,6 +597,7 @@ int get_string(const struct json_object *obj, const char *key, char *buf) {
         return ERR_IO;
     }
 
+    pps_printf("%ld\n",strlen(string_from_obj));
     //copy in the buffer
     strcpy(buf, string_from_obj);
 

@@ -222,9 +222,10 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     if (hm->body.len > 0) {
         int err = mg_http_upload(nc, hm, "/tmp");
-        if (err != ERR_NONE) {
+        if (err < 0) {
             //error
-            mg_error_msg(nc, err);
+            ckvs_close(ckvs);
+            mg_error_msg(nc, ERR_IO);
             return;
         }
     }
@@ -317,7 +318,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         mg_error_msg(nc, err);
         return;
     }
-
+//-----------------------------------------------------------------------
     //retrieve the json object
     struct json_object *root_obj = json_tokener_parse(buffer);
     free(buffer); buffer = NULL; buffer_size = 0;
@@ -325,6 +326,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         //error, need to get which one
         ckvs_close(ckvs);
         if (strncmp(buffer, "Error:", 6) == 0) {
+            pps_printf("TESTTT\n");
             err = get_err(buffer + 7);
         }
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
