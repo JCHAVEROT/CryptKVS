@@ -417,6 +417,15 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         return err;
     }
 
+    //compute the masterkey
+    err = ckvs_client_compute_masterkey(ckvs_mem, &c2);
+    if (err != ERR_NONE) {
+        //error
+        json_object_put(root_obj);
+        pps_printf("\n%d\n", 8);
+        return err;
+    }
+
     //get the hex-encoded data
     struct json_object *data_json_obj = NULL;
     if (!json_object_object_get_ex(root_obj, "data", &data_json_obj)) {
@@ -432,15 +441,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         //error
         json_object_put(root_obj);
         return ERR_IO;
-    }
-
-    //compute the masterkey
-    err = ckvs_client_compute_masterkey(ckvs_mem, &c2);
-    if (err != ERR_NONE) {
-        //error
-        json_object_put(root_obj);
-        pps_printf("\n%d\n", 8);
-        return err;
     }
 
     //initialize the string where the encrypted secret will be stored
@@ -459,8 +459,8 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //initialize the string where the decrypted secret will be stored
-    size_t decrypted_len = strlen(data_hex) / 2 + EVP_MAX_BLOCK_LENGTH + 1; //TODO add +1 ?
-    unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
+    size_t decrypted_len = strlen(data_hex) / 2 + EVP_MAX_BLOCK_LENGTH; //TODO add +1 ?
+    unsigned char *decrypted = calloc(decrypted_len + 1, sizeof(unsigned char));
     if (decrypted == NULL) {
         //error
         free(encrypted); encrypted = NULL;

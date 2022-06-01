@@ -167,7 +167,6 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
         return err;
     }
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
-    free(url); url = NULL;
     if (ret != CURLE_OK) {
         //error
         return ERR_OUT_OF_MEMORY;
@@ -211,6 +210,20 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
         return ERR_TIMEOUT;
     }
 
+    ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
+    if (ret != CURLE_OK) {
+        //error
+        curl_slist_free_all(slist);
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, slist);
+    if (ret != CURLE_OK) {
+        //error
+        curl_slist_free_all(slist);
+        return ERR_OUT_OF_MEMORY;
+    }
+
     //send an empty request to tell the server the data was sent entirely
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDSIZE, 0);
     if (ret != CURLE_OK) {
@@ -237,6 +250,9 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
         pps_printf("%s", conn->resp_buf); //prints the response
         return ERR_IO;
     }
+
+    //free the url
+    free(url); url = NULL;
 
     return ERR_NONE;
 }
