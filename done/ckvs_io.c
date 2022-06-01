@@ -6,7 +6,6 @@
 #include <string.h>
 #include "ckvs_utils.h"
 #include "ckvs.h"
-#include "ckvs_crypto.h"
 #include "error.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -364,16 +363,13 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     ckvs->header.num_entries += 1;
 
     //write the change in the header for the number of entries in the file
-    err=ckvs_write_updated_header_to_disk(ckvs);
+    err = ckvs_write_updated_header_to_disk(ckvs);
     if (err != ERR_NONE) {
         return err;
     }
 
     return ERR_NONE;
 }
-
-
-
 
 //--------------------------------------------------------------------------------------------
 int ckvs_delete_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out) {
@@ -492,7 +488,7 @@ int check_pow_2(uint32_t table_size) {
 //----------------------------------------------------------------------
 int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length) {
     //check pointers
-    if (ckvs_mem == NULL || set_value == NULL || encrypted == NULL || length == NULL) {
+    if (ckvs_mem == NULL || set_value == NULL || encrypted == NULL || *encrypted == NULL || length == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
     }
@@ -506,8 +502,7 @@ int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned c
         return ERR_OUT_OF_MEMORY;
     }
     int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
-                                      *encrypted,
-                                      length);
+                                      *encrypted, length);
     if (err != ERR_NONE) {
         //error
         free_sve(encrypted, length);
