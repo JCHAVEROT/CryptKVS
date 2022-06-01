@@ -130,6 +130,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
         // compute the index
         uint32_t j = i % ckvs->header.table_size;
         //check the key
+
         if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             //check the auth_key

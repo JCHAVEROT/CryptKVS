@@ -228,7 +228,9 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
             mg_error_msg(nc, ERR_IO);
             return;
         }
+        return;
     }
+    pps_printf("a\n");
 
     //TODO modulariser HANDLE get/set
 

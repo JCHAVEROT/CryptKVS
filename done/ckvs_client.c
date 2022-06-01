@@ -299,6 +299,7 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
 
     //initialize the connection and check errors
     int err = ckvs_rpc_init(&conn, url);
+
     if (err != ERR_NONE) {
         //error
         return err;
@@ -375,6 +376,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         //error
         return err;
     }
+
 
     //initialize buffer for c2
     char *c2_str[SHA256_PRINTED_STRLEN + 1];
@@ -529,6 +531,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         return ERR_INVALID_ARGUMENT;
     }
 
+
     //initialize and generate randomly SHA256 of c2 so not to decrease entropy
     struct ckvs_sha *c2 = calloc(1, sizeof(ckvs_sha_t));
     if (c2 == NULL) {
@@ -577,7 +580,11 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     c2 = NULL;
 
     //hex-encoding of the encrypted secret
-    char encrypted_hex[encrypted_length * 2 + 1];
+    //char encrypted_hex[encrypted_length * 2 + 1];
+    char* encrypted_hex=calloc(encrypted_length * 2 + 1, sizeof(char));
+    if (encrypted_hex==NULL){
+        free_sve(&encrypted, &encrypted_length);
+    }
     //TODO : VLA!!
 
 
@@ -591,6 +598,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = json_object_object_add(object, "c2", json_object_new_string(c2_hex));
     if (err != ERR_NONE) {
         //error
+        free(encrypted_hex);
         json_object_put(object);
         return err;
     }
@@ -599,9 +607,13 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = add_string(object, "data", encrypted_hex);
     if (err != ERR_NONE) {
         //error
+        free(encrypted_hex);
         json_object_put(object);
         return err;
     }
+    free(encrypted_hex);
+    encrypted_hex=NULL;
+
 
     //serialize the json onject
     size_t length = 0;
@@ -618,6 +630,9 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //call ckvs_post with the latterly computed arguments
     err = ckvs_post(conn, url, post);
+    if (conn->resp_buf!=NULL){
+        pps_printf("fvfv\n");
+    }
     free(post); post = NULL;
     if (err != ERR_NONE) {
         //error
@@ -625,10 +640,10 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //verify if sucess or not
-    if (strncmp(conn->resp_buf, "Error:", 6) == 0) {
+    /*if (strncmp(conn->resp_buf, "Error:", 6) == 0) {
         //error
         return get_err(conn->resp_buf + 7);
-    }
+    }*/
 
     return ERR_NONE;
 }

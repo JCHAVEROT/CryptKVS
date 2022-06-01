@@ -226,17 +226,22 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     }
 
     ret = curl_easy_perform(conn->curl);
-    curl_slist_free_all(slist);
+
     if (ret != CURLE_OK) {
         //error
+        curl_slist_free_all(slist);
         return ERR_TIMEOUT;
     }
 
-    if (strlen(conn->resp_buf) > 0) {
+
+
+    if (conn->resp_size!=0) {
         //error
+        curl_slist_free_all(slist);
         pps_printf("%s", conn->resp_buf); //prints the response
         return ERR_IO;
     }
+    curl_slist_free_all(slist);
 
     return ERR_NONE;
 }
