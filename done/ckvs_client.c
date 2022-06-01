@@ -41,11 +41,11 @@ int ckvs_client_stats(const char *url, int optargc, _unused char **optargv) {
         return ERR_INVALID_ARGUMENT;
     }
 
-    //initialiaze the struct ckvs_connection
+    //initialize the struct ckvs_connection
     ckvs_connection_t conn;
     memset(&conn, 0, sizeof(ckvs_connection_t));
 
-    //initialiaze the struct ckvs
+    //initialize the struct ckvs
     struct CKVS ckvs;
     memset(&ckvs, 0, sizeof(struct CKVS));
 
@@ -206,7 +206,7 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
 }
 
 // ======================================================================
-int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj){
+int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj) {
 
     //check pointers
     if (ckvs == NULL || obj == NULL) {
@@ -274,7 +274,9 @@ int ckvs_client_set(const char *url, int optargc, char **optargv) {
     err = ckvs_client_getset(url, key, pwd, buffer);
 
     //free the buffer
-    free(buffer); buffer = NULL; buffer_size = 0;
+    free(buffer);
+    buffer = NULL;
+    buffer_size = 0;
 
     return err;
 }
@@ -311,8 +313,8 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
     }
 
     //compute the url escaped key
-    char* ready_key = NULL;
-    CURL* curl = curl_easy_init();
+    char *ready_key = NULL;
+    CURL *curl = curl_easy_init();
     if (curl != NULL) {
         ready_key = curl_easy_escape(curl, key, (int) strlen(key));
         if (ready_key == NULL) {
@@ -339,8 +341,8 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
         return ERR_OUT_OF_MEMORY;
     }
     (set_value == NULL)
-        ? strcat(page, "g")
-        : strcat(page, "s"); //the best modularization
+    ? strcat(page, "g")
+    : strcat(page, "s"); //the best modularization
     strcat(page, "et?key=");
     strcat(page, ready_key);
     strcat(page, "&auth_key=");
@@ -349,8 +351,8 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
     curl_free(ready_key);
 
     err = (set_value == NULL)
-            ? do_client_get(&conn, &ckvs_mem, page) //the get part
-            : do_client_set(&conn, &ckvs_mem, page, set_value); //the set part
+          ? do_client_get(&conn, &ckvs_mem, page) //the get part
+          : do_client_set(&conn, &ckvs_mem, page, set_value); //the set part
 
     //close the connection
     ckvs_rpc_close(&conn);
@@ -375,8 +377,8 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //initialize buffer for c2
-    char* c2_str[SHA256_PRINTED_STRLEN + 1];
-    ckvs_sha_t* c2 = calloc(1, sizeof(ckvs_sha_t));
+    char *c2_str[SHA256_PRINTED_STRLEN + 1];
+    ckvs_sha_t *c2 = calloc(1, sizeof(ckvs_sha_t));
 
     //retrieve the json object
     struct json_object *root_obj = json_tokener_parse(conn->resp_buf);
@@ -386,7 +388,8 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
             err = get_err(conn->resp_buf + 7);
         }
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
-        free(c2); c2 = NULL;
+        free(c2);
+        c2 = NULL;
         return err == ERR_NONE ? ERR_IO : err;
     }
 
@@ -399,7 +402,8 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         if (err2 == ERR_NONE) {
             err = get_err(error);
         }
-        free(c2); c2 = NULL;
+        free(c2);
+        c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
@@ -408,16 +412,18 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = SHA256_from_string(c2_str, c2);
     if (err != ERR_NONE) {
         //error
-        free(c2); c2 = NULL;
+        free(c2);
+        c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
 
     //initialize a buffer for the hex-encoded data
-    unsigned char* data = calloc(conn->resp_size + 1, sizeof(unsigned char));
+    unsigned char *data = calloc(conn->resp_size + 1, sizeof(unsigned char));
     if (data == NULL) {
         //error
-        free(c2); c2 = NULL;
+        free(c2);
+        c2 = NULL;
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
@@ -426,8 +432,10 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = get_string(root_obj, "data", data);
     if (err != ERR_NONE) {
         //error
-        free(data); data = NULL;
-        free(c2); c2 = NULL;
+        free(data);
+        data = NULL;
+        free(c2);
+        c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
@@ -436,8 +444,10 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = ckvs_client_compute_masterkey(ckvs_mem, c2);
     if (err != ERR_NONE) {
         //error
-        free(data); data = NULL;
-        free(c2); c2 = NULL;
+        free(data);
+        data = NULL;
+        free(c2);
+        c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
@@ -446,8 +456,10 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     unsigned char *encrypted = calloc(strlen(data) / 2, sizeof(unsigned char));
     if (encrypted == NULL) {
         //error
-        free(data); data = NULL;
-        free(c2); c2 = NULL;
+        free(data);
+        data = NULL;
+        free(c2);
+        c2 = NULL;
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
@@ -464,9 +476,12 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
     if (decrypted == NULL) {
         //error
-        free(data); data = NULL;
-        free(c2); c2 = NULL;
-        free(encrypted); encrypted = NULL;
+        free(data);
+        data = NULL;
+        free(c2);
+        c2 = NULL;
+        free(encrypted);
+        encrypted = NULL;
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
@@ -476,9 +491,12 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
                                   &decrypted_len);
     if (err != ERR_NONE) {
         //error
-        free(encrypted); encrypted = NULL;
-        free(data); data = NULL;
-        free(c2); c2 = NULL;
+        free(encrypted);
+        encrypted = NULL;
+        free(data);
+        data = NULL;
+        free(c2);
+        c2 = NULL;
         free_uc(&decrypted);
         json_object_put(root_obj);
         return err;
@@ -491,9 +509,12 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //free all objects
-    free(encrypted); encrypted = NULL;
-    free(c2); c2 = NULL;
-    free(data); data = NULL;
+    free(encrypted);
+    encrypted = NULL;
+    free(c2);
+    c2 = NULL;
+    free(data);
+    data = NULL;
     json_object_put(root_obj);
     free_uc(&decrypted);
 
@@ -517,7 +538,8 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     int err = RAND_bytes((unsigned char *) c2->sha, SHA256_DIGEST_LENGTH);
     if (err != 1) {
         //error
-        free(c2); c2 = NULL;
+        free(c2);
+        c2 = NULL;
         return ERR_IO;
     }
 
@@ -525,29 +547,34 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = ckvs_client_compute_masterkey(ckvs_mem, c2);
     if (err != ERR_NONE) {
         //error
-        free(c2); c2 = NULL;
+        free(c2);
+        c2 = NULL;
         return err;
     }
 
     //encode the new value to be set
-    unsigned char* encrypted = NULL;
+    unsigned char *encrypted = NULL;
     size_t encrypted_length = 0;
     err = encrypt_secret(ckvs_mem, set_value, &encrypted, &encrypted_length);
     if (err != ERR_NONE) {
         //error
-        free(c2); c2 = NULL;
+        free(c2);
+        c2 = NULL;
         return err;
     }
 
     //prepare the url for the request: name and offset need to be added
-    strcat(url, "&name="); strcat(url, DEFAULT_NAME);
-    strcat(url, "&offset="); strcat(url, DEFAULT_OFFSET);
+    strcat(url, "&name=");
+    strcat(url, DEFAULT_NAME);
+    strcat(url, "&offset=");
+    strcat(url, DEFAULT_OFFSET);
 
     //construction of the POST from the encoded secret
     //hex-encoding of c2
     char c2_hex[SHA256_PRINTED_STRLEN];
     SHA256_to_string(c2, c2_hex);
-    free(c2); c2 = NULL;
+    free(c2);
+    c2 = NULL;
 
     //hex-encoding of the encrypted secret
     char encrypted_hex[encrypted_length * 2 + 1];

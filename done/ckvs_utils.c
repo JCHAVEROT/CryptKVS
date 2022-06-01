@@ -92,10 +92,12 @@ int hex_decode(const char *in, uint8_t *buf) {
     size_t half_size = strlen(in) / 2;
 
     size_t j = 0;
+    //if odd size use the first element alone
     if (strlen(in) % 2 == 1) {
         strncpy(temp, &in[0], 1);
         uint64_t result = strtoul(temp, &endptr, 16);
         buf[0] = (uint8_t) result;
+        //to shift for the main loop
         j = 1;
     }
 
@@ -128,7 +130,7 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha) {
 
 // ----------------------------------------------------------------------
 int get_err(char* error) {
-    for (size_t i = 1; i < 18; ++i) {
+    for (size_t i = 1; i < ERR_NB_ERR; ++i) {
         if (strncmp(error,ERR_MESSAGES[i], strlen(ERR_MESSAGES[i]))==0 ) {
             return (int) i;
         }
