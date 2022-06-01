@@ -279,7 +279,10 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     curl_free(key);
     if (err != ERR_NONE) {
         //error
-        ckvs_close(ckvs);
+        if (err != ERR_KEY_NOT_FOUND && err != ERR_DUPLICATE_ID) {
+            //so not to close the table if the key was not found or password was incorrect
+            ckvs_close(ckvs);
+        }
         mg_error_msg(nc, err);
         return;
     }
@@ -350,7 +353,6 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     struct json_object *data_json_obj = NULL;
     if (!json_object_object_get_ex(root_obj, "data", &data_json_obj)) {
         //error
-        pps_printf("%s %s\n", "An error occurred : did not find the key", "data");
         ckvs_close(ckvs);
         json_object_put(root_obj);
         mg_error_msg(nc, ERR_IO);
@@ -386,7 +388,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     }
 
     //write the new entry
-    err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, decoded_size);
+    err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, (uint64_t) decoded_size);
     json_object_put(root_obj);
     if (err != ERR_NONE) {
         //error

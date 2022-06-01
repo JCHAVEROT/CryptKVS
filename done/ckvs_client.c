@@ -366,7 +366,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     //check pointers
     if (conn == NULL || ckvs_mem == NULL || url == NULL) {
         //error
-        pps_printf("\n%d\n", 1);
         return ERR_INVALID_ARGUMENT;
     }
 
@@ -374,7 +373,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     int err = ckvs_rpc(conn, url);
     if (err != ERR_NONE) {
         //error
-        pps_printf("\n%d\n", 2);
         return err;
     }
 
@@ -390,7 +388,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
             err = get_err(conn->resp_buf + 7);
         }
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
-        pps_printf("\n%d\n", 3);
         return err == ERR_NONE ? ERR_IO : err;
     }
 
@@ -404,7 +401,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
             err = get_err(error);
         }
         json_object_put(root_obj);
-        pps_printf("\n%d\n", 4);
         return err;
     }
 
@@ -413,7 +409,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     if (err != ERR_NONE) {
         //error
         json_object_put(root_obj);
-        pps_printf("\n%d\n", 5);
         return err;
     }
 
@@ -422,7 +417,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     if (err != ERR_NONE) {
         //error
         json_object_put(root_obj);
-        pps_printf("\n%d\n", 8);
         return err;
     }
 
@@ -476,7 +470,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         free(encrypted); encrypted = NULL;
         free_uc(&decrypted);
         json_object_put(root_obj);
-        pps_printf("\n%d\n", 9);
         return err;
     }
 
