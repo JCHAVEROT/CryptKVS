@@ -488,7 +488,7 @@ int check_pow_2(uint32_t table_size) {
 //----------------------------------------------------------------------
 int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length) {
     //check pointers
-    if (ckvs_mem == NULL || set_value == NULL || encrypted == NULL || *encrypted == NULL || length == NULL) {
+    if (ckvs_mem == NULL || set_value == NULL || encrypted == NULL || length == NULL) {
         //error
         return ERR_INVALID_ARGUMENT;
     }
