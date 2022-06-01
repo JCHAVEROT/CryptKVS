@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ckvs_utils.h"
+#include "ckvs_crypto.h"
 #include "ckvs.h"
 #include "error.h"
 #include <stdint.h>
