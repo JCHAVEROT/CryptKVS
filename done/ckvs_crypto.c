@@ -25,14 +25,17 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     //initialize the ckvs memrecord
     memset(mr, 0, sizeof(ckvs_memrecord_t));
 
+
+    size_t keyl=strnlen(key,CKVS_MAXKEYLEN);
+    size_t pwdl=strnlen(pwd,CKVS_MAXKEYLEN);
     //creation of the stretched_key in format key|password
-    char *str = calloc(2 * CKVS_MAXKEYLEN + 2, 1);
+    char *str = calloc(keyl+pwdl + 2, 1);
     if (str == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
-    strncpy(str, key, CKVS_MAXKEYLEN);
+    strncpy(str, key, keyl);
     strcat(str, "|");
-    strncat(str, pwd, CKVS_MAXKEYLEN);
+    strncat(str, pwd, pwdl);
 
     //convertion of the stretched_key in SHA256, stored in the memrecord
     SHA256((unsigned char *) str, strlen(str), mr->stretched_key.sha);
