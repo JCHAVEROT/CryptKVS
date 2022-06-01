@@ -624,12 +624,6 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         return err;
     }
 
-    //verify if sucess or not
-    if (strncmp(conn->resp_buf, "Error:", 6) == 0) {
-        //error
-        return get_err(conn->resp_buf + 7);
-    }
-
     return ERR_NONE;
 }
 

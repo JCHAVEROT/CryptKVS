@@ -126,10 +126,13 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 
     //iterate over the table from index hashkey in linear probing
     uint32_t max_it = idx + ckvs->header.table_size;
+    //pps_printf("%s\n", "fefsefs");
     for (uint32_t i = idx; i < max_it; ++i) {
         // compute the index
+        //pps_printf("Taille : %d\n", ckvs->header.table_size);
         uint32_t j = i % ckvs->header.table_size;
         //check the key
+        //pps_printf("Ckvs entry : %d %d %p\n", j, i, ckvs->entries[j].key);
         if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             //check the auth_key
@@ -558,7 +561,7 @@ int add_array(const struct json_object *obj, const char *key, const char *array[
 
     for (size_t i = 0; i < size; i++) {
         json_object_array_add(arr, json_object_new_string(array[i]));
-        pps_printf("%s", array[i]);
+        //pps_printf("%s", array[i]);
     }
 
     return json_object_object_add((struct json_object *) obj, key, arr);
@@ -597,7 +600,7 @@ int get_string(const struct json_object *obj, const char *key, char *buf) {
         return ERR_IO;
     }
 
-    pps_printf("%ld\n",strlen(string_from_obj));
+    //pps_printf("%ld\n",strlen(string_from_obj));
     //copy in the buffer
     strcpy(buf, string_from_obj);
 

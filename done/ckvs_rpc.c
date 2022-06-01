@@ -184,7 +184,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     if (ret != CURLE_OK) {
         //error
         curl_slist_free_all(slist);
-        return ERR_IO; //TODO: check if err_io
+        return ERR_OUT_OF_MEMORY;
     }
 
     //Add the HTTP POST content
@@ -193,14 +193,14 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     if (ret != CURLE_OK) {
         //error
         curl_slist_free_all(slist);
-        return ERR_IO; //TODO: check if err_io
+        return ERR_OUT_OF_MEMORY;
     }
     //pass in a pointer to the data
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, POST);
     if (ret != CURLE_OK) {
         //error
         curl_slist_free_all(slist);
-        return ERR_IO; //TODO: check if err_io
+        return ERR_OUT_OF_MEMORY;
     }
 
     //send the request to the server
@@ -216,13 +216,13 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     if (ret != CURLE_OK) {
         //error
         curl_slist_free_all(slist);
-        return ERR_IO; //TODO: check if err_io
+        return ERR_OUT_OF_MEMORY;
     }
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, "");
     if (ret != CURLE_OK) {
         //error
         curl_slist_free_all(slist);
-        return ERR_IO; //TODO: check if err_io
+        return ERR_OUT_OF_MEMORY;
     }
 
     ret = curl_easy_perform(conn->curl);
@@ -232,7 +232,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
         return ERR_TIMEOUT;
     }
 
-    if (strlen(conn->resp_buf) > 0) {
+    if (conn->resp_size > 0) {
         //error
         pps_printf("%s", conn->resp_buf); //prints the response
         return ERR_IO;

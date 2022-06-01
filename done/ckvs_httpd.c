@@ -228,6 +228,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
             mg_error_msg(nc, ERR_IO);
             return;
         }
+        return;
     }
 
     //TODO modulariser HANDLE get/set
@@ -326,7 +327,6 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         //error, need to get which one
         ckvs_close(ckvs);
         if (strncmp(buffer, "Error:", 6) == 0) {
-            pps_printf("TESTTT\n");
             err = get_err(buffer + 7);
         }
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
