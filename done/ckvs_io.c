@@ -178,13 +178,12 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     //place the pointer at the end of the file and check errors
     int err = fseek(file, 0, SEEK_END);
     if (err != ERR_NONE) {
+        //error
         if (file != NULL) {
                 //close it
                 fclose(file);
                 file = NULL;
             }
-
-        //close_RVFC(&file, buffer_ptr);
         return ERR_IO;
     }
 
@@ -235,7 +234,7 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
             file = NULL;
         }
         free(*buffer_ptr);
-        *buffer_ptr=NULL;
+        *buffer_ptr = NULL;
         return ERR_IO;
     }
     *buffer_size = size + 1; //update the buffer size to have the place for the final '\0'
