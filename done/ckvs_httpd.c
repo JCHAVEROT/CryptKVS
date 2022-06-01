@@ -390,7 +390,6 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //write the new entry
     err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, ckvs_out->value_len);
-    ckvs_close(ckvs);
     json_object_put(root_obj);
     if (err != ERR_NONE) {
         //error
@@ -576,9 +575,6 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         mg_error_msg(nc, ERR_IO);
         return;
     }
-
-    //close the ckvs
-    ckvs_close(ckvs);
 
     mg_error_msg(nc, ERR_NONE);
 }
