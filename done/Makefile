@@ -48,6 +48,7 @@ all:: $(TARGETS)
 
 SRCS = cryptkvs.c error.c ckvs_local.c ckvs_utils.c ckvs_crypto.c ckvs_io.c ckvs_rpc.c ckvs_client.c $(LIBMONGOOSEDIR)/mongoose.c ckvs_httpd.c
 
+ckvs_io.o: ckvs_io.c ckvs_io.h ckvs_crypto.h
 
 OBJS=$(subst .c,.o,$(SRCS))
 
