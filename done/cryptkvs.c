@@ -87,8 +87,9 @@ int ckvs_do_one_cmd(int argc, char *argv[]) {
     for (size_t i = 0; i < sizeof(commands) / sizeof(ckvs_command_mapping); ++i) {
         ckvs_command_mapping c = commands[i];
         if (strcmp(cmd, c.name) == 0) {
-            return (strncmp(URL_PREFIX_1, db_filename_or_url, strlen(URL_PREFIX_1)) == 0 // start with https://
-                || strncmp(URL_PREFIX_2, db_filename_or_url, strlen(URL_PREFIX_2)) == 0) // start with http://
+            return (((strncmp(URL_PREFIX_1, db_filename_or_url, strlen(URL_PREFIX_1)) == 0 // start with https://
+                || strncmp(URL_PREFIX_2, db_filename_or_url, strlen(URL_PREFIX_2)) == 0)) // start with http://
+                && c.command_remote!=NULL)
                     ? c.command_remote(db_filename_or_url, optargc, optargv)
                     : c.command_local(db_filename_or_url, optargc, optargv);
         }
