@@ -376,8 +376,8 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         return;
     }
 
-    err = hex_decode(data_hex, data);
-    if (err == -1) {
+    int decoded_size = hex_decode(data_hex, data);
+    if (decoded_size == -1) {
         //error
         ckvs_close(ckvs);
         json_object_put(root_obj);
@@ -385,11 +385,8 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         return;
     }
 
-    //update the length of the encrypted secret in the entry
-    ckvs_out->value_len = strlen((const char*) data);
-
     //write the new entry
-    err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, ckvs_out->value_len);
+    err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, decoded_size);
     json_object_put(root_obj);
     if (err != ERR_NONE) {
         //error

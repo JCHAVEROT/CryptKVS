@@ -452,14 +452,14 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //convert the hex-encoded string of data
-    err = hex_decode(data_hex, encrypted);
-    if (err == -1) {
+    int decoded_size = hex_decode(data_hex, encrypted);
+    if (decoded_size == -1) {
         //error
         return ERR_IO;
     }
 
     //initialize the string where the decrypted secret will be stored
-    size_t decrypted_len = strlen(data_hex) / 2 + EVP_MAX_BLOCK_LENGTH; //TODO add +1 ?
+    size_t decrypted_len = decoded_size + EVP_MAX_BLOCK_LENGTH; //TODO add +1 ?
     unsigned char *decrypted = calloc(decrypted_len + 1, sizeof(unsigned char));
     if (decrypted == NULL) {
         //error
@@ -469,7 +469,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //decrypt the string with the secret with in particular the master_key stored in ckvs_mem
-    err = ckvs_client_crypt_value(ckvs_mem, DECRYPTION, encrypted, strlen(data_hex) / 2, decrypted,
+    err = ckvs_client_crypt_value(ckvs_mem, DECRYPTION, encrypted, decoded_size, decrypted,
                                   &decrypted_len);
     if (err != ERR_NONE) {
         //error
@@ -487,8 +487,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //free all objects
-    free(encrypted);
-    encrypted = NULL;
+    free(encrypted); encrypted = NULL;
     json_object_put(root_obj);
     free_uc(&decrypted);
 
@@ -564,9 +563,9 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //add the data hex-encoded and encrypted string to the json
     err = add_string(object, "data", encrypted_hex);
-    free(encrypted_hex); encrypted_hex = NULL;
     if (err != ERR_NONE) {
         //error
+        free(encrypted_hex); encrypted_hex = NULL;
         json_object_put(object);
         return err;
     }
@@ -574,6 +573,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     //serialize the json onject
     size_t length = 0;
     const char *json_string = json_object_to_json_string_length(object, JSON_C_TO_STRING_PRETTY, &length);
+    free(encrypted_hex); encrypted_hex = NULL;
 
     //create the post with the null character at the end
     char* post = calloc(length + 1, sizeof(char));
