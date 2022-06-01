@@ -438,7 +438,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //initialize the string where the encrypted secret will be stored
-    unsigned char *encrypted = calloc(strlen(data_hex) / 2 + 1, sizeof(unsigned char)); //TODO add +1?
+    unsigned char *encrypted = calloc(strlen(data_hex) / 2 + 2, sizeof(unsigned char)); //because for a hex-string of length L being odd, its hex-decoded string will be of length (L/2)+1
     if (encrypted == NULL) {
         //error
         json_object_put(root_obj);
@@ -453,8 +453,8 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //initialize the string where the decrypted secret will be stored
-    size_t decrypted_len = decoded_size + EVP_MAX_BLOCK_LENGTH; //TODO add +1 ?
-    unsigned char *decrypted = calloc(decrypted_len + 1, sizeof(unsigned char));
+    size_t decrypted_len = (size_t) decoded_size + EVP_MAX_BLOCK_LENGTH + 1;
+    unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
     if (decrypted == NULL) {
         //error
         free(encrypted); encrypted = NULL;
@@ -463,7 +463,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //decrypt the string with the secret with in particular the master_key stored in ckvs_mem
-    err = ckvs_client_crypt_value(ckvs_mem, DECRYPTION, encrypted, decoded_size, decrypted,
+    err = ckvs_client_crypt_value(ckvs_mem, DECRYPTION, encrypted, (size_t) decoded_size, decrypted,
                                   &decrypted_len);
     if (err != ERR_NONE) {
         //error
