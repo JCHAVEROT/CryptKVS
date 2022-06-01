@@ -169,6 +169,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -177,11 +178,13 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     slist = curl_slist_append(slist, HTTPHEADER_1);
     if (slist == NULL) {
         //error
+        free(url); url = NULL;
         return ERR_IO;
     }
     ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, slist);
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
         curl_slist_free_all(slist);
         return ERR_OUT_OF_MEMORY;
     }
@@ -191,6 +194,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDSIZE, strlen(POST));
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
         curl_slist_free_all(slist);
         return ERR_OUT_OF_MEMORY;
     }
@@ -198,6 +202,7 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, POST);
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
         curl_slist_free_all(slist);
         return ERR_OUT_OF_MEMORY;
     }
@@ -206,53 +211,45 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     ret = curl_easy_perform(conn->curl);
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
         curl_slist_free_all(slist);
         return ERR_TIMEOUT;
-    }
-
-    ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
-    if (ret != CURLE_OK) {
-        //error
-        curl_slist_free_all(slist);
-        return ERR_OUT_OF_MEMORY;
-    }
-
-    ret = curl_easy_setopt(conn->curl, CURLOPT_HTTPHEADER, slist);
-    if (ret != CURLE_OK) {
-        //error
-        curl_slist_free_all(slist);
-        return ERR_OUT_OF_MEMORY;
     }
 
     //send an empty request to tell the server the data was sent entirely
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDSIZE, 0);
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
         curl_slist_free_all(slist);
         return ERR_OUT_OF_MEMORY;
     }
     ret = curl_easy_setopt(conn->curl, CURLOPT_POSTFIELDS, "");
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
         curl_slist_free_all(slist);
         return ERR_OUT_OF_MEMORY;
     }
 
     ret = curl_easy_perform(conn->curl);
-    curl_slist_free_all(slist);
     if (ret != CURLE_OK) {
         //error
+        free(url); url = NULL;
+        curl_slist_free_all(slist);
         return ERR_TIMEOUT;
     }
 
+    //free the url and the list
+    free(url); url = NULL;
+    curl_slist_free_all(slist);
+
     if (conn->resp_size > 0) {
         //error
+
         pps_printf("%s", conn->resp_buf); //prints the response
         return ERR_IO;
     }
-
-    //free the url
-    free(url); url = NULL;
 
     return ERR_NONE;
 }
