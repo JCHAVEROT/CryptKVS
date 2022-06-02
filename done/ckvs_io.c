@@ -5,8 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "ckvs_utils.h"
-#include "ckvs.h"
 #include "ckvs_crypto.h"
+#include "ckvs.h"
 #include "error.h"
 #include <stdint.h>
 #include <stdbool.h>
@@ -126,6 +126,7 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
 
     //iterate over the table from index hashkey in linear probing
     uint32_t max_it = idx + ckvs->header.table_size;
+
     for (uint32_t i = idx; i < max_it; ++i) {
         // compute the index
         uint32_t j = i % ckvs->header.table_size;
@@ -364,16 +365,13 @@ int ckvs_new_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key
     ckvs->header.num_entries += 1;
 
     //write the change in the header for the number of entries in the file
-    err=ckvs_write_updated_header_to_disk(ckvs);
+    err = ckvs_write_updated_header_to_disk(ckvs);
     if (err != ERR_NONE) {
         return err;
     }
 
     return ERR_NONE;
 }
-
-
-
 
 //--------------------------------------------------------------------------------------------
 int ckvs_delete_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_key, struct ckvs_entry **e_out) {
@@ -475,7 +473,7 @@ int read_header(CKVS_t *ckvs) {
 
     return ERR_NONE;
 }
-
+//TODO CHANGER DE PLACE LES FONCTIONS NE TRAVAILLANT PAS SUR LES ENTREES/SORTIES
 //----------------------------------------------------------------------
 int check_pow_2(uint32_t table_size) {
     while (table_size >= 2) {
@@ -486,34 +484,6 @@ int check_pow_2(uint32_t table_size) {
         //error
         return ERR_CORRUPT_STORE;
     }
-    return ERR_NONE;
-}
-
-//----------------------------------------------------------------------
-int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length) {
-    //check pointers
-    if (ckvs_mem == NULL || set_value == NULL || encrypted == NULL || length == NULL) {
-        //error
-        return ERR_INVALID_ARGUMENT;
-    }
-
-    //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
-    *length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
-    *encrypted = calloc(*length, sizeof(unsigned char));
-    if (*encrypted == NULL) {
-        //error
-        free_sve(encrypted, length);
-        return ERR_OUT_OF_MEMORY;
-    }
-    int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
-                                      *encrypted,
-                                      length);
-    if (err != ERR_NONE) {
-        //error
-        free_sve(encrypted, length);
-        return err;
-    }
-
     return ERR_NONE;
 }
 
@@ -559,7 +529,6 @@ int add_array(const struct json_object *obj, const char *key, const char *array[
 
     for (size_t i = 0; i < size; i++) {
         json_object_array_add(arr, json_object_new_string(array[i]));
-        pps_printf("%s", array[i]);
     }
 
     return json_object_object_add((struct json_object *) obj, key, arr);
@@ -598,7 +567,6 @@ int get_string(const struct json_object *obj, const char *key, char *buf) {
         return ERR_IO;
     }
 
-    pps_printf("%ld\n",strlen(string_from_obj));
     //copy in the buffer
     strcpy(buf, string_from_obj);
 

@@ -151,16 +151,7 @@ int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs);
  * MODULARIZATION                                      *
  * *************************************************** */
 
-/**
- * @brief Encrypt a secret
- *
- * @param ckvs_mem (ckvs_memrecord_t*) holds the necessary variables
- * @param set_value (const char*) the secret
- * @param encrypted (char**) the pointer to the buffer in which to put the encrypted secret
- * @param length (int*) pointer storing the length of the encrypted secret
- * @return int, error code
- */
-int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length);
+//TODO CHANGER DE PLACE LES FONCTIONS NE TRAVAILLANT PAS SUR LES ENTREES/SORTIES
 
 /**
  * @brief Auxiliary function to easily free set_value_encrypted's dynamic allocation
@@ -180,7 +171,7 @@ void free_uc(unsigned char **a);
 /**
  * @brief To add an inner json object associated to the key with value the given string.
  *
- * @param obj (struct json_object*) the parent json object
+ * @param obj (struct json_object*) the main parent json object
  * @param key (const char*) the key associated to the string we add
  * @param val (char*) the string we add to the json object
  * @return int, error code
@@ -201,7 +192,7 @@ int add_array(const struct json_object *obj, const char *key, const char *array[
 /**
  * @brief To add an inner json object associated to the key with value the given integer.
  *
- * @param obj (struct json_object*) the parent json object
+ * @param obj (struct json_object*) the main parent json object
  * @param key (const char*) the key associated to the integer we add
  * @param val (int) the integer we add to the json object
  * @return int, error code
@@ -211,7 +202,7 @@ int add_int(struct json_object *obj, const char *key, int val);
 /**
  * @brief To get the integer associated to the key from a json object.
  *
- * @param obj (const json_object*) the json object we retrieve the information from
+ * @param obj (const json_object*) the main json object we retrieve the information from
  * @param key (const char*) the key of the integer of interest
  * @param buf (char*) buffer used to store the computed integer
  * @return int, error code
@@ -221,7 +212,7 @@ int get_int(const struct json_object *obj, const char *key, int *buf);
 /**
  * @brief To get the usable string associated to the key from a json object.
  *
- * @param obj (const json_object*) the json object we retrieve the information from
+ * @param obj (const json_object*) the main json object we retrieve the information from
  * @param key (const char*) the key of the string of interest
  * @param buf (char*) buffer used to store the computed string
  * @return int, error code

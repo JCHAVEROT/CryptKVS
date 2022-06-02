@@ -280,7 +280,10 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     curl_free(key);
     if (err != ERR_NONE) {
         //error
-        ckvs_close(ckvs);
+        if (err != ERR_KEY_NOT_FOUND && err != ERR_DUPLICATE_ID) {
+            //so not to close the table if the key was not found or password was incorrect
+            ckvs_close(ckvs);
+        }
         mg_error_msg(nc, err);
         return;
     }
@@ -320,21 +323,15 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         mg_error_msg(nc, err);
         return;
     }
-//-----------------------------------------------------------------------
+
     //retrieve the json object
     struct json_object *root_obj = json_tokener_parse(buffer);
     free(buffer); buffer = NULL; buffer_size = 0;
     if (root_obj == NULL) {
         //error, need to get which one
         ckvs_close(ckvs);
-        if (strncmp(buffer, "Error:", 6) == 0) {
-            pps_printf("TESTTT\n");
-            err = get_err(buffer + 7);
-        }
-        pps_printf("%s\n", "An error occured when parsing the string into a json object");
-        (err == ERR_NONE)
-            ? mg_error_msg(nc, ERR_IO)
-            : mg_error_msg(nc, err);
+        json_object_put(root_obj);
+        mg_error_msg(nc, ERR_IO);
         return;
     }
 
@@ -344,6 +341,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     if (err != ERR_NONE) {
         //error
         ckvs_close(ckvs);
+        json_object_put(root_obj);
         mg_error_msg(nc, err);
         return;
     }
@@ -352,13 +350,12 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     SHA256_from_string(c2_hex, &c2);
     ckvs_out->c2 = c2;
 
-    //TODO
     //get the hex-encoded data
     struct json_object *data_json_obj = NULL;
     if (!json_object_object_get_ex(root_obj, "data", &data_json_obj)) {
         //error
-        pps_printf("%s %s\n", "An error occurred : did not find the key", "data");
         ckvs_close(ckvs);
+        json_object_put(root_obj);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -368,6 +365,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     if (data_hex == NULL) {
         //error
         ckvs_close(ckvs);
+        json_object_put(root_obj);
         mg_error_msg(nc, ERR_IO);
         return;
     }
@@ -376,24 +374,23 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     if (data == NULL) {
         //error
         ckvs_close(ckvs);
+        json_object_put(root_obj);
         mg_error_msg(nc, ERR_OUT_OF_MEMORY);
         return;
     }
 
-    err = hex_decode(data_hex, data);
-    if (err == -1) {
+    int decoded_size = hex_decode(data_hex, data);
+    if (decoded_size == -1) {
         //error
         ckvs_close(ckvs);
+        json_object_put(root_obj);
         mg_error_msg(nc, ERR_IO);
         return;
     }
 
-    //update the length of the encrypted secret in the entry
-    ckvs_out->value_len = strlen((const char*) data);
-
     //write the new entry
-    err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, ckvs_out->value_len);
-    ckvs_close(ckvs);
+    err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, (uint64_t) decoded_size);
+    json_object_put(root_obj);
     if (err != ERR_NONE) {
         //error
         mg_error_msg(nc, err);
@@ -578,9 +575,6 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         mg_error_msg(nc, ERR_IO);
         return;
     }
-
-    //close the ckvs
-    ckvs_close(ckvs);
 
     mg_error_msg(nc, ERR_NONE);
 }

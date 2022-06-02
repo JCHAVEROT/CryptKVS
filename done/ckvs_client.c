@@ -335,15 +335,15 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
     SHA256_to_string(&ckvs_mem.auth_key, buffer);
 
     //build the string for url containing the whole information
-    char *page = calloc(SHA256_PRINTED_STRLEN + strlen(ready_key) + 43, sizeof(char));
+    char *page = calloc(SHA256_PRINTED_STRLEN + strlen(ready_key) + 41 + 1, sizeof(char));
     if (page == NULL) {
         ckvs_rpc_close(&conn);
         curl_free(ready_key);
         return ERR_OUT_OF_MEMORY;
     }
     (set_value == NULL)
-    ? strcat(page, "g")
-    : strcat(page, "s"); //the best modularization
+        ? strcat(page, "g") //the get part
+        : strcat(page, "s"); //the set part
     strcat(page, "et?key=");
     strcat(page, ready_key);
     strcat(page, "&auth_key=");
@@ -379,8 +379,8 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
 
     //initialize buffer for c2
-    char *c2_str[SHA256_PRINTED_STRLEN + 1];
-    ckvs_sha_t *c2 = calloc(1, sizeof(ckvs_sha_t));
+    char c2_str[SHA256_PRINTED_STRLEN];
+    struct ckvs_sha c2;
 
     //retrieve the json object
     struct json_object *root_obj = json_tokener_parse(conn->resp_buf);
@@ -390,8 +390,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
             err = get_err(conn->resp_buf + 7);
         }
         pps_printf("%s\n", "An error occured when parsing the string into a json object");
-        free(c2);
-        c2 = NULL;
         return err == ERR_NONE ? ERR_IO : err;
     }
 
@@ -404,101 +402,74 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         if (err2 == ERR_NONE) {
             err = get_err(error);
         }
-        free(c2);
-        c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
 
     //convert the hex-encoded string of c2 into SHA256
-    err = SHA256_from_string(c2_str, c2);
+    err = SHA256_from_string(c2_str, &c2);
     if (err != ERR_NONE) {
         //error
-        free(c2);
-        c2 = NULL;
-        json_object_put(root_obj);
-        return err;
-    }
-
-    //initialize a buffer for the hex-encoded data
-    unsigned char *data = calloc(conn->resp_size + 1, sizeof(unsigned char));
-    if (data == NULL) {
-        //error
-        free(c2);
-        c2 = NULL;
-        json_object_put(root_obj);
-        return ERR_OUT_OF_MEMORY;
-    }
-
-    //retrieve the hex-encoded string of data from the json object
-    err = get_string(root_obj, "data", data);
-    if (err != ERR_NONE) {
-        //error
-        free(data);
-        data = NULL;
-        free(c2);
-        c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
 
     //compute the masterkey
-    err = ckvs_client_compute_masterkey(ckvs_mem, c2);
+    err = ckvs_client_compute_masterkey(ckvs_mem, &c2);
     if (err != ERR_NONE) {
         //error
-        free(data);
-        data = NULL;
-        free(c2);
-        c2 = NULL;
         json_object_put(root_obj);
         return err;
     }
 
+    //get the hex-encoded data
+    struct json_object *data_json_obj = NULL;
+    if (!json_object_object_get_ex(root_obj, "data", &data_json_obj)) {
+        //error
+        pps_printf("%s %s\n", "An error occurred : did not find the key", "data");
+        json_object_put(root_obj);
+        return ERR_IO;
+    }
+
+    //retrieve the hex-encoded string of data from the json object
+    const char *data_hex = json_object_get_string(data_json_obj);
+    if (data_hex == NULL) {
+        //error
+        json_object_put(root_obj);
+        return ERR_IO;
+    }
+
     //initialize the string where the encrypted secret will be stored
-    unsigned char *encrypted = calloc(strlen(data) / 2, sizeof(unsigned char)); //TODO add +1?
+    unsigned char *encrypted = calloc(strlen(data_hex) / 2 + 2, sizeof(unsigned char)); //because for a hex-string of length L being odd, its hex-decoded string will be of length (L/2)+1
     if (encrypted == NULL) {
         //error
-        free(data);
-        data = NULL;
-        free(c2);
-        c2 = NULL;
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
 
     //convert the hex-encoded string of data
-    err = hex_decode(data, encrypted);
-    if (err == -1) {
+    int decoded_size = hex_decode(data_hex, encrypted);
+    if (decoded_size == -1) {
         //error
         return ERR_IO;
     }
 
     //initialize the string where the decrypted secret will be stored
-    size_t decrypted_len = strlen(data) / 2 + EVP_MAX_BLOCK_LENGTH; //TODO add +1 ?
+    size_t decrypted_len = (size_t) decoded_size + EVP_MAX_BLOCK_LENGTH + 1;
     unsigned char *decrypted = calloc(decrypted_len, sizeof(unsigned char));
     if (decrypted == NULL) {
         //error
-        free(data);
-        data = NULL;
-        free(c2);
-        c2 = NULL;
-        free(encrypted);
-        encrypted = NULL;
+        free(encrypted); encrypted = NULL;
         json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
 
     //decrypt the string with the secret with in particular the master_key stored in ckvs_mem
-    err = ckvs_client_crypt_value(ckvs_mem, DECRYPTION, encrypted, strlen(data) / 2, decrypted,
+    err = ckvs_client_crypt_value(ckvs_mem, DECRYPTION, encrypted, (size_t) decoded_size, decrypted,
                                   &decrypted_len);
     if (err != ERR_NONE) {
         //error
-        free(encrypted);
-        encrypted = NULL;
-        free(data);
-        data = NULL;
-        free(c2);
-        c2 = NULL;
+        free(encrypted); encrypted = NULL;
         free_uc(&decrypted);
         json_object_put(root_obj);
         return err;
@@ -511,12 +482,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //free all objects
-    free(encrypted);
-    encrypted = NULL;
-    free(c2);
-    c2 = NULL;
-    free(data);
-    data = NULL;
+    free(encrypted); encrypted = NULL;
     json_object_put(root_obj);
     free_uc(&decrypted);
 
@@ -533,25 +499,17 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
 
     //initialize and generate randomly SHA256 of c2 so not to decrease entropy
-    struct ckvs_sha *c2 = calloc(1, sizeof(ckvs_sha_t));
-    if (c2 == NULL) {
-        //error
-        return ERR_OUT_OF_MEMORY;
-    }
-    int err = RAND_bytes((unsigned char *) c2->sha, SHA256_DIGEST_LENGTH);
+    struct ckvs_sha c2;
+    int err = RAND_bytes((unsigned char *) c2.sha, SHA256_DIGEST_LENGTH);
     if (err != 1) {
         //error
-        free(c2);
-        c2 = NULL;
         return ERR_IO;
     }
 
     //now we have the necessary variables, compute the masterkey
-    err = ckvs_client_compute_masterkey(ckvs_mem, c2);
+    err = ckvs_client_compute_masterkey(ckvs_mem, &c2);
     if (err != ERR_NONE) {
         //error
-        free(c2);
-        c2 = NULL;
         return err;
     }
 
@@ -561,8 +519,6 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = encrypt_secret(ckvs_mem, set_value, &encrypted, &encrypted_length);
     if (err != ERR_NONE) {
         //error
-        free(c2);
-        c2 = NULL;
         return err;
     }
 
@@ -575,17 +531,24 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     //construction of the POST from the encoded secret
     //hex-encoding of c2
     char c2_hex[SHA256_PRINTED_STRLEN];
-    SHA256_to_string(c2, c2_hex);
-    free(c2);
-    c2 = NULL;
+    SHA256_to_string(&c2, c2_hex);
 
     //hex-encoding of the encrypted secret
+<<<<<<< HEAD
     //char encrypted_hex[encrypted_length * 2 + 1];
     char* encrypted_hex=calloc(encrypted_length * 2 + 1, sizeof(char));
     if (encrypted_hex==NULL){
         free_sve(&encrypted, &encrypted_length);
     }
     //TODO : VLA!!
+=======
+    char* encrypted_hex = calloc(encrypted_length * 2 + 1, sizeof(char));
+    if (encrypted_hex == NULL) {
+        //error
+        return ERR_OUT_OF_MEMORY;
+    }
+    //TODO : VLA!! done
+>>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
 
 
     hex_encode(encrypted, encrypted_length, encrypted_hex);
@@ -598,7 +561,11 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = json_object_object_add(object, "c2", json_object_new_string(c2_hex));
     if (err != ERR_NONE) {
         //error
+<<<<<<< HEAD
         free(encrypted_hex);
+=======
+        free(encrypted_hex); encrypted_hex = NULL;
+>>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
         json_object_put(object);
         return err;
     }
@@ -607,7 +574,11 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = add_string(object, "data", encrypted_hex);
     if (err != ERR_NONE) {
         //error
+<<<<<<< HEAD
         free(encrypted_hex);
+=======
+        free(encrypted_hex); encrypted_hex = NULL;
+>>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
         json_object_put(object);
         return err;
     }
@@ -618,6 +589,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     //serialize the json onject
     size_t length = 0;
     const char *json_string = json_object_to_json_string_length(object, JSON_C_TO_STRING_PRETTY, &length);
+    free(encrypted_hex); encrypted_hex = NULL;
 
     //create the post with the null character at the end
     char* post = calloc(length + 1, sizeof(char));
@@ -639,12 +611,15 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         return err;
     }
 
+<<<<<<< HEAD
     //verify if sucess or not
     /*if (strncmp(conn->resp_buf, "Error:", 6) == 0) {
         //error
         return get_err(conn->resp_buf + 7);
     }*/
 
+=======
+>>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
     return ERR_NONE;
 }
 
