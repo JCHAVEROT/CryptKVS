@@ -123,15 +123,4 @@ int ckvs_local_new(const char *filename, int optargc, char *optargv[]);
  */
 int ckvs_local_delete(const char *filename, int optargc, char *optargv[]);
 
-/* *************************************************** */
 
-/**
- * @brief Encrypt a secret
- *
- * @param ckvs_mem (ckvs_memrecord_t*) holds the necessary variables
- * @param set_value (const char*) the secret
- * @param encrypted (char**) the pointer to the buffer in which to put the encrypted secret
- * @param length (int*) pointer storing the length of the encrypted secret
- * @return int, error code
- */
-int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length);

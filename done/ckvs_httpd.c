@@ -230,7 +230,6 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         }
         return;
     }
-    pps_printf("a\n");
 
     //TODO modulariser HANDLE get/set
 
@@ -310,6 +309,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     }
     strcat(path, "/tmp/");
     strcat(path, name);
+    free(name); name = NULL;
 
     //initialize buffer and its size
     char *buffer = NULL; size_t buffer_size = 0;
@@ -610,7 +610,7 @@ static void ckvs_event_handler(struct mg_connection *nc, int ev, void *ev_data, 
             break;
 
         case MG_EV_HTTP_MSG:
-            // TODO: handle commands calls
+            //handle commands calls
             if (mg_http_match_uri(hm, "/stats")) {
                 handle_stats_call(nc, ckvs, hm);
             } else if (mg_http_match_uri(hm, "/get")) {
@@ -672,5 +672,4 @@ int ckvs_httpd_mainloop(const char *filename, int optargc, char **optargv) {
     debug_printf("Exiting HTTPD server\n");
     return ERR_NONE;
 }
-
 

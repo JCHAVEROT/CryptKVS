@@ -131,7 +131,6 @@ int ckvs_find_entry(struct CKVS *ckvs, const char *key, const struct ckvs_sha *a
         // compute the index
         uint32_t j = i % ckvs->header.table_size;
         //check the key
-
         if (strncmp(ckvs->entries[j].key, key, CKVS_MAXKEYLEN) == 0) {
             keyWasFound = true;
             //check the auth_key
@@ -182,10 +181,10 @@ int read_value_file_content(const char *filename, char **buffer_ptr, size_t *buf
     if (err != ERR_NONE) {
         //error
         if (file != NULL) {
-                //close it
-                fclose(file);
-                file = NULL;
-            }
+            //close it
+            fclose(file);
+            file = NULL;
+        }
         return ERR_IO;
     }
 
@@ -574,7 +573,7 @@ int get_string(const struct json_object *obj, const char *key, char *buf) {
 }
 
 //----------------------------------------------------------------------
- int get_int(const struct json_object *obj, const char *key, int *buf) {
+int get_int(const struct json_object *obj, const char *key, int *buf) {
     //check pointers
     if (obj == NULL || key == NULL || buf == NULL) {
         //error

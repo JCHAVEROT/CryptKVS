@@ -299,7 +299,6 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
 
     //initialize the connection and check errors
     int err = ckvs_rpc_init(&conn, url);
-
     if (err != ERR_NONE) {
         //error
         return err;
@@ -342,8 +341,8 @@ int ckvs_client_getset(const char *url, const char *key, const char *pwd, const 
         return ERR_OUT_OF_MEMORY;
     }
     (set_value == NULL)
-        ? strcat(page, "g") //the get part
-        : strcat(page, "s"); //the set part
+    ? strcat(page, "g") //the get part
+    : strcat(page, "s"); //the set part
     strcat(page, "et?key=");
     strcat(page, ready_key);
     strcat(page, "&auth_key=");
@@ -376,7 +375,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         //error
         return err;
     }
-
 
     //initialize buffer for c2
     char c2_str[SHA256_PRINTED_STRLEN];
@@ -497,7 +495,6 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         return ERR_INVALID_ARGUMENT;
     }
 
-
     //initialize and generate randomly SHA256 of c2 so not to decrease entropy
     struct ckvs_sha c2;
     int err = RAND_bytes((unsigned char *) c2.sha, SHA256_DIGEST_LENGTH);
@@ -534,21 +531,12 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     SHA256_to_string(&c2, c2_hex);
 
     //hex-encoding of the encrypted secret
-<<<<<<< HEAD
-    //char encrypted_hex[encrypted_length * 2 + 1];
-    char* encrypted_hex=calloc(encrypted_length * 2 + 1, sizeof(char));
-    if (encrypted_hex==NULL){
-        free_sve(&encrypted, &encrypted_length);
-    }
-    //TODO : VLA!!
-=======
     char* encrypted_hex = calloc(encrypted_length * 2 + 1, sizeof(char));
     if (encrypted_hex == NULL) {
         //error
         return ERR_OUT_OF_MEMORY;
     }
     //TODO : VLA!! done
->>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
 
 
     hex_encode(encrypted, encrypted_length, encrypted_hex);
@@ -561,11 +549,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = json_object_object_add(object, "c2", json_object_new_string(c2_hex));
     if (err != ERR_NONE) {
         //error
-<<<<<<< HEAD
-        free(encrypted_hex);
-=======
         free(encrypted_hex); encrypted_hex = NULL;
->>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
         json_object_put(object);
         return err;
     }
@@ -574,17 +558,10 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     err = add_string(object, "data", encrypted_hex);
     if (err != ERR_NONE) {
         //error
-<<<<<<< HEAD
-        free(encrypted_hex);
-=======
         free(encrypted_hex); encrypted_hex = NULL;
->>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
         json_object_put(object);
         return err;
     }
-    free(encrypted_hex);
-    encrypted_hex=NULL;
-
 
     //serialize the json onject
     size_t length = 0;
@@ -602,24 +579,12 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //call ckvs_post with the latterly computed arguments
     err = ckvs_post(conn, url, post);
-    if (conn->resp_buf!=NULL){
-        pps_printf("fvfv\n");
-    }
     free(post); post = NULL;
     if (err != ERR_NONE) {
         //error
         return err;
     }
 
-<<<<<<< HEAD
-    //verify if sucess or not
-    /*if (strncmp(conn->resp_buf, "Error:", 6) == 0) {
-        //error
-        return get_err(conn->resp_buf + 7);
-    }*/
-
-=======
->>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
     return ERR_NONE;
 }
 
@@ -628,3 +593,4 @@ int ckvs_client_new(_unused const char *url, _unused int optargc, _unused char *
 
     return NOT_IMPLEMENTED;
 }
+

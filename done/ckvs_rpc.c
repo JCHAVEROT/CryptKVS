@@ -233,26 +233,13 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     }
 
     ret = curl_easy_perform(conn->curl);
-<<<<<<< HEAD
-
-    if (ret != CURLE_OK) {
-        //error
-=======
     if (ret != CURLE_OK) {
         //error
         free(url); url = NULL;
->>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
         curl_slist_free_all(slist);
         return ERR_TIMEOUT;
     }
 
-<<<<<<< HEAD
-
-
-    if (conn->resp_size!=0) {
-        //error
-        curl_slist_free_all(slist);
-=======
     //free the url and the list
     free(url); url = NULL;
     curl_slist_free_all(slist);
@@ -260,11 +247,9 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
     if (conn->resp_size > 0) {
         //error
 
->>>>>>> 3b26940ff99821aa9d3d72fccbf0c981a8947d48
         pps_printf("%s", conn->resp_buf); //prints the response
         return ERR_IO;
     }
-    curl_slist_free_all(slist);
 
     return ERR_NONE;
 }
