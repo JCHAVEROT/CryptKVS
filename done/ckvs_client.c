@@ -207,7 +207,6 @@ int retrieve_ckvs_header_from_json(struct CKVS *ckvs, const struct json_object *
 
 // ======================================================================
 int retrieve_ckvs_from_json(struct CKVS *ckvs, const struct json_object *obj) {
-
     //check pointers
     if (ckvs == NULL || obj == NULL) {
         //error
@@ -534,10 +533,9 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     char* encrypted_hex = calloc(encrypted_length * 2 + 1, sizeof(char));
     if (encrypted_hex == NULL) {
         //error
+        free_sve(&encrypted, &encrypted_length);
         return ERR_OUT_OF_MEMORY;
     }
-    //TODO : VLA!! done
-
 
     hex_encode(encrypted, encrypted_length, encrypted_hex);
     free_sve(&encrypted, &encrypted_length);

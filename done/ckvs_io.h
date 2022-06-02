@@ -10,13 +10,6 @@
 #include "ckvs.h"
 #include "ckvs_crypto.h"
 
-/**
- * @brief enum crypt_type with two modes decryption and encryption
- */
-enum crypt_type {
-    DECRYPTION,
-    ENCRYPTION
-};
 
 /* *************************************************** *
  * TODO WEEK 04: Define struct CKVS here               *
@@ -52,8 +45,6 @@ int ckvs_open(const char *filename, struct CKVS *ckvs);
  * @return int, error code
  */
 int read_header(CKVS_t *ckvs);
-
-
 
 /**
  * @brief Closes the CKVS database and releases its resources.
@@ -141,10 +132,6 @@ int ckvs_delete_entry(struct CKVS *ckvs, const char *key, struct ckvs_sha *auth_
  */
 int compute_idx_and_write(struct ckvs_entry *e, struct CKVS *ckvs);
 
-/* *************************************************** *
- * MODULARIZATION                                      *
- * *************************************************** */
 
-//TODO CHANGER DE PLACE LES FONCTIONS NE TRAVAILLANT PAS SUR LES ENTREES/SORTIES
 
 

@@ -11,6 +11,15 @@
 
 #include "ckvs_utils.h"
 
+
+/**
+ * @brief enum crypto_type with two modes decryption and encryption
+ */
+enum crypto_type {
+    DECRYPTION,
+    ENCRYPTION
+};
+
 /**
  * @brief Holds the variables necessary to compute a master key
  */
@@ -77,8 +86,8 @@ int ckvs_client_crypt_value(const struct ckvs_memrecord *mr, const int do_encryp
  *
  * @param ckvs_mem (ckvs_memrecord_t*) holds the necessary variables
  * @param set_value (const char*) the secret
- * @param encrypted (char**) the pointer to the buffer in which to put the encrypted secret
- * @param length (int*) pointer storing the length of the encrypted secret
+ * @param encrypted (unsigned char**) the pointer to the buffer in which to put the encrypted secret
+ * @param length (size_t*) pointer storing the length of the encrypted secret
  * @return int, error code
  */
 int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length);

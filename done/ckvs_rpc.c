@@ -129,8 +129,6 @@ int ckvs_rpc(struct ckvs_connection *conn, const char *GET) {
         return err;
     }
 
-    //pps_printf("%s \n",url); //uncomment to get the URL
-
     CURLcode ret = curl_easy_setopt(conn->curl, CURLOPT_URL, url);
     free(url); url = NULL;
     if (ret != CURLE_OK) {
@@ -246,7 +244,6 @@ int ckvs_post(struct ckvs_connection *conn, const char *GET, const char *POST) {
 
     if (conn->resp_size > 0) {
         //error
-
         pps_printf("%s", conn->resp_buf); //prints the response
         return ERR_IO;
     }

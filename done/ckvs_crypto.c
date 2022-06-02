@@ -28,10 +28,10 @@ int ckvs_client_encrypt_pwd(ckvs_memrecord_t *mr, const char *key, const char *p
     memset(mr, 0, sizeof(ckvs_memrecord_t));
 
 
-    size_t keyl=strnlen(key,CKVS_MAXKEYLEN);
-    size_t pwdl=strnlen(pwd,CKVS_MAXKEYLEN);
+    size_t keyl = strnlen(key,CKVS_MAXKEYLEN);
+    size_t pwdl = strnlen(pwd,CKVS_MAXKEYLEN);
     //creation of the stretched_key in format key|password
-    char *str = calloc(keyl+pwdl + 2, 1);
+    char *str = calloc(keyl + pwdl + 2, 1);
     if (str == NULL) {
         return ERR_OUT_OF_MEMORY;
     }
@@ -99,7 +99,6 @@ int ckvs_client_compute_masterkey(struct ckvs_memrecord *mr, const struct ckvs_s
 
 }
 
-
 //----------------------------------------------------------------------
 int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length) {
     //check pointers
@@ -126,11 +125,6 @@ int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned c
 
     return ERR_NONE;
 }
-
-
-
-
-
 
 // ----------------------------------------------------------------------
 int ckvs_client_crypt_value(const struct ckvs_memrecord *mr, const int do_encrypt,

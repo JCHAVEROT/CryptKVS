@@ -30,6 +30,13 @@ static int s_signo;
 #define NAME_SIZE 100
 
 // ======================================================================
+/**
+ * @brief To get the url decoded version of a string.
+ *
+ * @param hm the http message
+ * @param arg (const char*) : the string we want the url decorded version from
+ * @return string (char*) : the url decoded version of the argument
+ */
 static char *get_urldecoded_argument(struct mg_http_message *hm, const char *arg) {
     //check pointers
     if (hm == NULL || arg == NULL) {
@@ -85,6 +92,13 @@ static void signal_handler(int signo) {
 }
 
 // ======================================================================
+/**
+ * @brief Handler for a stats call.
+ *
+ * @param nc the http connection
+ * @param ckvs the ckvs table
+ * @param hm the http message
+ */
 static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
                               _unused struct mg_http_message *hm) {
     //check pointers
@@ -191,10 +205,58 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
         return;
     }
 
-    //close the ckvs
-    ckvs_close(ckvs);
-
     mg_error_msg(nc, ERR_NONE);
+}
+
+
+// ======================================================================
+/**
+ * @brief Helper methode to retrieve the right table entry from the http message.
+ *
+ * @param hm the http message
+ * @param ckvs (struct CKVS) : the ckvs database to search in
+ * @param e_out (struct ckvs_entry**) points to a pointer to an entry. Used to store the pointer to the entry if found
+ * @return int, error code
+ */
+static int find_entry_from_connection_arg(struct mg_http_message *hm, struct CKVS *ckvs, struct ckvs_entry **e_out) {
+    //check pointers
+    if (hm == NULL || ckvs == NULL || e_out == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //get the url escaped key
+    char *key = get_urldecoded_argument(hm, "key");
+    if (key == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //get the encoded auth key
+    char auth_key_buffer[SHA256_PRINTED_STRLEN];
+
+    //retrieve the auth key and convert it in SHA256
+    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, BUFFER_SIZE); //TODO 1024 BONNE VALEUR?
+    if (err < 1) {
+        //error
+        return ERR_IO;
+    }
+    //initialize the ckvs_sha for the auth key
+    ckvs_sha_t auth_key;
+    memset(&auth_key, 0, sizeof(ckvs_sha_t));
+
+    //hex-decode the string of the auth key into SHA256
+    SHA256_from_string(auth_key_buffer, &auth_key);
+
+    //with the newly computed key and auth key, find the right entry in the table
+    err = ckvs_find_entry(ckvs, key, &auth_key, e_out);
+    curl_free(key);
+    if (err != ERR_NONE) {
+        //error
+        return err;
+    }
+
+    return ERR_NONE;
 }
 
 // ======================================================================
@@ -234,7 +296,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     //TODO modulariser HANDLE get/set
 
     //get the url escaped key
-    char *key = get_urldecoded_argument(hm, "key");
+    /*char *key = get_urldecoded_argument(hm, "key");
     if (key == NULL) {
         //error
         ckvs_close(ckvs);
@@ -268,15 +330,14 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //hex-decode the string of the auth key into SHA256
     SHA256_from_string(auth_key_buffer, &auth_key);
-    free(auth_key_buffer); auth_key_buffer = NULL;
+    free(auth_key_buffer); auth_key_buffer = NULL;*/
 
     //initialize a pointer on a ckvs_entry to store the entry to be found
     ckvs_entry_t *ckvs_out;
     memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
 
-    //with the newly computed key and auth key, find the right entry in the table
-    err = ckvs_find_entry(ckvs, key, &auth_key, &ckvs_out);
-    curl_free(key);
+    //find the right entry from the http message information
+    int err = find_entry_from_connection_arg(hm, ckvs, &ckvs_out);
     if (err != ERR_NONE) {
         //error
         if (err != ERR_KEY_NOT_FOUND && err != ERR_DUPLICATE_ID) {
@@ -289,6 +350,12 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //get the file name
     char *name = calloc(NAME_SIZE, sizeof(char));
+    if (name == NULL) {
+        //error
+        ckvs_close(ckvs);
+        mg_error_msg(nc, ERR_OUT_OF_MEMORY);
+        return;
+    }
     err = mg_http_get_var(&hm->query, "name", name, BUFFER_SIZE);
     if (err < 1) {
         //error
@@ -303,7 +370,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     if (path == NULL) {
         //error
         ckvs_close(ckvs);
-        curl_free(key);
+        free(name); name = NULL;
         mg_error_msg(nc, ERR_OUT_OF_MEMORY);
         return;
     }
@@ -428,7 +495,7 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     }
 
     //get the url escaped key
-    char *key = get_urldecoded_argument(hm, "key");
+    /*char *key = get_urldecoded_argument(hm, "key");
     if (key == NULL) {
         //error
         ckvs_close(ckvs);
@@ -463,24 +530,23 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
 
     //hex-decode the string of the auth key into SHA256
     SHA256_from_string(auth_key_buffer, &auth_key);
-    free(auth_key_buffer); auth_key_buffer = NULL;
+    free(auth_key_buffer); auth_key_buffer = NULL;*/
 
     //initialize a pointer on a ckvs_entry to store the entry to be found
     ckvs_entry_t *ckvs_out;
     memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
 
-    //with the newly computed key and auth key, find the right entry in the table
-    err = ckvs_find_entry(ckvs, key, &auth_key, &ckvs_out);
+    //find the right entry from the http message information
+    int err = find_entry_from_connection_arg(hm, ckvs, &ckvs_out);
     if (err != ERR_NONE) {
         //error
-        curl_free(key);
-        ckvs_close(ckvs);
+        if (err != ERR_KEY_NOT_FOUND && err != ERR_DUPLICATE_ID) {
+            //so not to close the table if the key was not found or password was incorrect
+            ckvs_close(ckvs);
+        }
         mg_error_msg(nc, err);
         return;
     }
-
-    //free pointers
-    curl_free(key);
 
     if (ckvs_out->value_len == 0) {
         //error

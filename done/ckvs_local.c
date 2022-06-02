@@ -391,5 +391,3 @@ int ckvs_local_delete(const char *filename, int optargc, char *optargv[]) {
 
     return ERR_NONE;
 }
-
-
