@@ -4,6 +4,7 @@
  */
 #include "ckvs.h"
 #include "ckvs_io.h"
+#include "ckvs_utils.h"
 #include "ckvs_crypto.h"
 #include <stdlib.h>
 #include <openssl/sha.h>
