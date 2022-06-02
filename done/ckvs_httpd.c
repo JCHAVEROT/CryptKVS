@@ -218,7 +218,7 @@ static void handle_stats_call(struct mg_connection *nc, struct CKVS *ckvs,
  * @param e_out (struct ckvs_entry**) points to a pointer to an entry. Used to store the pointer to the entry if found
  * @return int, error code
  */
-static int find_entry_from_connection_arg(struct mg_http_message *hm, struct CKVS *ckvs, struct ckvs_entry **e_out) {
+static int find_entry_from_connection_args(struct mg_http_message *hm, struct CKVS *ckvs, struct ckvs_entry **e_out) {
     //check pointers
     if (hm == NULL || ckvs == NULL || e_out == NULL) {
         //error
@@ -293,51 +293,12 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         return;
     }
 
-    //TODO modulariser HANDLE get/set
-
-    //get the url escaped key
-    /*char *key = get_urldecoded_argument(hm, "key");
-    if (key == NULL) {
-        //error
-        ckvs_close(ckvs);
-        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
-        return;
-    }
-
-    //get the encoded auth key
-    char *auth_key_buffer = calloc(SHA256_PRINTED_STRLEN, sizeof(char));
-    if (auth_key_buffer == NULL) {
-        //error
-        curl_free(key);
-        ckvs_close(ckvs);
-        mg_error_msg(nc, ERR_IO);
-        return;
-    }
-
-    //retrieve the auth key and convert it in SHA256
-    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, BUFFER_SIZE);
-    if (err < 1) {
-        //error
-        curl_free(key);
-        ckvs_close(ckvs);
-        free(auth_key_buffer); auth_key_buffer = NULL;
-        mg_error_msg(nc, ERR_IO);
-        return;
-    }
-    //initialize the ckvs_sha for the auth key
-    ckvs_sha_t auth_key;
-    memset(&auth_key, 0, sizeof(ckvs_sha_t));
-
-    //hex-decode the string of the auth key into SHA256
-    SHA256_from_string(auth_key_buffer, &auth_key);
-    free(auth_key_buffer); auth_key_buffer = NULL;*/
-
     //initialize a pointer on a ckvs_entry to store the entry to be found
     ckvs_entry_t *ckvs_out;
     memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
 
     //find the right entry from the http message information
-    int err = find_entry_from_connection_arg(hm, ckvs, &ckvs_out);
+    int err = find_entry_from_connection_args(hm, ckvs, &ckvs_out);
     if (err != ERR_NONE) {
         //error
         if (err != ERR_KEY_NOT_FOUND && err != ERR_DUPLICATE_ID) {
@@ -494,50 +455,12 @@ static void handle_get_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
         return;
     }
 
-    //get the url escaped key
-    /*char *key = get_urldecoded_argument(hm, "key");
-    if (key == NULL) {
-        //error
-        ckvs_close(ckvs);
-        mg_error_msg(nc, ERR_INVALID_ARGUMENT);
-        return;
-    }
-
-    //get the encoded auth key
-    char *auth_key_buffer = calloc(SHA256_PRINTED_STRLEN, sizeof(char));
-    if (auth_key_buffer == NULL) {
-        //error
-        curl_free(key);
-        ckvs_close(ckvs);
-        mg_error_msg(nc, ERR_IO);
-        return;
-    }
-
-    //retrieve the auth key and convert it in SHA256
-    int err = mg_http_get_var(&hm->query, "auth_key", auth_key_buffer, BUFFER_SIZE);
-    if (err < 1) {
-        //error
-        curl_free(key);
-        ckvs_close(ckvs);
-        free(auth_key_buffer); auth_key_buffer = NULL;
-        mg_error_msg(nc, ERR_IO);
-        return;
-    }
-
-    //initialize the ckvs_sha for the auth key
-    ckvs_sha_t auth_key;
-    memset(&auth_key, 0, sizeof(ckvs_sha_t));
-
-    //hex-decode the string of the auth key into SHA256
-    SHA256_from_string(auth_key_buffer, &auth_key);
-    free(auth_key_buffer); auth_key_buffer = NULL;*/
-
     //initialize a pointer on a ckvs_entry to store the entry to be found
     ckvs_entry_t *ckvs_out;
     memset(&ckvs_out, 0, sizeof(ckvs_entry_t *));
 
     //find the right entry from the http message information
-    int err = find_entry_from_connection_arg(hm, ckvs, &ckvs_out);
+    int err = find_entry_from_connection_args(hm, ckvs, &ckvs_out);
     if (err != ERR_NONE) {
         //error
         if (err != ERR_KEY_NOT_FOUND && err != ERR_DUPLICATE_ID) {
