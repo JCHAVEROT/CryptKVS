@@ -383,6 +383,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     if (decoded_size == -1) {
         //error
         ckvs_close(ckvs);
+        free(data); data=NULL;
         json_object_put(root_obj);
         mg_error_msg(nc, ERR_IO);
         return;
@@ -391,6 +392,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     //write the new entry
     err = ckvs_write_encrypted_value(ckvs, ckvs_out, data, (uint64_t) decoded_size);
     json_object_put(root_obj);
+    free(data); data=NULL;
     if (err != ERR_NONE) {
         //error
         mg_error_msg(nc, err);

@@ -9,6 +9,7 @@
 #include "util.h"
 #include <inttypes.h>
 #include "error.h"
+#include <json-c/json.h>
 
 // ----------------------------------------------------------------------
 void print_header(const struct ckvs_header *header) {
@@ -135,6 +136,126 @@ int get_err(char* error) {
     }
 
     return ERR_PROTOCOL;
+}
+
+
+//----------------------------------------------------------------------
+void free_sve(unsigned char **sve, size_t *sve_length) {
+    if (sve != NULL && *sve != NULL) {
+        free(*sve);
+        *sve = NULL;
+    }
+    if (sve_length != NULL) *sve_length = 0;
+}
+
+//----------------------------------------------------------------------
+void free_uc(unsigned char **a) {
+    if (a != NULL) {
+        if (*a != NULL) {
+            free(*a);
+            *a = NULL;
+        }
+    }
+}
+
+//----------------------------------------------------------------------
+int add_string(struct json_object *obj, const char *key, const char *val) {
+    //check pointers
+    if (obj == NULL || key == NULL || val == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    return json_object_object_add(obj, key, json_object_new_string(val));
+}
+
+//----------------------------------------------------------------------
+int add_array(const struct json_object *obj, const char *key, const char *array[], size_t size) {
+    //check pointers
+    if (obj == NULL || key == NULL || array == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    struct json_object *arr = json_object_new_array();
+
+    for (size_t i = 0; i < size; i++) {
+        json_object_array_add(arr, json_object_new_string(array[i]));
+    }
+
+    return json_object_object_add((struct json_object *) obj, key, arr);
+}
+
+//----------------------------------------------------------------------
+int add_int(struct json_object *obj, const char *key, int val) {
+    //check pointers
+    if (obj == NULL || key == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    return json_object_object_add(obj, key, json_object_new_int(val));
+}
+
+//----------------------------------------------------------------------
+int get_string(const struct json_object *obj, const char *key, char *buf) {
+    //check pointers
+    if (obj == NULL || key == NULL || buf == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //get the right json object
+    struct json_object *value = NULL;
+    if (!json_object_object_get_ex(obj, key, &value)) {
+        pps_printf("%s %s\n", "An error occurred : did not find the key", key);
+        return ERR_IO;
+    }
+
+    //get the string from the json object
+    const char *string_from_obj = json_object_get_string(value);
+    if (string_from_obj == NULL) {
+        //error
+        return ERR_IO;
+    }
+
+    //copy in the buffer
+    strcpy(buf, string_from_obj);
+
+    return ERR_NONE;
+}
+
+//----------------------------------------------------------------------
+int get_int(const struct json_object *obj, const char *key, int *buf) {
+    //check pointers
+    if (obj == NULL || key == NULL || buf == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    struct json_object *value = NULL;
+    if (!json_object_object_get_ex(obj, key, &value)) {
+        pps_printf("%s %s", "An error occured : did not find the key", key);
+        return ERR_IO;
+    }
+
+    //assign to the buffer the value found
+    *buf = json_object_get_int(value);
+
+    return ERR_NONE;
+}
+
+//----------------------------------------------------------------------
+int check_pow_2(uint32_t table_size) {
+    while (table_size >= 2) {
+        if (table_size % 2 != 0) break;
+        table_size = table_size / 2;
+    }
+    if (table_size != 1) {
+        //error
+        return ERR_CORRUPT_STORE;
+    }
+    return ERR_NONE;
 }
 
 
