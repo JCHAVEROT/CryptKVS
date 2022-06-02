@@ -392,4 +392,30 @@ int ckvs_local_delete(const char *filename, int optargc, char *optargv[]) {
     return ERR_NONE;
 }
 
+//----------------------------------------------------------------------
+int encrypt_secret(ckvs_memrecord_t *ckvs_mem, const char *set_value, unsigned char **encrypted, size_t *length) {
+    //check pointers
+    if (ckvs_mem == NULL || set_value == NULL || encrypted == NULL || length == NULL) {
+        //error
+        return ERR_INVALID_ARGUMENT;
+    }
+
+    //encrypt set_value content (the +1 is for the final 0 not taken into account by strlen)
+    *length = strlen(set_value) + 1 + EVP_MAX_BLOCK_LENGTH;
+    *encrypted = calloc(*length, sizeof(unsigned char));
+    if (*encrypted == NULL) {
+        //error
+        free_sve(encrypted, length);
+        return ERR_OUT_OF_MEMORY;
+    }
+    int err = ckvs_client_crypt_value(ckvs_mem, ENCRYPTION, (const unsigned char *) set_value, strlen(set_value) + 1,
+                                      *encrypted, length);
+    if (err != ERR_NONE) {
+        //error
+        free_sve(encrypted, length);
+        return err;
+    }
+
+    return ERR_NONE;
+}
 
