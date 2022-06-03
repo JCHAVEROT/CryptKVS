@@ -593,3 +593,9 @@ int ckvs_client_new(_unused const char *url, _unused int optargc, _unused char *
     return NOT_IMPLEMENTED;
 }
 
+// ======================================================================
+int ckvs_client_delete(_unused const char *url, _unused int optargc, _unused char **optargv) {
+
+    return NOT_IMPLEMENTED;
+}
+

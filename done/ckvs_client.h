@@ -54,6 +54,19 @@ int ckvs_client_set(const char *url, int optargc, char **optargv);
  */
 int ckvs_client_new(const char *url, int optargc, char **optargv);
 
+
+/**
+ * @brief Performs the 'delete' command by connecting to the remote server at url.
+ *
+ * @param url (const char*) the url of the remote CKVS server
+ * @param optargc (int) the number of optional arguments that are provided (should be 2)
+ * @param optargv (char**) the values of optional arguments that were provided
+ * @return int, error code
+ */
+int ckvs_client_delete(const char *url, int optargc, char **optargv);
+
+
+
 /**
  * @brief Retrives the ckvs from a json object.
  *

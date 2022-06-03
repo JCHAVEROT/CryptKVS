@@ -36,7 +36,7 @@ const ckvs_command_mapping commands[] = {{"stats", "- cryptkvs [<database>|<url>
                                          {"get",   "- cryptkvs [<database>|<url>] get <key> <password>\n",            &ckvs_local_get,        &ckvs_client_get },
                                          {"set",   "- cryptkvs [<database>|<url>] set <key> <password> <filename>\n", &ckvs_local_set,        &ckvs_client_set },
                                          {"new",   "- cryptkvs [<database>|<url>] new <key> <password>\n",            &ckvs_local_new,        &ckvs_client_new },
-                                         {"delete","- cryptkvs [<database>|<url>] delete <key> <password>\n",         &ckvs_local_delete,     NULL },
+                                         {"delete","- cryptkvs [<database>|<url>] delete <key> <password>\n",         &ckvs_local_delete,     &ckvs_client_delete },
                                          {"httpd", "- cryptkvs <database> httpd <url>\n",                             &ckvs_httpd_mainloop,   NULL }
 };
 
