@@ -108,7 +108,7 @@ int hex_decode(const char *in, uint8_t *buf) {
             buf[i+j] = (uint8_t) result;
         }
 
-    return (int) half_size + j;
+    return (int) (half_size + j);
 }
 
 // ----------------------------------------------------------------------
@@ -170,7 +170,7 @@ int add_string(struct json_object *obj, const char *key, const char *val) {
 }
 
 //----------------------------------------------------------------------
-int add_array(const struct json_object *obj, const char *key, const char *array[], size_t size) {
+int add_array(struct json_object *obj, const char *key, const char *array[], size_t size) {
     //check pointers
     if (obj == NULL || key == NULL || array == NULL) {
         //error
@@ -183,7 +183,7 @@ int add_array(const struct json_object *obj, const char *key, const char *array[
         json_object_array_add(arr, json_object_new_string(array[i]));
     }
 
-    return json_object_object_add((struct json_object *) obj, key, arr);
+    return json_object_object_add( obj, key, arr);
 }
 
 //----------------------------------------------------------------------

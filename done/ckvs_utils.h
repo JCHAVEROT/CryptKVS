@@ -179,7 +179,7 @@ int add_string(struct json_object *obj, const char *key, const char *val);
  * @param size
  * @return
  */
-int add_array(const struct json_object *obj, const char *key, const char *array[], size_t size);
+int add_array(struct json_object *obj, const char *key, const char *array[], size_t size);
 
 /**
  * @brief To add an inner json object associated to the key with value the given integer.

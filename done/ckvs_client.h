@@ -5,7 +5,7 @@
  */
 #pragma once
 #include <json-c/json.h>
-
+#include "ckvs_rpc.h"
 #include "ckvs_crypto.h"
 
 /* *************************************************** *
