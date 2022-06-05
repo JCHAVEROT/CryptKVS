@@ -143,8 +143,6 @@ int SHA256_from_string(const char *in, struct ckvs_sha *sha);
  */
 int get_err(char* error);
 
-
-
 /**
  * @brief Auxiliary function to easily free set_value_encrypted's dynamic allocation
  *
@@ -171,13 +169,8 @@ void free_uc(unsigned char **a);
 int add_string(struct json_object *obj, const char *key, const char *val);
 
 /**
- * @brief
- *
- * @param obj
- * @param key
- * @param array
- * @param size
- * @return
+ * @brief To add an inner json object associated to the key with value the given array.
+ * Not used but functional.
  */
 int add_array(struct json_object *obj, const char *key, const char *array[], size_t size);
 

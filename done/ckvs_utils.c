@@ -138,7 +138,6 @@ int get_err(char* error) {
     return ERR_PROTOCOL;
 }
 
-
 //----------------------------------------------------------------------
 void free_sve(unsigned char **sve, size_t *sve_length) {
     if (sve != NULL && *sve != NULL) {

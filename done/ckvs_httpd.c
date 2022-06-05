@@ -423,6 +423,7 @@ static void handle_set_call(struct mg_connection *nc, struct CKVS *ckvs, struct 
     free(data); data=NULL;
     if (err != ERR_NONE) {
         //error
+        ckvs_close(ckvs);
         mg_error_msg(nc, err);
         return;
     }
