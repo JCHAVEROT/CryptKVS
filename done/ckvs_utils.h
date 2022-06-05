@@ -199,7 +199,7 @@ int get_int(const struct json_object *obj, const char *key, int *buf);
  *
  * @param obj (const json_object*) the main json object we retrieve the information from
  * @param key (const char*) the key of the string of interest
- * @param buf (char*) buffer used to store the computed string
+ * @param buf (char*) buffer used to store the computed string, needs to already have the correct size
  * @return int, error code
  */
 int get_string(const struct json_object *obj, const char *key, char *buf);

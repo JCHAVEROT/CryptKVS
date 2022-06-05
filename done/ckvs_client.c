@@ -100,7 +100,7 @@ int ckvs_client_stats(const char *url, int optargc, _unused char **optargv) {
         //error
         ckvs_rpc_close(&conn);
         ckvs_close(&ckvs);
-        return ERR_TIMEOUT;
+        return ERR_IO;
     }
 
     //close the connection
@@ -421,6 +421,7 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     }
 
     //get the hex-encoded data
+    //note: not using the get_string function from ckvs_utils.c because the data is of unknown length
     struct json_object *data_json_obj = NULL;
     if (!json_object_object_get_ex(root_obj, "data", &data_json_obj)) {
         //error
@@ -431,9 +432,9 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //retrieve the hex-encoded string of data from the json object
     const char *data_hex = json_object_get_string(data_json_obj);
+    json_object_put(root_obj);
     if (data_hex == NULL) {
         //error
-        json_object_put(root_obj);
         return ERR_IO;
     }
 
@@ -441,7 +442,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     unsigned char *encrypted = calloc(strlen(data_hex) / 2 + 2, sizeof(unsigned char)); //because for a hex-string of length L being odd, its hex-decoded string will be of length (L/2)+1
     if (encrypted == NULL) {
         //error
-        json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -458,7 +458,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     if (decrypted == NULL) {
         //error
         free(encrypted); encrypted = NULL;
-        json_object_put(root_obj);
         return ERR_OUT_OF_MEMORY;
     }
 
@@ -469,11 +468,10 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         //error
         free(encrypted); encrypted = NULL;
         free_uc(&decrypted);
-        json_object_put(root_obj);
         return err;
     }
 
-    //check if we have to end the lecture
+    //print the decrypted secret abd check if we have to end the lecture
     for (size_t i = 0; i < decrypted_len; ++i) {
         if ((iscntrl(decrypted[i]) && decrypted[i] != '\n')) break;
         pps_printf("%c", decrypted[i]);
@@ -481,7 +479,6 @@ int do_client_get(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //free all objects
     free(encrypted); encrypted = NULL;
-    json_object_put(root_obj);
     free_uc(&decrypted);
 
     return ERR_NONE;
@@ -543,9 +540,14 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //create the new json object
     struct json_object *object = json_object_new_object();
+    if (object == NULL) {
+        //error
+        free(encrypted_hex); encrypted_hex = NULL;
+        return ERR_OUT_OF_MEMORY;
+    }
 
     //add the c2 hex-encoded string to the json
-    err = json_object_object_add(object, "c2", json_object_new_string(c2_hex));
+    err = add_string(object, "c2", c2_hex);
     if (err != ERR_NONE) {
         //error
         free(encrypted_hex); encrypted_hex = NULL;
@@ -555,9 +557,9 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
 
     //add the data hex-encoded and encrypted string to the json
     err = add_string(object, "data", encrypted_hex);
+    free(encrypted_hex); encrypted_hex = NULL;
     if (err != ERR_NONE) {
         //error
-        free(encrypted_hex); encrypted_hex = NULL;
         json_object_put(object);
         return err;
     }
@@ -565,7 +567,7 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
     //serialize the json onject
     size_t length = 0;
     const char *json_string = json_object_to_json_string_length(object, JSON_C_TO_STRING_PRETTY, &length);
-    free(encrypted_hex); encrypted_hex = NULL;
+    json_object_put(object);
 
     //create the post with the null character at the end
     char* post = calloc(length + 1, sizeof(char));
@@ -574,7 +576,6 @@ int do_client_set(struct ckvs_connection *conn, ckvs_memrecord_t *ckvs_mem, char
         return ERR_OUT_OF_MEMORY;
     }
     strncpy(post, json_string, length);
-    json_object_put(object);
 
     //call ckvs_post with the latterly computed arguments
     err = ckvs_post(conn, url, post);

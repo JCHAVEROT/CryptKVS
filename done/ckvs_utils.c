@@ -165,7 +165,13 @@ int add_string(struct json_object *obj, const char *key, const char *val) {
         return ERR_INVALID_ARGUMENT;
     }
 
-    return json_object_object_add(obj, key, json_object_new_string(val));
+    struct json_object* sub_obj = json_object_new_string(val);
+    if (sub_obj == NULL) {
+        //error
+        return ERR_OUT_OF_MEMORY;
+    }
+
+    return json_object_object_add(obj, key, sub_obj);
 }
 
 //----------------------------------------------------------------------
@@ -177,12 +183,25 @@ int add_array(struct json_object *obj, const char *key, const char *array[], siz
     }
 
     struct json_object *arr = json_object_new_array();
-
-    for (size_t i = 0; i < size; i++) {
-        json_object_array_add(arr, json_object_new_string(array[i]));
+    if (arr == NULL) {
+        //error
+        return ERR_OUT_OF_MEMORY;
     }
 
-    return json_object_object_add( obj, key, arr);
+    for (size_t i = 0; i < size; i++) {
+        struct json_object* sub_obj = json_object_new_string(array[i]);
+        if (sub_obj == NULL) {
+            //error
+            return ERR_OUT_OF_MEMORY;
+        }
+        int err = json_object_array_add(arr, sub_obj);
+        if (err != ERR_NONE) {
+            //error
+            return err;
+        }
+    }
+
+    return json_object_object_add(obj, key, arr);
 }
 
 //----------------------------------------------------------------------
@@ -192,8 +211,13 @@ int add_int(struct json_object *obj, const char *key, int val) {
         //error
         return ERR_INVALID_ARGUMENT;
     }
+    struct json_object* sub_obj = json_object_new_int(val);
+    if (sub_obj == NULL) {
+        //error
+        return ERR_OUT_OF_MEMORY;
+    }
 
-    return json_object_object_add(obj, key, json_object_new_int(val));
+    return json_object_object_add(obj, key, sub_obj);
 }
 
 //----------------------------------------------------------------------
