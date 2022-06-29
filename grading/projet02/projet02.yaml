@@ -120,4 +120,4 @@
       argc/argv  get:                    3            # max 3,
       argc/argv  set:                     3           # max 3,
 - style:      0     # max 2, min -2, (normal = 0),
-- bonus/malus:  0   # max 5, min -5, (normal = 0),
+- bonus/malus:  1   # max 5, min -5, (normal = 0), PRIu32 dans ckvs_util.c
