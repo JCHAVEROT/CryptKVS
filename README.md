@@ -124,3 +124,8 @@ Ce protocole a un certain nombre de propriétés intéressantes, disponible dans
 * Semaine 12 : command "set"/network and "new"/network. (client-side and server side).  For simplicity, "set" is implemented using "GET" rather than "POST" (small secrets only); les étudiants plus avancées peuvent par contre bien sûr implémenter un « POST ».
 
 * **Rendu final :** correspond au travail des semaines 4 à 14 ; à rendre en fin de semestre.
+
+
+Auteurs: Albert Troussard, Jérémy Chaverot.
+
+Date: Mars-Juin 2022.
