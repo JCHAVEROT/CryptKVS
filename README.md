@@ -1,3 +1,12 @@
+## Information
+
+Projet réalisé dans le cadre du cours Projet Programmation Système ([CS-212](https://edu.epfl.ch/coursebook/fr/projet-programmation-systeme-CS-212)) dispensé à l'EPFL.
+
+Auteurs: Albert Troussard, Jérémy Chaverot.
+
+Date: Mars-Juin 2022.
+
+
 ## Contexte
 
 Le but premier de ce projet est de vous faire développer un large programme en C sur une thématique « système ».  
@@ -124,10 +133,3 @@ Ce protocole a un certain nombre de propriétés intéressantes, disponible dans
 * Semaine 12 : command "set"/network and "new"/network. (client-side and server side).  For simplicity, "set" is implemented using "GET" rather than "POST" (small secrets only); les étudiants plus avancées peuvent par contre bien sûr implémenter un « POST ».
 
 * **Rendu final :** correspond au travail des semaines 4 à 14 ; à rendre en fin de semestre.
-
-
-Projet réalisé dans le cadre du cours Projet Programmation Système ([CS-212](https://edu.epfl.ch/coursebook/fr/projet-programmation-systeme-CS-212)) dispensé à l'EPFL.
-
-Auteurs: Albert Troussard, Jérémy Chaverot.
-
-Date: Mars-Juin 2022.
