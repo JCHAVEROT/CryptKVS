@@ -7,7 +7,7 @@ Auteurs: Albert Troussard, Jérémy Chaverot.
 Date: Mars-Juin 2022.
 
 
-## Contexte
+## Contexte (cr. Jean-Cédric Chappelier)
 
 Le but premier de ce projet est de vous faire développer un large programme en C sur une thématique « système ».  
 
